@@ -1,10 +1,16 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
+import {DocumentSnapshot} from "firebase-functions/lib/providers/firestore";
 // import Firestore = admin.firestore.Firestore;
 // import {settings} from "cluster";
 
 // Start writing Firebase Functions
 // https://firebase.google.com/docs/functions/typescript
+
+// TODO: Change test format.
+// TODO: change QUESTION to QUESTION_S as array always
+
+
 
 declare global {
     interface Number {
@@ -30,7 +36,7 @@ declare global {
 const app = admin.initializeApp();
 const db = admin.firestore(app);
 
-const correctAnswers = [['graph_x_6','graph_v_7','graph_a_3'],
+const correctAnswers_1_1 = [['graph_x_6','graph_v_7','graph_a_3'],
     ['graph_x_5','graph_v_5','graph_a_2'],
     ['graph_x_2','graph_x_1','graph_v_1','graph_a_1'],
     ['graph_x_3','graph_v_3','graph_a_1'],
@@ -47,7 +53,7 @@ const correctAnswers = [['graph_x_6','graph_v_7','graph_a_3'],
 exports.createAnswerMap = functions.https.onRequest(async (req, res) => {
     let answersMap: Map<string, Array<string>> = new Map();
 
-    correctAnswers.forEach((row) => {
+    correctAnswers_1_1.forEach((row) => {
         row.forEach((col) => {
             let list: Array<string> = [];
             if(answersMap.has(col))
@@ -68,11 +74,12 @@ exports.createAnswerMap = functions.https.onRequest(async (req, res) => {
     answersMap.forEach((a,b) => {
         data[b] = a;
     });
-   await db.collection('test_1.1').doc('answer_map').set(data).then(ref => {
+   await db.collection('answer_map').doc('test_1.1').set(data).then(ref => {
        res.status(200).send("Answer map added to firestore database!")
    })
 });
-
+// exports.getTest = functions.region("europe-west1").https.onRequest(async (data, res) => {
+//
 exports.getTest = functions.region("europe-west1").https.onCall(async (data, context) => {
     /*
     // Message text passed from the client.
@@ -87,56 +94,122 @@ exports.getTest = functions.region("europe-west1").https.onCall(async (data, con
     if(data != undefined && data.count != undefined)
         count = data.count;
 
+    let test = {tests: Array<any>()};
 
-    let test = {tests: [ {
-            type: "graph2graph",
-            test_id: 0,
-            title: "",
-            question: {
-                picture: "",
-                "correct_id": 0
-            },
-            answers: Array<Object>()
-        }]};
+    return await db.collection('test_1.1').doc('answer_map').get().then(async doc => {
+        test.tests[0] = getG2Gtest(count, 1, doc);
+        test.tests[1] = getG2Gtest(count, 2, doc);
+        return await db.collection('test_1.3').doc('answer_map').get().then(doc2 => {
+            test.tests[2] = getG2Stest(doc2);
 
-    return await db.collection('test_1.1').doc('answer_map').get().then(doc => {
-        const answer_map = doc.data() as any;
-        const answer_keys = Object.keys(answer_map);
-        const usedPics = Array<string>();
+            return JSON.stringify(test);
+        });
+    });
 
-        const corr_key = answer_keys.getRandom();
-        const correct_answers = answer_map[corr_key] as Array<string>;
-        answer_keys.splice(answer_keys.indexOf(corr_key), 1); // Delete choosed key from array of keys
+});
 
-        test.tests[0].question.picture = correct_answers[correct_answers.length.getRandom()];
-        usedPics.push(test.tests[0].question.picture );
-        const corr_id = count.getRandom();
-        test.tests[0].question.correct_id = corr_id;
+function getG2Stest(doc: DocumentSnapshot) {
+    let count = 6;
+    let test = {
+        type: "state2graph",
+        test_id: 0,
+        title: "",
+        question: Array<Object>(),
+        answers: Array<Object>()
+    } as any;
 
-        let pic: string;
+    const answer_map = doc.data() as any;
+    const answer_keys = Object.keys(answer_map);
+    const usedPics = Array<string>();
+    const corrIds = Array<Number>();
+
+    let pic: string;
+    let corr_id: number;
+    let correct_answers: Array<string>;
+    for(let i = 0; i < 4; i++) {
+        do pic = answer_keys.getRandom();
+        while (usedPics.indexOf(pic) != -1);
+        do corr_id = count.getRandom();
+        while (corrIds.indexOf(corr_id) != -1);
+        correct_answers = answer_map[pic];
+        test.question[i] = {
+            correct_id: corr_id,
+            picture_name: pic
+        };
+        test.answers[corr_id] = {
+            id: corr_id,
+            state: correct_answers.getRandom()
+        };
+        usedPics.push(pic);
+        corrIds.push(corr_id);
+        answer_keys.splice(answer_keys.indexOf(pic), 1); // Delete choosed key from array of keys
+    }
+    for(let i = 0; i < count; i++) {
+        if(corrIds.indexOf(i) == -1) {
+            pic = answer_keys.getRandom();
+            test.answers[i] = {
+                id: i,
+                state: (answer_map[pic] as Array<string>).getRandom()
+            };
+        }
+    }
+
+    return test;
+}
+function getG2Gtest(count: number, quest_type: number, doc: DocumentSnapshot): any {
+    let test = {
+        type: "graph2graph",
+        test_id: 0,
+        title: "",
+        question: {
+            picture: "",
+            correct_ids: Array<any>()
+        },
+        answers: Array<Object>()
+    } as any;
+    if (quest_type == 2)
+        test.type = "graph2graph2";
+
+    const answer_map = doc.data() as any;
+    const answer_keys = Object.keys(answer_map);
+    const usedPics = Array<string>();
+
+    const corr_key = answer_keys.getRandom();
+    const correct_answers = answer_map[corr_key] as Array<string>;
+    answer_keys.splice(answer_keys.indexOf(corr_key), 1); // Delete choosed key from array of keys
+
+    test.question.picture = corr_key;
+    usedPics.push(test.question.picture);
+    let corr_id;
+    for(let i = 0; i < quest_type; i++) {
+        do corr_id = count.getRandom();
+        while (test.question.correct_ids.indexOf(corr_id) != -1);
+        test.question.correct_ids.push(corr_id);
+    }
+    let pic: string;
+    for(let i = 0; i < quest_type; i++) {
         do pic = correct_answers[correct_answers.length.getRandom()];
         while (usedPics.indexOf(pic) != -1);
         usedPics.push(pic);
-        test.tests[0].answers[corr_id] = {
-            id: corr_id,
+        test.answers[test.question.correct_ids[i]] = {
+            id: test.question.correct_ids[i],
             picture_name: pic
         };
+    }
+    let cache_answer_arr;
+    for (let i = 0; i < count; i++) {
+        if ( test.question.correct_ids.indexOf(i) == -1) {
+            do {
+                cache_answer_arr = answer_map[answer_keys.getRandom()];
+                pic = cache_answer_arr[cache_answer_arr.length.getRandom()];
+            } while (usedPics.indexOf(pic) != -1 || correct_answers.indexOf(pic) != -1);
+            usedPics.push(pic);
 
-        let cache_answer_arr;
-        for (let i = 0; i < count; i++) {
-            if (i != corr_id) {
-                do {
-                    cache_answer_arr = answer_map[answer_keys.getRandom()];
-                    pic = cache_answer_arr[cache_answer_arr.length.getRandom()];
-                } while (usedPics.indexOf(pic) != -1 || correct_answers.indexOf(pic) != -1);
-                usedPics.push(pic);
-
-                test.tests[0].answers[i] = {id: i, picture_name: pic};
-            }
+            test.answers[i] = {id: i, picture_name: pic};
         }
-        return JSON.stringify(test);
-    });
-});
+    }
+    return test;
+}
 
 // exports.getTest = functions.region("europe-west1").https.onRequest(async (req, res) => {
 //     let count = 8;
