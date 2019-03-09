@@ -44,12 +44,6 @@ const correctAnswers_1_1 = [['graph_x_6','graph_v_7','graph_a_3'],
     ['graph_x_8','graph_v_6','graph_a_3'],
     ['graph_x_4','graph_v_2','graph_a_1']];
 
-// const answersTotalCount = {
-//     graph_x: 8,
-//     graph_v: 7,
-//     graph_a: 3
-// };
-
 exports.createAnswerMap = functions.https.onRequest(async (req, res) => {
     let answersMap: Map<string, Array<string>> = new Map();
 
@@ -78,18 +72,7 @@ exports.createAnswerMap = functions.https.onRequest(async (req, res) => {
        res.status(200).send("Answer map added to firestore database!")
    })
 });
-// exports.getTest = functions.region("europe-west1").https.onRequest(async (data, res) => {
-//
 exports.getTest = functions.region("europe-west1").https.onCall(async (data, context) => {
-    /*
-    // Message text passed from the client.
-    const text = data.text;
-    // Authentication / user information is automatically added to the request.
-    const uid = context.auth.uid;
-    const name = context.auth.token.name || null;
-    const picture = context.auth.token.picture || null;
-    const email = context.auth.token.email || null;
-    */
     let count = 8;
     if(data != undefined && data.count != undefined)
         count = data.count;
@@ -211,66 +194,23 @@ function getG2Gtest(count: number, quest_type: number, doc: DocumentSnapshot): a
     return test;
 }
 
-// exports.getTest = functions.region("europe-west1").https.onRequest(async (req, res) => {
-//     let count = 8;
-//     if(req.query.answers_count != undefined)
-//         count = req.query.answers_count;
 //
-//     let test = {tests: [ {
-//             type: "graph2graph",
-//             test_id: 0,
-//             title: "",
-//             question: {
-//                 picture: "",
-//                 "correct_id": 0
-//             },
-//             answers: Array<Object>()
-//         }]};
+// exports.getTestNew = functions.region("europe-west1").https.onCall((data, context) => {
 //
-//     await db.collection('test_1.1').doc('answer_map').get().then(doc => {
-//         console.log("got answer map");
-//         const answer_map = doc.data() as any;
-//         const answer_keys = Object.keys(answer_map);
-//         const usedPics = Array<string>();
+//     let functions = [
+//         {
+//             from: [0, 5],
+//             to: [5, 0],
+//             type: "arc"
+//         },
+//         {
+//             from: [5, 0],
+//             to: [6, 2],
+//             type: "line"
+//         },
+//     ];
 //
-//         const corr_key = answer_keys.getRandom();
-//         const correct_answers = answer_map[corr_key];
-//         answer_keys.splice(answer_keys.indexOf(corr_key), 1); // Delete choosed key from array of keys
+//     let test = {
 //
-//         test.tests[0].question.picture = correct_answers[correct_answers.length.getRandom()];
-//         usedPics.push(test.tests[0].question.picture );
-//         const corr_id = count.getRandom();
-//         test.tests[0].question.correct_id = corr_id;
-//         console.log("corr_id: "+corr_id);
-//
-//         let pic: string;
-//         do pic = correct_answers[correct_answers.length.getRandom()];
-//         while (usedPics.indexOf(pic) != -1);
-//         usedPics.push(pic);
-//         test.tests[0].answers[corr_id] = {
-//             id: corr_id,
-//             picture_name: pic
-//         };
-//
-//         let cache_answer_arr;
-//         for(let i = 0; i < count; i++) {
-//             console.log("for iteration: " + i);
-//             if (i != corr_id) {
-//                 do {
-//                     // console.log("second do started");
-//                     cache_answer_arr = answer_map[answer_keys.getRandom()];
-//                     pic = cache_answer_arr[cache_answer_arr.length.getRandom()];
-//                 } while (usedPics.indexOf(pic) != -1);
-//                 usedPics.push(pic);
-//
-//                 test.tests[0].answers[i] = {id: i, picture_name: pic};
-//             }
-//         }
-//         console.log("huy");
-//         res.status(200).send(test);
-//     });
-// });
-
-// export const helloWorld = functions.https.onRequest((request, response) => {
-//  response.send("Hello from Firebase!");
+//     } as any;
 // });
