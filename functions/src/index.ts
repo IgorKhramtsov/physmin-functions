@@ -131,13 +131,16 @@ function getG2Gtest(test_id: number, answerCount: number) {
         answers: Array<Object>()
     } as any;
     let count = 8;
+    if(answerCount == 2) test.type = "graph2graph2";
 
     test.question = getQuestionFunction();
+    test.question.correctID = Array<number>();
     if (answerCount == 1) {
         let correctID = count.getRandom();
 
         test.question.correctID = [correctID];
         test.answers[correctID] = getCorrectFunction(test.question);
+        test.answers[correctID].id = correctID;
         for (let i = 0; i < count; i++)
             if (i != correctID)
                 test.answers[i] = getWrongFunction(test.question);
@@ -148,10 +151,14 @@ function getG2Gtest(test_id: number, answerCount: number) {
 
 
         test.answers[test.question.correctID[0]] = getCorrectFunction(test.question);
+        test.answers[test.question.correctID[0]].id = test.question.correctID[0];
         test.answers[test.question.correctID[1]] = getCorrectFunction(test.question, test.answers[test.question.correctID[0]]);
+        test.answers[test.question.correctID[0]].id = test.question.correctID[1];
         for (let i = 0; i < count; i++)
-            if (test.question.correctID.indexOf(i) == -1)
+            if (test.question.correctID.indexOf(i) == -1) {
                 test.answers[i] = getWrongFunction(test.question);
+                test.answers[i].id = i;
+            }
     }
     return test;
 }
@@ -223,8 +230,8 @@ function getQuestionFunction(prevFunc?: Array<any>): any {
 
 function getCorrectFunction(questionFunc: any, usedFunc?: any) {
     let availableAxeses = axesIndex.slice();
-    delete availableAxeses[availableAxeses.indexOf(questionFunc.funcType)];
-    if (usedFunc) delete availableAxeses[availableAxeses.indexOf(usedFunc.funcType)];
+    availableAxeses = availableAxeses.slice(availableAxeses.indexOf(questionFunc.funcType), 1);
+    if (usedFunc)  availableAxeses = availableAxeses.slice(availableAxeses.indexOf(usedFunc.funcType), 1);
     let _params = JSON.parse(JSON.stringify(questionFunc.params));
 
     let pickedAxes = availableAxeses.getRandom();
@@ -236,11 +243,11 @@ function getCorrectParams(pickedFunc: any) {
     let params = pickedFunc.params;
 
     if (axeses.indexOf("x") == -1 && pickedFunc.funcType == "x") {
-        do params.x = getRandomFromBound(X);
+        do params.x = 1;
         while (params.x == 0);
     }
     if (axeses.indexOf("v") == -1 && (pickedFunc.funcType == "x" || pickedFunc.funcType == "v")) {
-        do params.v = getRandomFromBound(X);
+        do params.v = 2;
         while (params.v == 0);
     }
     return pickedFunc;
@@ -248,7 +255,7 @@ function getCorrectParams(pickedFunc: any) {
 
 function getWrongFunction(questionFunc: any) {
     let availableAxeses = axesIndex.slice();
-    delete availableAxeses[availableAxeses.indexOf(questionFunc.funcType)];
+    availableAxeses = availableAxeses.slice(availableAxeses.indexOf(questionFunc.funcType), 1);
     let _params = JSON.parse(JSON.stringify(questionFunc.params));
 
     let pickedAxes = availableAxeses.getRandom();
@@ -335,6 +342,7 @@ exports.getTestNew = functions.region("europe-west1").https.onCall((data, contex
     testsList.tests[6] = getG2Gtest(6, 2);
     testsList.tests[7] = getG2Gtest(7, 2);
 
+    return JSON.stringify(testsList);
 });
 
 
