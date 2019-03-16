@@ -7,12 +7,15 @@ import * as functions from 'firebase-functions';
 declare global {
     interface Number {
         toFloor(): number;
+
         getRandom(): number;
+
         getRandomF(): number;
     }
 
     interface Array<T> {
         getRandom(): T;
+
         deleteItem(item: T): any;
     }
 }
@@ -28,15 +31,15 @@ Number.prototype.getRandomF = function (this: number): number {
 Array.prototype.getRandom = function <T>(this: T[]): T {
     return this[this.length.getRandom()];
 };
-Array.prototype.deleteItem = function<T> (this: T[], item: T):any {
-    if(this.indexOf(item) != -1)
+Array.prototype.deleteItem = function <T>(this: T[], item: T): any {
+    if (this.indexOf(item) != -1)
         this.splice(this.indexOf(item), 1);
 };
 
 const axisIndex = [
     'x', 'v', 'a'
 ];
-const  bounds = {
+const bounds = {
     x: [-2, 2], // x
     v: [-1, 1], // v
     a: [-0.5, 0.5], // a
@@ -48,19 +51,21 @@ const A = "a";
 
 function getRandomFromBound(axis: string) {
     let value = getRandomFromRange(bounds[axis][0], bounds[axis][1]);
-    if(Math.abs(value) <= 0.3)
+    if (Math.abs(value) <= 0.3)
         value = 0;
     return value
 }
+
 function getRandomNonZeroFromBound(axis: string): number {
     let value = getRandomFromRange(bounds[axis][0], bounds[axis][1]);
-    if(Math.abs(value) <= 0.3)
+    if (Math.abs(value) <= 0.3)
         value = 0;
 
-    if(value == 0)
+    if (value == 0)
         return getRandomNonZeroFromBound(axis);
     return value
 }
+
 function getRandomFromRange(min: number, max: number) {
     return min + (max - min).getRandomF();
 }
@@ -69,7 +74,7 @@ class FunctionObj {
     params: any;
     funcType: string;
 
-    constructor(_functType: string,  _params: any) {
+    constructor(_functType: string, _params: any) {
         //this.params = {x: _x, v: _v, a: _a};
         this.params = _params;
 
@@ -100,6 +105,10 @@ class FunctionObj {
     }
 }
 
+function withChance(value: number) {
+    return Math.random() <= value;
+}
+
 function getG2Gtest(test_id: number, answerCount: number) {
     let test = {
         type: "graph2graph",
@@ -110,7 +119,7 @@ function getG2Gtest(test_id: number, answerCount: number) {
     } as any;
     let count = 6;
 
-    if(answerCount == 2)
+    if (answerCount == 2)
         test.type = "graph2graph2";
 
     test.question.graph = getQuestionFunction();
@@ -189,10 +198,10 @@ function generateParams() {
     let x, v, a = 0;
     x = getRandomFromBound(X);
     v = getRandomFromBound(V);
-    if (Math.round(Math.random()))
+    if (withChance(0.5))
         a = getRandomFromBound(A);
 
-    if(x == 0 && v == 0 && a == 0)
+    if (x == 0 && v == 0 && a == 0)
         generateParams();
     // else if(x == 0 && v == 0 && a != 0) // if only 1 value, make it more clear
     //     a *= 10;
@@ -209,7 +218,7 @@ function getQuestionFunction(prevFunc?: Array<FunctionObj>): FunctionObj {
 
     if (prevFunc)
         for (let func of prevFunc)
-            if(_function.equalTo(func))
+            if (_function.equalTo(func))
                 return getQuestionFunction(prevFunc);
 
     switch (funcType) {
@@ -265,14 +274,14 @@ function getIncorrectFunction(questionFunc: FunctionObj, usedFuncs?: Array<any>,
     makeIncorrectParams(incorrectFunction);
     incorrectFunction.clearParams();
 
-    if(usedFuncs)
-        for(let answer of usedFuncs) {
-            if(answer == undefined)
+    if (usedFuncs)
+        for (let answer of usedFuncs) {
+            if (answer == undefined)
                 continue;
-            if(recurseCount && recurseCount > 50)
+            if (recurseCount && recurseCount > 50)
                 console.log("qft: " + questionFunc.funcType + " ift: " + incorrectFunction.funcType);
             if (incorrectFunction.equalTo(answer.graph as FunctionObj))
-                return getIncorrectFunction(questionFunc, usedFuncs, recurseCount? recurseCount+1: 1);
+                return getIncorrectFunction(questionFunc, usedFuncs, recurseCount ? recurseCount + 1 : 1);
         }
 
     return incorrectFunction;
@@ -287,10 +296,10 @@ function makeIncorrectParams(pickedFunc: FunctionObj) {
         switch (Math.sign(params[p_key])) {
             case 1:
             case -1:
-                params[p_key] = Math.round(Math.random()) ? -params[p_key] : 0;
+                params[p_key] = withChance(0.5) ? -params[p_key] : 0;
                 break;
             case 0:
-                params[p_key] = Math.round(Math.random()) ? 1 : -1;
+                params[p_key] = withChance(0.5) ? 1 : -1;
                 break;
         }
         params[p_key] = getRandomNonZeroFromBound(p_key) * Math.sign(params[p_key]);
@@ -298,8 +307,8 @@ function makeIncorrectParams(pickedFunc: FunctionObj) {
 
     let a: string;
     let b: string;
-    if(Math.sign(params["v"]) == Math.sign(params["a"]) && Math.sign(params["a"]) != 0) {
-        if (Math.floor(Math.random())) {
+    if (Math.sign(params["v"]) == Math.sign(params["a"]) && Math.sign(params["a"]) != 0) {
+        if (withChance(0.5)) {
             a = "v";
             b = "a";
         } else {
@@ -307,20 +316,19 @@ function makeIncorrectParams(pickedFunc: FunctionObj) {
             b = "v";
         }
 
-        params[a] = Math.round(Math.random()) ? -params[b] : 0;
+        params[a] = withChance(0.5) ? -params[b] : 0;
         params[a] = getRandomNonZeroFromBound(a) * Math.sign(params[b]);
     }
 
 
-
     // Add deficit params
-    if(pickedFunc.funcType == "x") {
+    if (pickedFunc.funcType == "x") {
         if (paramsKeys.indexOf("x") == -1)
             params.x = getRandomNonZeroFromBound(X);
         if (paramsKeys.indexOf("v") == -1)
             params.v = getRandomFromBound(V);
     }
-    if(pickedFunc.funcType == "v") {
+    if (pickedFunc.funcType == "v") {
         params.v = getRandomNonZeroFromBound(V);
     }
     // makeClearer(pickedFunc);
