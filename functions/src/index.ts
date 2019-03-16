@@ -103,6 +103,113 @@ class FunctionObj {
                 break;
         }
     }
+
+    getCorrectFunction(usedFunc?: any) {
+        let availableAxises = axisIndex.slice();
+        availableAxises.deleteItem(this.funcType);
+        if (usedFunc) availableAxises.deleteItem(usedFunc.funcType);
+
+        let newParams = JSON.parse(JSON.stringify(this.params));
+        let pickedAxis = availableAxises.getRandom();
+
+        let correctFunction = new FunctionObj(pickedAxis, newParams);
+        correctFunction.makeCorrectParams();
+        return correctFunction;
+    }
+
+    makeCorrectParams() {
+        let axises = Object.keys(this.params);
+        let params = this.params;
+
+        if (axises.indexOf("x") == -1 && this.funcType == "x") {
+            do params.x = getRandomFromBound(X);
+            while (params.x == 0);
+        }
+        if (axises.indexOf("v") == -1 && (this.funcType == "x" || this.funcType == "v")) {
+            do params.v = getRandomFromBound(V);
+            while (params.v == 0);
+        }
+        this.makeClearer();
+    }
+
+    getIncorrectFunction(usedFuncs?: Array<any>, recurseCount?: number): FunctionObj {
+        let availableAxises = axisIndex.slice();
+        availableAxises.deleteItem(this.funcType);
+
+        let newParams = JSON.parse(JSON.stringify(this.params));
+        let pickedAxis = availableAxises.getRandom();
+
+        let incorrectFunction = new FunctionObj(pickedAxis, newParams);
+        incorrectFunction.makeIncorrectParams();
+        incorrectFunction.clearParams();
+
+        if (usedFuncs)
+            for (let answer of usedFuncs) {
+                if (answer == undefined)
+                    continue;
+                if (recurseCount && recurseCount > 50)
+                    console.log("qft: " + this.funcType + " ift: " + incorrectFunction.funcType);
+                if (incorrectFunction.equalTo(answer.graph as FunctionObj))
+                    return this.getIncorrectFunction(usedFuncs, recurseCount ? recurseCount + 1 : 1);
+            }
+
+        return incorrectFunction;
+    }
+
+    makeIncorrectParams() {
+        let params = this.params;
+        let paramsKeys = Object.keys(params);
+
+        // Invert current params
+        for (let p_key of paramsKeys) {
+            switch (Math.sign(params[p_key])) {
+                case 1:
+                case -1:
+                    params[p_key] = withChance(0.5) ? -params[p_key] : 0;
+                    break;
+                case 0:
+                    params[p_key] = withChance(0.5) ? 1 : -1;
+                    break;
+            }
+            params[p_key] = getRandomNonZeroFromBound(p_key) * Math.sign(params[p_key]);
+        }
+
+        let a: string;
+        let b: string;
+        if (Math.sign(params["v"]) == Math.sign(params["a"]) && Math.sign(params["a"]) != 0) {
+            if (withChance(0.5)) {
+                a = "v";
+                b = "a";
+            } else {
+                a = "a";
+                b = "v";
+            }
+
+            params[a] = withChance(0.5) ? -params[b] : 0;
+            params[a] = getRandomNonZeroFromBound(a) * Math.sign(params[b]);
+        }
+
+
+        // Add deficit params
+        if (this.funcType == "x") {
+            if (paramsKeys.indexOf("x") == -1)
+                params.x = getRandomNonZeroFromBound(X);
+            if (paramsKeys.indexOf("v") == -1)
+                params.v = getRandomFromBound(V);
+        }
+        if (this.funcType == "v") {
+            params.v = getRandomNonZeroFromBound(V);
+        }
+        // makeClearer(this);
+    }
+
+    makeClearer() {
+        let params = this.params;
+        if (params.x == 0 && params.v == 0 && params.a != 0) // if only 1 value, make it more clear
+            params.a *= 10;
+        else if (params.x == 0 && params.a == 0 && params.v != 0)
+            params.v *= 3;
+    }
 }
 
 function withChance(value: number) {
@@ -117,47 +224,47 @@ function getG2Gtest(test_id: number, answerCount: number) {
         question: {} as any,
         answers: Array<any>()
     } as any;
-    let count = 6;
+    let count = 6,
+        question = test.question,
+        answers = test.answers;
 
-    if (answerCount == 2)
-        test.type = "graph2graph2";
-
-    test.question.graph = getQuestionFunction();
-    test.question.correctID = Array<any>();
+    question.graph = getQuestionFunction();
+    question.correctID = Array<any>();
     if (answerCount == 1) {
         let correctID = count.getRandom();
 
-        test.question.correctID[0] = correctID;
-        test.answers[correctID] = {
-            graph: getCorrectFunction(test.question.graph),
+        question.correctID[0] = correctID;
+        answers[correctID] = {
+            graph: question.graph.getCorrectFunction(),
             id: correctID
         };
         for (let i = 0; i < count; i++) {
             if (i == correctID)
                 continue;
-            test.answers[i] = {
-                graph: getIncorrectFunction(test.question.graph, test.answers),
+            answers[i] = {
+                graph: question.graph.getIncorrectFunction(answers),
                 id: i
             };
         }
     } else {
-        test.question.correctID[0] = count.getRandom();
-        do test.question.correctID[1] = count.getRandom();
-        while (test.question.correctID[1] == test.question.correctID[0]);
+        test.type = "graph2graph2";
+        question.correctID[0] = count.getRandom();
+        do question.correctID[1] = count.getRandom();
+        while (question.correctID[1] == question.correctID[0]);
 
-        test.answers[test.question.correctID[0]] = {
-            graph: getCorrectFunction(test.question.graph),
-            id: test.question.correctID[0]
+        answers[question.correctID[0]] = {
+            graph: question.graph.getCorrectFunction(),
+            id: question.correctID[0]
         };
-        test.answers[test.question.correctID[1]] = {
-            graph: getCorrectFunction(test.question.graph, test.answers[test.question.correctID[0]].graph),
-            id: test.question.correctID[1]
+        answers[question.correctID[1]] = {
+            graph: question.graph.getCorrectFunction(answers[question.correctID[0]].graph),
+            id: question.correctID[1]
         };
         for (let i = 0; i < count; i++) {
-            if (test.question.correctID.indexOf(i) != -1)
+            if (question.correctID.indexOf(i) != -1)
                 continue;
-            test.answers[i] = {
-                graph: getIncorrectFunction(test.question.graph, test.answers),
+            answers[i] = {
+                graph: question.graph.getIncorrectFunction(answers),
                 id: i
             };
         }
@@ -233,113 +340,6 @@ function getQuestionFunction(prevFunc?: Array<FunctionObj>): FunctionObj {
             return _function;
     }
     return _function;
-}
-
-function getCorrectFunction(questionFunc: FunctionObj, usedFunc?: any) {
-    let availableAxises = axisIndex.slice();
-    availableAxises.deleteItem(questionFunc.funcType);
-    if (usedFunc) availableAxises.deleteItem(usedFunc.funcType);
-
-    let newParams = JSON.parse(JSON.stringify(questionFunc.params));
-    let pickedAxis = availableAxises.getRandom();
-
-    let correctFunction = new FunctionObj(pickedAxis, newParams);
-    makeCorrectParams(correctFunction);
-    return correctFunction;
-}
-
-function makeCorrectParams(pickedFunc: FunctionObj) {
-    let axises = Object.keys(pickedFunc.params);
-    let params = pickedFunc.params;
-
-    if (axises.indexOf("x") == -1 && pickedFunc.funcType == "x") {
-        do params.x = getRandomFromBound(X);
-        while (params.x == 0);
-    }
-    if (axises.indexOf("v") == -1 && (pickedFunc.funcType == "x" || pickedFunc.funcType == "v")) {
-        do params.v = getRandomFromBound(V);
-        while (params.v == 0);
-    }
-    makeClearer(pickedFunc);
-}
-
-function getIncorrectFunction(questionFunc: FunctionObj, usedFuncs?: Array<any>, recurseCount?: number): FunctionObj {
-    let availableAxises = axisIndex.slice();
-    availableAxises.deleteItem(questionFunc.funcType);
-
-    let newParams = JSON.parse(JSON.stringify(questionFunc.params));
-    let pickedAxis = availableAxises.getRandom();
-
-    let incorrectFunction = new FunctionObj(pickedAxis, newParams);
-    makeIncorrectParams(incorrectFunction);
-    incorrectFunction.clearParams();
-
-    if (usedFuncs)
-        for (let answer of usedFuncs) {
-            if (answer == undefined)
-                continue;
-            if (recurseCount && recurseCount > 50)
-                console.log("qft: " + questionFunc.funcType + " ift: " + incorrectFunction.funcType);
-            if (incorrectFunction.equalTo(answer.graph as FunctionObj))
-                return getIncorrectFunction(questionFunc, usedFuncs, recurseCount ? recurseCount + 1 : 1);
-        }
-
-    return incorrectFunction;
-}
-
-function makeIncorrectParams(pickedFunc: FunctionObj) {
-    let params = pickedFunc.params;
-    let paramsKeys = Object.keys(params);
-
-    // Invert current params
-    for (let p_key of paramsKeys) {
-        switch (Math.sign(params[p_key])) {
-            case 1:
-            case -1:
-                params[p_key] = withChance(0.5) ? -params[p_key] : 0;
-                break;
-            case 0:
-                params[p_key] = withChance(0.5) ? 1 : -1;
-                break;
-        }
-        params[p_key] = getRandomNonZeroFromBound(p_key) * Math.sign(params[p_key]);
-    }
-
-    let a: string;
-    let b: string;
-    if (Math.sign(params["v"]) == Math.sign(params["a"]) && Math.sign(params["a"]) != 0) {
-        if (withChance(0.5)) {
-            a = "v";
-            b = "a";
-        } else {
-            a = "a";
-            b = "v";
-        }
-
-        params[a] = withChance(0.5) ? -params[b] : 0;
-        params[a] = getRandomNonZeroFromBound(a) * Math.sign(params[b]);
-    }
-
-
-    // Add deficit params
-    if (pickedFunc.funcType == "x") {
-        if (paramsKeys.indexOf("x") == -1)
-            params.x = getRandomNonZeroFromBound(X);
-        if (paramsKeys.indexOf("v") == -1)
-            params.v = getRandomFromBound(V);
-    }
-    if (pickedFunc.funcType == "v") {
-        params.v = getRandomNonZeroFromBound(V);
-    }
-    // makeClearer(pickedFunc);
-}
-
-function makeClearer(functionObj: FunctionObj) {
-    let params = functionObj.params;
-    if (params.x == 0 && params.v == 0 && params.a != 0) // if only 1 value, make it more clear
-        params.a *= 10;
-    else if (params.x == 0 && params.a == 0 && params.v != 0)
-        params.v *= 3;
 }
 
 // exports.getTest = functions.region("europe-west1").https.onRequest((request, resp) => {
