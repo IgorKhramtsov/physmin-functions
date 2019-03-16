@@ -1,9 +1,8 @@
 import * as functions from 'firebase-functions';
 
 
-// TODO: Change test format.
-// TODO: change QUESTION to QUESTION_S as array always
-
+// TODO: move function to class methods
+// TODO: create 'chance' function
 
 declare global {
     interface Number {
