@@ -210,10 +210,46 @@ class FunctionObj {
         else if (params.x == 0 && params.a == 0 && params.v != 0)
             params.v *= 3;
     }
-}
 
-function withChance(value: number) {
-    return Math.random() <= value;
+    generateParams() {
+        let x, v, a = 0;
+        x = getRandomFromBound(X);
+        v = getRandomFromBound(V);
+        if (withChance(0.5))
+            a = getRandomFromBound(A);
+
+        if (x == 0 && v == 0 && a == 0)
+            this.generateParams();
+        // else if(x == 0 && v == 0 && a != 0) // if only 1 value, make it more clear
+        //     a *= 10;
+        // else if(x == 0 && a == 0 && v != 0)
+        //     v *= 3;
+
+        return {"x": x, "v": v, "a": a};
+    }
+
+    makeQuestionFunction(prevFunc?: Array<FunctionObj>): FunctionObj {
+        let funcType = axisIndex.getRandom();
+        this.generateParams();
+
+        if (prevFunc)
+            for (let func of prevFunc)
+                if (this.equalTo(func))
+                    return this.makeQuestionFunction(prevFunc);
+
+        switch (funcType) {
+            case "x":
+                return this;
+            case "v":
+                delete this.params.x;
+                return this;
+            case "a":
+                delete this.params.x;
+                delete this.params.v;
+                return this;
+        }
+        return this;
+    }
 }
 
 function getG2Gtest(test_id: number, answerCount: number) {
@@ -228,7 +264,7 @@ function getG2Gtest(test_id: number, answerCount: number) {
         question = test.question,
         answers = test.answers;
 
-    question.graph = getQuestionFunction();
+    question.graph = new FunctionObj("", {}).makeQuestionFunction();
     question.correctID = Array<any>();
     if (answerCount == 1) {
         let correctID = count.getRandom();
@@ -301,46 +337,10 @@ function getG2Gtest(test_id: number, answerCount: number) {
 //
 // }
 
-function generateParams() {
-    let x, v, a = 0;
-    x = getRandomFromBound(X);
-    v = getRandomFromBound(V);
-    if (withChance(0.5))
-        a = getRandomFromBound(A);
-
-    if (x == 0 && v == 0 && a == 0)
-        generateParams();
-    // else if(x == 0 && v == 0 && a != 0) // if only 1 value, make it more clear
-    //     a *= 10;
-    // else if(x == 0 && a == 0 && v != 0)
-    //     v *= 3;
-
-    return {"x": x, "v": v, "a": a};
+function withChance(value: number) {
+    return Math.random() <= value;
 }
 
-function getQuestionFunction(prevFunc?: Array<FunctionObj>): FunctionObj {
-    let funcType = axisIndex.getRandom();
-    let _params = generateParams();
-    let _function = new FunctionObj(funcType, _params);
-
-    if (prevFunc)
-        for (let func of prevFunc)
-            if (_function.equalTo(func))
-                return getQuestionFunction(prevFunc);
-
-    switch (funcType) {
-        case "x":
-            return _function;
-        case "v":
-            delete _function.params.x;
-            return _function;
-        case "a":
-            delete _function.params.x;
-            delete _function.params.v;
-            return _function;
-    }
-    return _function;
-}
 
 // exports.getTest = functions.region("europe-west1").https.onRequest((request, resp) => {
 exports.getTest = functions.region("europe-west1").https.onCall((data, context) => {
