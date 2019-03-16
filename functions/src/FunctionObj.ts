@@ -1,5 +1,5 @@
-import Config from "./Config";
-import Util, {default as Utils} from './Util'
+import {Utils} from './Util';
+import {Config} from "./Config";
 
 class FunctionObj {
     params: any;
@@ -36,7 +36,7 @@ class FunctionObj {
         return this;
     }
 
-    getCorrectFunction(usedFunc?: any) {
+    getCorrectFunction(usedFunc?: any): FunctionObj {
         let availableAxises = Config.axisIndex.slice().deleteItem(this.funcType);
         if (usedFunc) availableAxises.deleteItem(usedFunc.funcType);
 
@@ -46,16 +46,16 @@ class FunctionObj {
         return new FunctionObj(pickedAxis, newParams).makeCorrectParams();
     }
 
-    makeCorrectParams() {
+    makeCorrectParams(): FunctionObj {
         let axises = Object.keys(this.params),
             params = this.params;
 
         if (axises.indexOf("x") == -1 && this.funcType == "x")
-            params.x = Util.getRandomNonZeroFromBound(Config.X);
+            params.x = Utils.getRandomNonZeroFromBound(Config.X);
         if (axises.indexOf("v") == -1 && (this.funcType == "x" || this.funcType == "v"))
-            params.v = Util.getRandomNonZeroFromBound(Config.V);
+            params.v = Utils.getRandomNonZeroFromBound(Config.V);
 
-        this.makeClearer();
+        return this.makeClearer();
     }
 
     getIncorrectFunction(usedFuncs?: Array<any>): FunctionObj {
@@ -133,11 +133,11 @@ class FunctionObj {
         if (x == 0 && v == 0 && a == 0)
             this.generateParams();
 
-        return {"x": x, "v": v, "a": a};
+        this.params = {"x": x, "v": v, "a": a};
     }
 
     makeQuestionFunction(prevFunc?: Array<FunctionObj>): FunctionObj {
-        let funcType = Config.axisIndex.getRandom();
+        this.funcType = Config.axisIndex.getRandom();
         this.generateParams();
 
         if (prevFunc)
@@ -145,7 +145,7 @@ class FunctionObj {
                 if (this.equalTo(func))
                     return this.makeQuestionFunction(prevFunc);
 
-        switch (funcType) {
+        switch (this.funcType) {
             case "x":
                 return this;
             case "v":
@@ -159,7 +159,7 @@ class FunctionObj {
         return this;
     }
 
-    makeClearer() {
+    makeClearer(): FunctionObj {
         if (this.params.x == 0 && this.params.v == 0 && this.params.a != 0)
             this.params.a *= 10;
         else if (this.params.x == 0 && this.params.a == 0 && this.params.v != 0)

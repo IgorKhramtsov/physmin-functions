@@ -1,4 +1,4 @@
-import Config from "./Config";
+import {Config} from "./Config";
 
 declare global {
     interface Number {
@@ -33,30 +33,29 @@ Array.prototype.deleteItem = function <T>(this: T[], item: T): any {
     return this;
 };
 
-module Utils {
-    export function getRandomFromBound(axis: string) {
-        let value = getRandomFromRange(Config.bounds[axis][0], Config.bounds[axis][1]);
+export class Utils {
+    static getRandomFromBound(axis: string) {
+        let value = Utils.getRandomFromRange(Config.bounds[axis][0], Config.bounds[axis][1]);
         if (Math.abs(value) <= 0.3)
             value = 0;
         return value
     }
 
-    export function getRandomNonZeroFromBound(axis: string): number {
-        let value = getRandomFromRange(Config.bounds[axis][0], Config.bounds[axis][1]);
+    static getRandomNonZeroFromBound(axis: string): number {
+        let value = Utils.getRandomFromRange(Config.bounds[axis][0], Config.bounds[axis][1]);
         if (Math.abs(value) <= 0.3)
             value = 0;
 
         if (value == 0)
-            return getRandomNonZeroFromBound(axis);
+            return Utils.getRandomNonZeroFromBound(axis);
         return value
     }
 
-    export function getRandomFromRange(min: number, max: number) {
+    static  getRandomFromRange(min: number, max: number) {
         return min + (max - min).getRandomF();
     }
 
-    export function withChance(value: number) {
+    static  withChance(value: number) {
         return Math.random() <= value;
     }
 }
-export default Utils;
