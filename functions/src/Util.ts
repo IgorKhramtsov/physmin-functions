@@ -13,6 +13,14 @@ declare global {
         getRandom(): T;
 
         deleteItem(item: T): any;
+
+        contains(item: T): boolean;
+
+        addRandom(array: Array<T>): any;
+
+        addRandomNumber(number: number): any;
+
+        last(): T;
     }
 }
 Number.prototype.toFloor = function (this: number): number {
@@ -31,6 +39,23 @@ Array.prototype.deleteItem = function <T>(this: T[], item: T): any {
     if (this.indexOf(item) != -1)
         this.splice(this.indexOf(item), 1);
     return this;
+};
+Array.prototype.contains = function <T>(this: T[], item: T): any {
+    return this.indexOf(item) != -1
+};
+Array.prototype.addRandom = function <T>(this: T[], array: Array<T>) {
+    let index = this.length;
+
+    do this[index] = array.getRandom();
+    while (this.indexOf(this[index]) != index);
+};
+Array.prototype.addRandomNumber = function <T>(this: number[], number: number) {
+    let index = this.length;
+    do this[index] = number.getRandom();
+    while (this.indexOf(this[index]) != index);
+};
+Array.prototype.last = function <T>(this: T[]): T {
+    return this[this.length - 1];
 };
 
 export class Utils {
@@ -51,11 +76,17 @@ export class Utils {
         return value
     }
 
-    static  getRandomFromRange(min: number, max: number) {
+    static getRandomWithSign(axis: string, number: number): number {
+        return Math.abs(this.getRandomNonZeroFromBound(axis)) * Math.sign(number)
+    }
+
+    static getRandomFromRange(min: number, max: number) {
         return min + (max - min).getRandomF();
     }
 
-    static  withChance(value: number) {
+    static withChance(value: number) {
         return Math.random() <= value;
     }
+
+
 }

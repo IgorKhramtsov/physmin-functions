@@ -1,5 +1,5 @@
 export let Config = {
-    axisIndex: [
+    axisIndexes: [
         'x', 'v', 'a'
     ],
     bounds: {

@@ -5,11 +5,9 @@ class FunctionObj {
     params: any;
     funcType: string;
 
-    constructor(_functType: string, _params: any) {
-        //this.params = {x: _x, v: _v, a: _a};
-        this.params = _params;
-
-        this.funcType = _functType;
+    constructor(_functType?: string, _params?: any) {
+        this.funcType = _functType ? _functType : "";
+        this.params = _params ? _params : {};
     }
 
     equalTo(obj: FunctionObj) {
@@ -26,52 +24,73 @@ class FunctionObj {
             case "x":
                 break;
             case "v":
-                this.params.x = 0;
+                delete this.params.x;
                 break;
             case "a":
-                this.params.x = 0;
-                this.params.v = 0;
+                delete this.params.x;
+                delete this.params.v;
                 break;
         }
         return this;
     }
 
-    getCorrectFunction(usedFunc?: any): FunctionObj {
-        let availableAxises = Config.axisIndex.slice().deleteItem(this.funcType);
-        if (usedFunc) availableAxises.deleteItem(usedFunc.funcType);
+    makeClearer(): FunctionObj {
+        if (this.params.x == 0 && this.params.v == 0 && this.params.a != 0)
+            this.params.a *= 10;
+        else if (this.params.x == 0 && this.params.a == 0 && this.params.v != 0)
+            this.params.v *= 3;
 
-        let newParams = JSON.parse(JSON.stringify(this.params));
-        let pickedAxis = availableAxises.getRandom();
-
-        return new FunctionObj(pickedAxis, newParams).makeCorrectParams();
+        return this;
     }
 
+    copyParams(): any {
+        let newParams = {};
+        Object.assign(newParams, this.params);
+        return newParams;
+    }
+
+    getCorrectFunction(usedFunc?: any): FunctionObj {
+        // Filter available function types
+        let availableAxises = Config.axisIndexes.slice().deleteItem(this.funcType);
+        if (usedFunc) availableAxises.deleteItem(usedFunc.funcType);
+
+        let newParams = this.copyParams(),
+            pickedAxis = availableAxises.getRandom();
+
+        return new FunctionObj(pickedAxis, newParams).makeCorrectParams().clearParams();
+    }
+
+
+    // TODO:
+    //  Here we "Integrating" function and add a free variable.
+    //  So we must pick params which will be easy to understand on graphic.
+    //  I guess this algorithm must be in makeClearer function.
     makeCorrectParams(): FunctionObj {
-        let axises = Object.keys(this.params),
+        let existingParams = Object.keys(this.params),
             params = this.params;
 
-        if (axises.indexOf("x") == -1 && this.funcType == "x")
+        // TODO: read this
+        // This block always in the end of make___params, so we can move it to makeClearer(change name to create missing)
+        //  and create algorithm for "easy to read on graphic" params
+        if (!existingParams.contains("x") && this.funcType == "x")
             params.x = Utils.getRandomNonZeroFromBound(Config.X);
-        if (axises.indexOf("v") == -1 && (this.funcType == "x" || this.funcType == "v"))
+        if (!existingParams.contains("v") && (this.funcType == "x" || this.funcType == "v"))
             params.v = Utils.getRandomNonZeroFromBound(Config.V);
 
         return this.makeClearer();
     }
 
     getIncorrectFunction(usedFuncs?: Array<any>): FunctionObj {
-        let availableAxises = Config.axisIndex.slice().deleteItem(this.funcType);
+        let availableAxises = Config.axisIndexes.slice().deleteItem(this.funcType);
 
-        let newParams = JSON.parse(JSON.stringify(this.params)),
+        let newParams = this.copyParams(),
             pickedAxis = availableAxises.getRandom();
 
         let incorrectFunction = new FunctionObj(pickedAxis, newParams).makeIncorrectParams().clearParams();
         if (usedFuncs)
-            for (let answer of usedFuncs) {
-                if (answer == undefined)
-                    continue;
-                if (incorrectFunction.equalTo(answer.graph as FunctionObj))
+            for (let answer of usedFuncs)
+                if (answer != undefined && incorrectFunction.equalTo(answer as FunctionObj))
                     return this.getIncorrectFunction(usedFuncs);
-            }
 
         return incorrectFunction;
     }
@@ -80,18 +99,18 @@ class FunctionObj {
         let params = this.params,
             paramsKeys = Object.keys(params);
 
-        // Invert current params
-        for (let p_key of paramsKeys) {
-            switch (Math.sign(params[p_key])) {
+        // Inverting current params
+        for (let key of paramsKeys) {
+            switch (Math.sign(params[key])) {
                 case 1:
                 case -1:
-                    params[p_key] = Utils.withChance(0.5) ? -params[p_key] : 0;
+                    params[key] = Utils.withChance(0.5) ? -params[key] : 0;
                     break;
                 case 0:
-                    params[p_key] = Utils.withChance(0.5) ? 1 : -1;
+                    params[key] = Utils.withChance(0.5) ? 1 : -1;
                     break;
             }
-            params[p_key] = Utils.getRandomNonZeroFromBound(p_key) * Math.sign(params[p_key]);
+            params[key] = Utils.getRandomWithSign(key, params[key]);
         }
 
         let a: string,
@@ -106,21 +125,25 @@ class FunctionObj {
             }
 
             params[a] = Utils.withChance(0.5) ? -params[b] : 0;
-            params[a] = Utils.getRandomNonZeroFromBound(a) * Math.sign(params[b]);
+            params[a] = Utils.getRandomWithSign(a, params[a]);
         }
 
+        // TODO: This is a free variables, so we need make it easy to read on graph
+        //  (exclude variant with function starting on top and going to the sky)
 
-        // Add deficit params
+        // TODO: read this
+        // This block always in the end of make___params, so we can move it to makeClearer(change name to create missing)
+        //  and create algorithm for "easy to read on graphic" params
         if (this.funcType == "x") {
-            if (paramsKeys.indexOf("x") == -1)
+            if (!paramsKeys.contains("x"))
                 params.x = Utils.getRandomNonZeroFromBound(Config.X);
-            if (paramsKeys.indexOf("v") == -1)
+            if (!paramsKeys.contains("v"))
                 params.v = Utils.getRandomFromBound(Config.V);
         }
         if (this.funcType == "v")
             params.v = Utils.getRandomNonZeroFromBound(Config.V);
 
-        return this;
+        return this.makeClearer();
     }
 
     generateParams() {
@@ -134,38 +157,22 @@ class FunctionObj {
             this.generateParams();
 
         this.params = {"x": x, "v": v, "a": a};
+        return this;
     }
 
-    makeQuestionFunction(prevFunc?: Array<FunctionObj>): FunctionObj {
-        this.funcType = Config.axisIndex.getRandom();
-        this.generateParams();
+    makeQuestionFunction(usedFuncs?: Array<FunctionObj>): FunctionObj {
+        this.funcType = Config.axisIndexes.getRandom();
+        this.generateParams().clearParams();
 
-        if (prevFunc)
-            for (let func of prevFunc)
+        if (usedFuncs)
+            for (let func of usedFuncs)
                 if (this.equalTo(func))
-                    return this.makeQuestionFunction(prevFunc);
+                    return this.makeQuestionFunction(usedFuncs);
 
-        switch (this.funcType) {
-            case "x":
-                return this;
-            case "v":
-                delete this.params.x;
-                return this;
-            case "a":
-                delete this.params.x;
-                delete this.params.v;
-                return this;
-        }
         return this;
     }
 
-    makeClearer(): FunctionObj {
-        if (this.params.x == 0 && this.params.v == 0 && this.params.a != 0)
-            this.params.a *= 10;
-        else if (this.params.x == 0 && this.params.a == 0 && this.params.v != 0)
-            this.params.v *= 3;
-        return this;
-    }
+
 }
 
 export default FunctionObj;

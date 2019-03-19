@@ -1,65 +1,46 @@
 import * as functions from 'firebase-functions';
 import FunctionObj from './FunctionObj'
 
-// TODO: move function to class methods
-// TODO: create 'chance' function
-
-
-function getG2Gtest(test_id: number, answerCount: number) {
-    let test = {
-        type: "graph2graph",
-        test_id: test_id,
-        title: "",
-        question: {} as any,
-        answers: Array<any>()
-    } as any;
+function getG2Gtest(test_id: number, correctAnswersCount: number) {
     let count = 6,
-        question = test.question,
-        answers = test.answers;
+        question: any,
+        answers = Array<any>(),
+        testType: String,
+        usedFunctions: Array<any>;
 
-    question.graph = new FunctionObj("", {}).makeQuestionFunction();
-    question.correctID = Array<any>();
-    if (answerCount == 1) {
-        let correctID = count.getRandom();
-
-        question.correctID[0] = correctID;
-        answers[correctID] = {
-            graph: question.graph.getCorrectFunction(),
-            id: correctID
-        };
-        for (let i = 0; i < count; i++) {
-            if (i == correctID)
-                continue;
-            answers[i] = {
-                graph: question.graph.getIncorrectFunction(answers),
-                id: i
-            };
-        }
-    } else {
-        test.type = "graph2graph2";
-        question.correctID[0] = count.getRandom();
-        //Should be reworked for next types of tests/quiz
-        do question.correctID[1] = count.getRandom();
-        while (question.correctID[1] == question.correctID[0]);
-
-        answers[question.correctID[0]] = {
-            graph: question.graph.getCorrectFunction(),
-            id: question.correctID[0]
-        };
-        answers[question.correctID[1]] = {
-            graph: question.graph.getCorrectFunction(answers[question.correctID[0]].graph),
-            id: question.correctID[1]
-        };
-        for (let i = 0; i < count; i++) {
-            if (question.correctID.indexOf(i) != -1)
-                continue;
-            answers[i] = {
-                graph: question.graph.getIncorrectFunction(answers),
-                id: i
-            };
+    question = {
+        graph: new FunctionObj().makeQuestionFunction(),
+        correctIDs: Array<any>()
+    };
+    usedFunctions = Array<any>();
+    for (let i = 0; i < correctAnswersCount; i++) {
+        question.correctIDs.addRandomNumber(count);
+        usedFunctions.push(question.graph.getCorrectFunction(usedFunctions));
+        answers[question.correctIDs[i]] = {
+            graph: usedFunctions[i],
+            id: question.correctIDs[i]
         }
     }
-    return test;
+    for (let i = 0; i < count; i++)
+        if (question.correctIDs.indexOf(i) == -1) {
+            usedFunctions.push(question.graph.getIncorrectFunction(usedFunctions));
+            answers[i] = {
+                graph: usedFunctions.last(),
+                id: i
+            };
+        }
+    if (correctAnswersCount == 1)
+        testType = "graph2graph";
+    else
+        testType = "graph2graph2";
+
+    return {
+        type: testType,
+        test_id: test_id,
+        title: "",
+        question: question,
+        answers: answers
+    };
 }
 
 // function getG2Stest(test_id: number) {
@@ -78,7 +59,7 @@ function getG2Gtest(test_id: number, answerCount: number) {
 //         do correctIDs[i] = questionCount.getRandom();
 //         while (correctIDs.indexOf(correctIDs[i]) == 1);
 //         test.question[i] = getQuestionFunction(test.question);
-//         test.question[i].correctID = correctIDs[i];
+//         test.question[i].correctIDs = correctIDs[i];
 //     }
 //     for (let i = 0; i < answerCount; i++) {
 //         if (correctIDs.indexOf(i) == 1)
