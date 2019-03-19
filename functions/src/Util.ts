@@ -76,8 +76,8 @@ export class Utils {
         return value
     }
 
-    static getRandomWithSign(axis: string, number: number): number {
-        return Math.abs(this.getRandomNonZeroFromBound(axis)) * Math.sign(number)
+    static getRandomWithSign(axis: string, _number: number): number {
+        return Math.abs(this.getRandomNonZeroFromBound(axis)) * Math.sign(_number)
     }
 
     static getRandomFromRange(min: number, max: number) {

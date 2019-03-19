@@ -5,16 +5,16 @@ class FunctionObj {
     params: any;
     funcType: string;
 
-    constructor(_functType?: string, _params?: any) {
-        this.funcType = _functType ? _functType : "";
+    constructor(_funcType?: string, _params?: any) {
+        this.funcType = _funcType ? _funcType : "";
         this.params = _params ? _params : {};
     }
 
     equalTo(obj: FunctionObj) {
         if (this.funcType == obj.funcType)
-            if (Math.sign(this.params.x) == Math.sign(obj.params.x) &&
-                Math.sign(this.params.v) == Math.sign(obj.params.v) &&
-                Math.sign(this.params.a) == Math.sign(obj.params.a))
+            if ((Math.sign(this.params.x) == Math.sign(obj.params.x) || this.params.x === obj.params.x) &&
+                (Math.sign(this.params.v) == Math.sign(obj.params.v) || this.params.v === obj.params.v) &&
+                (Math.sign(this.params.a) == Math.sign(obj.params.a) || this.params.a === obj.params.a))
                 return true;
         return false;
     }
@@ -33,7 +33,6 @@ class FunctionObj {
         }
         return this;
     }
-
     makeClearer(): FunctionObj {
         if (this.params.x == 0 && this.params.v == 0 && this.params.a != 0)
             this.params.a *= 10;
@@ -49,10 +48,12 @@ class FunctionObj {
         return newParams;
     }
 
-    getCorrectFunction(usedFunc?: any): FunctionObj {
+    getCorrectFunction(usedFunc?: Array<any>): FunctionObj {
         // Filter available function types
         let availableAxises = Config.axisIndexes.slice().deleteItem(this.funcType);
-        if (usedFunc) availableAxises.deleteItem(usedFunc.funcType);
+        if (usedFunc)
+            for (let func of usedFunc)
+                availableAxises.deleteItem(func.funcType);
 
         let newParams = this.copyParams(),
             pickedAxis = availableAxises.getRandom();
@@ -80,7 +81,7 @@ class FunctionObj {
         return this.makeClearer();
     }
 
-    getIncorrectFunction(usedFuncs?: Array<any>): FunctionObj {
+    getIncorrectFunction(usedFuncs?: Array<FunctionObj>): FunctionObj {
         let availableAxises = Config.axisIndexes.slice().deleteItem(this.funcType);
 
         let newParams = this.copyParams(),
@@ -88,8 +89,8 @@ class FunctionObj {
 
         let incorrectFunction = new FunctionObj(pickedAxis, newParams).makeIncorrectParams().clearParams();
         if (usedFuncs)
-            for (let answer of usedFuncs)
-                if (answer != undefined && incorrectFunction.equalTo(answer as FunctionObj))
+            for (let func of usedFuncs)
+                if (func != undefined && incorrectFunction.equalTo(func))
                     return this.getIncorrectFunction(usedFuncs);
 
         return incorrectFunction;

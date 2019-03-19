@@ -6,13 +6,13 @@ function getG2Gtest(test_id: number, correctAnswersCount: number) {
         question: any,
         answers = Array<any>(),
         testType: String,
-        usedFunctions: Array<any>;
+        usedFunctions = Array<any>();
 
     question = {
         graph: new FunctionObj().makeQuestionFunction(),
         correctIDs: Array<any>()
     };
-    usedFunctions = Array<any>();
+
     for (let i = 0; i < correctAnswersCount; i++) {
         question.correctIDs.addRandomNumber(count);
         usedFunctions.push(question.graph.getCorrectFunction(usedFunctions));
@@ -29,10 +29,9 @@ function getG2Gtest(test_id: number, correctAnswersCount: number) {
                 id: i
             };
         }
-    if (correctAnswersCount == 1)
-        testType = "graph2graph";
-    else
-        testType = "graph2graph2";
+
+    if (correctAnswersCount == 1) testType = "graph2graph";
+    else testType = "graph2graph2";
 
     return {
         type: testType,
@@ -87,7 +86,7 @@ exports.getTest = functions.region("europe-west1").https.onCall((data, context) 
     testQuiz.tests[6] = getG2Gtest(6, 2);
     testQuiz.tests[7] = getG2Gtest(7, 2);
 
-    // resp.send( JSON.stringify(quiz));
+    // resp.send( JSON.stringify(testQuiz));
     return JSON.stringify(testQuiz)
 });
 
