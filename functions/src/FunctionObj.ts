@@ -20,6 +20,7 @@ class FunctionObj {
     }
 
     clearParams() {
+        // Takes type of function and deletes unnecessary params for that type
         switch (this.funcType) {
             case "x":
                 break;
@@ -33,7 +34,22 @@ class FunctionObj {
         }
         return this;
     }
+
     makeClearer(): FunctionObj {
+        let paramsKeys = Object.keys(this.params),
+            params = this.params;
+
+        if (this.funcType == "x") {
+            if (!paramsKeys.contains("x"))
+                params.x = Utils.getRandomNonZeroFromBound(Config.X);
+            if (!paramsKeys.contains("v"))
+                params.v = Utils.getRandomFromBound(Config.V);
+        }
+        if (this.funcType == "v")
+            if (!paramsKeys.contains("v"))
+                params.v = Utils.getRandomNonZeroFromBound(Config.V);
+
+        //Increases severity of the function graph
         if (this.params.x == 0 && this.params.v == 0 && this.params.a != 0)
             this.params.a *= 10;
         else if (this.params.x == 0 && this.params.a == 0 && this.params.v != 0)
@@ -43,9 +59,7 @@ class FunctionObj {
     }
 
     copyParams(): any {
-        let newParams = {};
-        Object.assign(newParams, this.params);
-        return newParams;
+        return Object.assign({}, this.params);
     }
 
     getCorrectFunction(usedFunc?: Array<any>): FunctionObj {
@@ -61,23 +75,7 @@ class FunctionObj {
         return new FunctionObj(pickedAxis, newParams).makeCorrectParams().clearParams();
     }
 
-
-    // TODO:
-    //  Here we "Integrating" function and add a free variable.
-    //  So we must pick params which will be easy to understand on graphic.
-    //  I guess this algorithm must be in makeClearer function.
     makeCorrectParams(): FunctionObj {
-        let existingParams = Object.keys(this.params),
-            params = this.params;
-
-        // TODO: read this
-        // This block always in the end of make___params, so we can move it to makeClearer(change name to create missing)
-        //  and create algorithm for "easy to read on graphic" params
-        if (!existingParams.contains("x") && this.funcType == "x")
-            params.x = Utils.getRandomNonZeroFromBound(Config.X);
-        if (!existingParams.contains("v") && (this.funcType == "x" || this.funcType == "v"))
-            params.v = Utils.getRandomNonZeroFromBound(Config.V);
-
         return this.makeClearer();
     }
 
@@ -129,21 +127,6 @@ class FunctionObj {
             params[a] = Utils.getRandomWithSign(a, params[a]);
         }
 
-        // TODO: This is a free variables, so we need make it easy to read on graph
-        //  (exclude variant with function starting on top and going to the sky)
-
-        // TODO: read this
-        // This block always in the end of make___params, so we can move it to makeClearer(change name to create missing)
-        //  and create algorithm for "easy to read on graphic" params
-        if (this.funcType == "x") {
-            if (!paramsKeys.contains("x"))
-                params.x = Utils.getRandomNonZeroFromBound(Config.X);
-            if (!paramsKeys.contains("v"))
-                params.v = Utils.getRandomFromBound(Config.V);
-        }
-        if (this.funcType == "v")
-            params.v = Utils.getRandomNonZeroFromBound(Config.V);
-
         return this.makeClearer();
     }
 
@@ -173,7 +156,36 @@ class FunctionObj {
         return this;
     }
 
-
+    getText() {
+        let params = this.params,
+            text = "";
+        //If graph with 1 func
+        if (Math.sign(params.v) == -1) {
+            text += "назад";
+        }
+        if (Math.sign(params.v) == 1) {
+            text += "вперед";
+        }
+        switch (Math.sign(params.a)) {
+            case 0:
+                text += "равномерно";
+                break;
+            case 1:
+                text += "ускоряясь вперед";
+                break;
+            case -1:
+                text += "ускоряясь назад";
+                break;
+        }
+        if (params.v == 0 && params.a == 0) {
+            if (Math.sign(params.x) == 1)
+                text = "покой выше нуля";
+            else if (Math.sign(params.x) == -1)
+                text = "покой выше нуля";
+            else text = "все время покой";
+        }
+        return text;
+    }
 }
 
 export default FunctionObj;

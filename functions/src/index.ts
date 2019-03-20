@@ -42,34 +42,48 @@ function getG2Gtest(test_id: number, correctAnswersCount: number) {
     };
 }
 
-// function getG2Stest(test_id: number) {
-//     let test = {
-//         type: "graph2state",
-//         test_id: test_id,
-//         title: "",
-//         question: [{}],
-//         answers: Array<Object>()
-//     } as any;
-//     let answerCount = 6,
-//         questionCount = 4;
-//
-//     let correctIDs = [];
-//     for (let i = 0; i < questionCount; i++) {
-//         do correctIDs[i] = questionCount.getRandom();
-//         while (correctIDs.indexOf(correctIDs[i]) == 1);
-//         test.question[i] = getQuestionFunction(test.question);
-//         test.question[i].correctIDs = correctIDs[i];
-//     }
-//     for (let i = 0; i < answerCount; i++) {
-//         if (correctIDs.indexOf(i) == 1)
-//             test.answers[correctIDs[i]] = getCorrectFunction(test.question);
-//         else test.answers[correctIDs[i]] = getIncorrectFunction(test.question);
-//     }
-// }
-//
-// function getCorrectText() {
-//
-// }
+function getG2Stest(test_id: number) {
+    let testType = "graph2state",
+        question = Array<any>(),
+        answers = Array<any>(),
+
+        answerCount = 6,
+        questionCount = 4,
+
+        correctIDs = Array<number>(),
+        usedFunctions = Array<any>();
+
+    for (let i = 0; i < questionCount; i++) {
+        correctIDs.addRandomNumber(questionCount);
+        usedFunctions[i] = new FunctionObj().makeQuestionFunction();
+        question[i] = {
+            graph: usedFunctions[i].getCorrectFunction(usedFunctions),
+            correctID: correctIDs.last(),
+        };
+    }
+    for (let i = 0; i < answerCount; i++) {
+        if (correctIDs.contains(i))
+            answers[i] = {
+                text: question[i].graph.getText(),
+                id: i
+            };
+        else
+            answers[i] = {
+                text: usedFunctions.getRandom().getIncorrectFunction().getText(),
+                id: i
+            };
+
+    }
+    return {
+        type: testType,
+        test_id: test_id,
+        title: "",
+        question: question,
+        answers: answers
+    };
+}
+
+
 
 // exports.getTest = functions.region("europe-west1").https.onRequest((request, resp) => {
 exports.getTest = functions.region("europe-west1").https.onCall((data, context) => {
