@@ -58,7 +58,7 @@ function getG2Stest(test_id: number) {
         usedFunctions[i] = new FunctionObj().makeQuestionFunction();
         question[i] = {
             graph: usedFunctions[i].getCorrectFunction(usedFunctions),
-            correctID: correctIDs.last(),
+            correctIDs: [correctIDs.last()],
         };
     }
     for (let i = 0; i < answerCount; i++) {
@@ -90,15 +90,14 @@ exports.getTest = functions.region("europe-west1").https.onCall((data, context) 
 
     let testQuiz = {tests: Array<any>()};
 
-    testQuiz.tests[0] = getG2Gtest(0, 1);
-    testQuiz.tests[1] = getG2Gtest(1, 1);
-    testQuiz.tests[2] = getG2Gtest(2, 1);
-    testQuiz.tests[3] = getG2Gtest(3, 1);
+    testQuiz.tests.push(getG2Gtest(0, 1));
+    testQuiz.tests.push(getG2Gtest(1, 1));
 
-    testQuiz.tests[4] = getG2Gtest(4, 2);
-    testQuiz.tests[5] = getG2Gtest(5, 2);
-    testQuiz.tests[6] = getG2Gtest(6, 2);
-    testQuiz.tests[7] = getG2Gtest(7, 2);
+    testQuiz.tests.push(getG2Gtest(2, 2));
+    testQuiz.tests.push(getG2Gtest(3, 2));
+
+    testQuiz.tests.push(getG2Stest(4));
+    testQuiz.tests.push(getG2Stest(5));
 
     // resp.send( JSON.stringify(testQuiz));
     return JSON.stringify(testQuiz)

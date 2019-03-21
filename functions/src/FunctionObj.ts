@@ -168,13 +168,13 @@ class FunctionObj {
         }
         switch (Math.sign(params.a)) {
             case 0:
-                text += "равномерно";
+                text += " равномерно";
                 break;
             case 1:
-                text += "ускоряясь вперед";
+                text += " ускоряясь вперед";
                 break;
             case -1:
-                text += "ускоряясь назад";
+                text += " ускоряясь назад";
                 break;
         }
         if (params.v == 0 && params.a == 0) {
@@ -184,6 +184,10 @@ class FunctionObj {
                 text = "покой выше нуля";
             else text = "все время покой";
         }
+
+        if (text[0] == ' ')
+            text = text.substr(1);
+        text = text.charAt(0).toUpperCase() + text.slice(1);
         return text;
     }
 }
