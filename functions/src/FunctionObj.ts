@@ -35,7 +35,7 @@ class FunctionObj {
         return this;
     }
 
-    makeClearer(): FunctionObj {
+    makeFreeVariables(): FunctionObj {
         let paramsKeys = Object.keys(this.params),
             params = this.params;
 
@@ -49,12 +49,27 @@ class FunctionObj {
             if (!paramsKeys.contains("v"))
                 params.v = Utils.getRandomNonZeroFromBound(Config.V);
 
-        //Increases severity of the function graph
-        if (this.params.x == 0 && this.params.v == 0 && this.params.a != 0)
-            this.params.a *= 10;
-        else if (this.params.x == 0 && this.params.a == 0 && this.params.v != 0)
-            this.params.v *= 3;
+        return this;
+    }
 
+    increaseIntensity() {
+        if (this.params.x && this.funcType == "x") {
+            if (Math.abs(this.params.x) < 1)
+                this.params.x = 1 * Math.sign(this.params.x);
+            if (Math.abs(this.params.v) > 0 && Math.abs(this.params.a) > 0)
+                if (Math.sign(this.params.a) != Math.sign(this.params.v)) {
+                    if (Math.abs(this.params.v) < 0.8)
+                        this.params.v = 0.8 * Math.sign(this.params.v);
+                }
+                else if (Math.abs(this.params.a) < 0.5)
+                    this.params.a = 0.5 * Math.sign(this.params.a)
+        }
+        if (this.params.v && this.funcType == "v")
+            if (Math.abs(this.params.v) < 1)
+                this.params.v = 1 * Math.sign(this.params.v);
+        if (this.params.a && this.funcType == "a")
+            if (Math.abs(this.params.a) < 1)
+                this.params.a = 1 * Math.sign(this.params.a);
         return this;
     }
 
@@ -77,7 +92,7 @@ class FunctionObj {
     }
 
     makeCorrectParams(): FunctionObj {
-        return this.makeClearer();
+        return this.makeFreeVariables().increaseIntensity();
     }
 
     getIncorrectFunction(usedFuncs?: Array<FunctionObj>): FunctionObj {
@@ -128,7 +143,7 @@ class FunctionObj {
             params[a] = Utils.getRandomWithSign(a, params[a]);
         }
 
-        return this.makeClearer();
+        return this.makeFreeVariables().increaseIntensity();
     }
 
     generateParams() {
@@ -147,7 +162,7 @@ class FunctionObj {
 
     makeQuestionFunction(usedFuncs?: Array<FunctionObj>): FunctionObj {
         this.funcType = Config.axisIndexes.getRandom();
-        this.generateParams().clearParams();
+        this.generateParams().clearParams().increaseIntensity();
 
         if (usedFuncs)
             for (let func of usedFuncs)
