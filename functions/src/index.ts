@@ -54,28 +54,32 @@ function getG2Stest(test_id: number) {
         questionCount = 4,
 
         correctIDs = Array<number>(),
+        questionFunctions = Array<any>(),
         usedFunctions = Array<any>(),
         availableAxises = Config.axisIndexes.slice();
 
     for (let i = 0; i < questionCount; i++) {
         correctIDs.addRandomNumber(questionCount);
-        usedFunctions[i] = new FunctionObj().makeQuestionFunction();
+        questionFunctions[i] = new FunctionObj().makeQuestionFunction();
+        usedFunctions[i] = questionFunctions[i].getCorrectFunction(availableAxises, usedFunctions);
         questions[i] = {
-            graph: usedFunctions[i].getCorrectFunction(availableAxises, usedFunctions),
+            graph: usedFunctions[i],
             correctIDs: [correctIDs.last()],
         };
     }
     for (let i = 0; i < answerCount; i++) {
         if (correctIDs.contains(i))
             answers[i] = {
-                text: questions[i].graph.getText(),
+                text: usedFunctions[i].getText(),
                 id: i
             };
-        else
+        else {
+            usedFunctions.push(questionFunctions.getRandom().getIncorrectFunction().getText());
             answers[i] = {
-                text: usedFunctions.getRandom().getIncorrectFunction().getText(),
+                text: usedFunctions.last(),
                 id: i
             };
+        }
 
     }
     for (let i = 0; i < questions.length; i++)
