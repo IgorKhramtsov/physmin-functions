@@ -62,17 +62,18 @@ class FunctionObj {
         return Object.assign({}, this.params);
     }
 
-    getCorrectFunction(usedFunc?: Array<any>): FunctionObj {
+    getCorrectFunction(availableAxises: Array<any>, usedFunc?: Array<FunctionObj>): FunctionObj {
         // Filter available function types
-        let availableAxises = Config.axisIndexes.slice().deleteItem(this.funcType);
-        if (usedFunc)
-            for (let func of usedFunc)
-                availableAxises.deleteItem(func.funcType);
-
         let newParams = this.copyParams(),
             pickedAxis = availableAxises.getRandom();
+        let newFunc = new FunctionObj(pickedAxis, newParams).makeCorrectParams().clearParams();
 
-        return new FunctionObj(pickedAxis, newParams).makeCorrectParams().clearParams();
+        if (usedFunc)
+            for (let func of usedFunc)
+                if (func != undefined && newFunc.equalTo(func))
+                    return this.getCorrectFunction(availableAxises, usedFunc);
+
+        return newFunc;
     }
 
     makeCorrectParams(): FunctionObj {
@@ -160,12 +161,12 @@ class FunctionObj {
         let params = this.params,
             text = "";
         //If graph with 1 func
-        if (Math.sign(params.v) == -1) {
+        if (Math.sign(params.v) == -1)
             text += "назад";
-        }
-        if (Math.sign(params.v) == 1) {
+
+        if (Math.sign(params.v) == 1)
             text += "вперед";
-        }
+
         switch (Math.sign(params.a)) {
             case 0:
                 text += " равномерно";
@@ -181,7 +182,7 @@ class FunctionObj {
             if (Math.sign(params.x) == 1)
                 text = "покой выше нуля";
             else if (Math.sign(params.x) == -1)
-                text = "покой выше нуля";
+                text = "покой ниже нуля";
             else text = "все время покой";
         }
 
