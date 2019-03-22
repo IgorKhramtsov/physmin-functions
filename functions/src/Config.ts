@@ -6,6 +6,7 @@ export let Config = {
         x: [-2, 2], // x
         v: [-1, 1], // v
         a: [-0.5, 0.5], // a
+        t: [3, 6],
     } as any,
 
     X: "x",

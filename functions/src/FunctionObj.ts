@@ -206,6 +206,35 @@ class FunctionObj {
         text = text.charAt(0).toUpperCase() + text.slice(1);
         return text;
     }
+
+    createNextFunction(usedFunctions?: Array<FunctionObj>): FunctionObj {
+        let funcType = this.funcType,
+            nextFunc = new FunctionObj(funcType).generateParams().clearParams(),
+            params = this.params;
+
+        let t = Utils.getRandomFromBound("t");
+        nextFunc.params.t = t;
+
+        switch (funcType) {
+            case "x":
+                nextFunc.params.x = params.x + params.v * t + (params.a * t * t) / 2;
+                break;
+            case "v":
+                nextFunc.params.v = params.v + params.a * t;
+                break;
+            case "a":
+                nextFunc.params.a = params.a;
+                break;
+        }
+
+        if (usedFunctions)
+            for (let func of usedFunctions)
+                if (this.equalTo(func))
+                    return this.createNextFunction(usedFunctions);
+
+        return nextFunc;
+    }
+
 }
 
 export default FunctionObj;
