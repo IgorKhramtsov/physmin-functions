@@ -53,23 +53,25 @@ class FunctionObj {
     }
 
     increaseIntensity() {
-        if (this.params.x && this.funcType == "x") {
-            if (Math.abs(this.params.x) < 1)
-                this.params.x = 1 * Math.sign(this.params.x);
-            if (Math.abs(this.params.v) > 0 && Math.abs(this.params.a) > 0)
-                if (Math.sign(this.params.a) != Math.sign(this.params.v)) {
-                    if (Math.abs(this.params.v) < 0.8)
-                        this.params.v = 0.8 * Math.sign(this.params.v);
+        let params = this.params,
+            funcType = this.funcType;
+        if (params.x && funcType == "x") {
+            if (Math.abs(params.x) < 1)
+                params.x = 1 * Math.sign(params.x);
+            if (Math.abs(params.v) > 0 && Math.abs(params.a) > 0)
+                if (Math.sign(params.a) != Math.sign(params.v)) {
+                    if (Math.abs(params.v) < 0.8)
+                        params.v = 0.8 * Math.sign(params.v);
                 }
-                else if (Math.abs(this.params.a) < 0.5)
-                    this.params.a = 0.5 * Math.sign(this.params.a)
+                else if (Math.abs(params.a) < 0.5)
+                    params.a = 0.5 * Math.sign(params.a)
         }
-        if (this.params.v && this.funcType == "v")
-            if (Math.abs(this.params.v) < 1)
-                this.params.v = 1 * Math.sign(this.params.v);
-        if (this.params.a && this.funcType == "a")
-            if (Math.abs(this.params.a) < 1)
-                this.params.a = 1 * Math.sign(this.params.a);
+        if (params.v && funcType == "v")
+            if (Math.abs(params.v) < 1)
+                params.v = 1 * Math.sign(params.v);
+        if (params.a && funcType == "a")
+            if (Math.abs(params.a) < 1)
+                params.a = 1 * Math.sign(params.a);
         return this;
     }
 
@@ -172,7 +174,7 @@ class FunctionObj {
         return this;
     }
 
-    getText() {
+    getText(flag: boolean) {
         let params = this.params,
             text = "";
         //If graph with 1 func
@@ -201,9 +203,11 @@ class FunctionObj {
             else text = "все время покой";
         }
 
-        if (text[0] == ' ')
-            text = text.substr(1);
-        text = text.charAt(0).toUpperCase() + text.slice(1);
+        if (flag) {
+            if (text[0] == ' ')
+                text = text.substr(1);
+            text = text.charAt(0).toUpperCase() + text.slice(1);
+        }
         return text;
     }
 
@@ -212,8 +216,8 @@ class FunctionObj {
             nextFunc = new FunctionObj(funcType).generateParams().clearParams(),
             params = this.params;
 
-        let t = Utils.getRandomFromBound("t");
-        nextFunc.params.t = t;
+        let t = Math.round(Utils.getRandomFromBound("t"));
+        this.params.t = t;
 
         switch (funcType) {
             case "x":
