@@ -97,8 +97,7 @@ class FunctionObj {
         return this.makeFreeVariables().increaseIntensity();
     }
 
-    getIncorrectFunction(usedFuncs?: Array<FunctionObj>): FunctionObj {
-        let availableAxises = Config.axisIndexes.slice().deleteItem(this.funcType);
+    getIncorrectFunction(availableAxises: Array<any>, usedFuncs?: Array<FunctionObj>): FunctionObj {
 
         let newParams = this.copyParams(),
             pickedAxis = availableAxises.getRandom();
@@ -107,14 +106,14 @@ class FunctionObj {
         if (usedFuncs)
             for (let func of usedFuncs)
                 if (func != undefined && incorrectFunction.equalTo(func))
-                    return this.getIncorrectFunction(usedFuncs);
+                    return this.getIncorrectFunction(availableAxises, usedFuncs);
 
         return incorrectFunction;
     }
 
     makeIncorrectParams() {
         let params = this.params,
-            paramsKeys = Object.keys(params);
+            paramsKeys = Object.keys(params).deleteItem("t");
 
         // Inverting current params
         for (let key of paramsKeys) {
@@ -162,14 +161,14 @@ class FunctionObj {
         return this;
     }
 
-    makeQuestionFunction(usedFuncs?: Array<FunctionObj>): FunctionObj {
-        this.funcType = Config.axisIndexes.getRandom();
+    makeQuestionFunction(availableAxises: Array<string>, usedFuncs?: Array<FunctionObj>): FunctionObj {
+        this.funcType = availableAxises.getRandom();
         this.generateParams().clearParams().increaseIntensity();
 
         if (usedFuncs)
             for (let func of usedFuncs)
                 if (this.equalTo(func))
-                    return this.makeQuestionFunction(usedFuncs);
+                    return this.makeQuestionFunction(availableAxises, usedFuncs);
 
         return this;
     }
@@ -177,7 +176,7 @@ class FunctionObj {
     getText(flag: boolean) {
         let params = this.params,
             text = "";
-        //If graph with 1 func
+
         if (Math.sign(params.v) == -1)
             text += "назад";
 
@@ -217,7 +216,7 @@ class FunctionObj {
             params = this.params;
 
         let t = Math.round(Utils.getRandomFromBound("t"));
-        this.params.t = t;
+
 
         switch (funcType) {
             case "x":
@@ -233,8 +232,10 @@ class FunctionObj {
 
         if (usedFunctions)
             for (let func of usedFunctions)
-                if (this.equalTo(func))
+                if (nextFunc.equalTo(func))
                     return this.createNextFunction(usedFunctions);
+
+        this.params.t = t;
 
         return nextFunc;
     }
