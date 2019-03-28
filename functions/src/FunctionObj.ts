@@ -212,21 +212,19 @@ class FunctionObj {
 
     createNextFunction(usedFunctions?: Array<FunctionObj>): FunctionObj {
         let funcType = this.funcType,
-            nextFunc = new FunctionObj(funcType).generateParams().clearParams(),
-            params = this.params;
+            nextFunc = new FunctionObj(funcType).generateParams().clearParams();
 
         let t = Math.round(Utils.getRandomFromBound("t"));
 
-
         switch (funcType) {
             case "x":
-                nextFunc.params.x = params.x + params.v * t + (params.a * t * t) / 2;
+                nextFunc.params.x = this.calculateFunctionValue(t);
                 break;
             case "v":
-                nextFunc.params.v = params.v + params.a * t;
+                nextFunc.params.v = this.calculateFunctionValue(t);
                 break;
             case "a":
-                nextFunc.params.a = params.a;
+                nextFunc.params.a = this.calculateFunctionValue(t);
                 break;
         }
 
@@ -240,6 +238,19 @@ class FunctionObj {
         return nextFunc;
     }
 
+    calculateFunctionValue(t: number) {
+        let params = this.params;
+
+        switch (this.funcType) {
+            case "x":
+                return params.x + params.v * t + (params.a * t * t) / 2;
+            case "v":
+                return params.v + params.a * t;
+            case "a":
+                return params.a;
+        }
+
+    }
 }
 
 export default FunctionObj;
