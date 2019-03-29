@@ -270,10 +270,11 @@ function getSGtest(test_id: number, chance: number, isSimple: boolean) {
             index;
         answersCount = 6;
         for (let i = 0; i < answersCount; i++) {
-            question = questionsCopy.getRandom();
+            do question = questionsCopy.getRandom();
+            while (question == undefined);
             t = question.params.t;
             index = questionsCopy.indexOf(question);
-            prevT = questionsCopy[index].params.t;
+            prevT = questionsCopy[index - 1] ? questionsCopy[index - 1].params.t : 0;
 
             answers[i] = {
                 letter: letters.getRandom(),
@@ -282,7 +283,7 @@ function getSGtest(test_id: number, chance: number, isSimple: boolean) {
                 correctSign: Math.sign(question.calculateFunctionValue(prevT) - question.calculateFunctionValue(t)),
             };
             letters.deleteItem(answers[i].letter);
-            questions.deleteItem(question);
+            delete questionsCopy[index];
         }
     }
 
@@ -304,8 +305,8 @@ exports.getTest = functions.region("europe-west1").https.onRequest((request, res
     testQuiz.tests.push(getG2Gtest_OneAnswerGraph(0));
 
     testQuiz.tests.push(getG2Gtest_TwoAnswerGraph(2));
-    //
-    // testQuiz.tests.push(getG2Stest(4, 1));
+
+    testQuiz.tests.push(getG2Stest(4, 1));
 
     testQuiz.tests.push(getSGtest(6, 1, true));
     testQuiz.tests.push(getSGtest(7, 1, true));
