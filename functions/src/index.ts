@@ -3,51 +3,51 @@ import FunctionObj from './FunctionObj'
 import {Config} from "./Config";
 import {Utils} from "./Util";
 
-// function getG2Gtest(test_id: number, correctAnswersCount: number) {
-//     let count = 6,
-//         question: any,
-//         answers = Array<any>(),
-//         testType: String,
-//         usedFunctions = Array<any>();
-//     let availableAxises = Config.axisIndexes.slice();
-//
-//     question = {
-//         graph: [new FunctionObj().makeQuestionFunction(availableAxises)],
-//         correctIDs: Array<any>()
-//     };
-//
-//
-//     for (let i = 0; i < correctAnswersCount; i++) {
-//         question.correctIDs.addRandomNumber(count);
-//         usedFunctions.push(question.graph[0].getCorrectFunction(availableAxises, usedFunctions));
-//         availableAxises.deleteItem(usedFunctions.last().funcType);
-//         answers[question.correctIDs[i]] = {
-//             graph: [usedFunctions[i]],
-//             id: question.correctIDs[i]
-//         }
-//     }
-//     for (let i = 0; i < count; i++)
-//         if (!question.correctIDs.contains(i)) {
-//             usedFunctions.push(question.graph[0].getIncorrectFunction(availableAxises,usedFunctions));
-//             answers[i] = {
-//                 graph: [usedFunctions.last()],
-//                 id: i
-//             };
-//         }
-//
-//     if (correctAnswersCount == 1) testType = "graph2graph";
-//     else testType = "graph2graph2";
-//
-//     return {
-//         type: testType,
-//         test_id: test_id,
-//         title: "",
-//         question: question,
-//         answers: answers
-//     };
-// }
+export function getG2Gtest(test_id: number, correctAnswersCount: number) {
+    let count = 6,
+        question: any,
+        answers = Array<any>(),
+        testType: String,
+        usedFunctions = Array<FunctionObj>(),
+        questionFunction: FunctionObj;
+    let availableAxises = Config.axisIndexes.slice();
 
-function getG2Stest(test_id: number, chance: number) {
+    questionFunction = new FunctionObj().makeQuestionFunction(availableAxises);
+    question = {
+        graph: [questionFunction],
+        correctIDs: Array<number>()
+    };
+
+    for (let i = 0; i < correctAnswersCount; i++) {
+        question.correctIDs.addRandomNumber(count);
+        usedFunctions.push(questionFunction.getCorrectFunction(availableAxises, usedFunctions));
+        availableAxises.deleteItem(usedFunctions.last().funcType);
+        answers[question.correctIDs[i]] = {
+            graph: [usedFunctions.last()],
+            id: question.correctIDs[i]
+        }
+    }
+    for (let i = 0; i < count; i++)
+        if (!question.correctIDs.contains(i)) {
+            usedFunctions.push(questionFunction.getIncorrectFunction(Config.axisIndexes.slice(), usedFunctions));
+            answers[i] = {
+                graph: [usedFunctions.last()],
+                id: i
+            };
+        }
+
+    testType = correctAnswersCount == 1 ? "graph2graph" : "graph2graph2";
+
+    return {
+        type: testType,
+        test_id: test_id,
+        title: "",
+        question: question,
+        answers: answers
+    };
+}
+
+export function getG2Stest(test_id: number, chance: number) {
     let testType = "graph2state",
         questions = Array<any>(),
         answers = Array<any>(),
@@ -56,46 +56,40 @@ function getG2Stest(test_id: number, chance: number) {
         questionCount = 4,
 
         correctIDs = Array<number>(),
-        questionFunctions = Array<any>(),
         usedFunctions = Array<any>(),
         availableAxises = Config.axisIndexes.slice().deleteItem("a");
-
     for (let i = 0; i < questionCount; i++) {
         correctIDs.addRandomNumber(questionCount);
-        questionFunctions[i] = new FunctionObj().makeQuestionFunction(availableAxises);
-        usedFunctions[i] = questionFunctions[i].getCorrectFunction(availableAxises, usedFunctions);
+        usedFunctions[i] = {questions: Array<FunctionObj>(), functions: Array<FunctionObj>()};
+
+        usedFunctions[i].questions.push(new FunctionObj().makeQuestionFunction(availableAxises, usedFunctions[i].questions));
+        usedFunctions[i].functions.push(usedFunctions[i].questions.last().getCorrectFunction(availableAxises, usedFunctions[i].functions));
 
         questions[i] = {
-            graph: [usedFunctions[i]],
+            graph: [usedFunctions[i].functions.last()],
             correctIDs: [correctIDs.last()],
         };
 
         if (Utils.withChance(chance))
-            questions[i].graph.push(usedFunctions[i].createNextFunction([usedFunctions[i]]));
+            questions[i].graph.push(usedFunctions[i].functions.last().createNextFunction([usedFunctions[i]]));
 
-        console.log(usedFunctions[i]);
     }
 
     let first: any,
         second: any,
-        index: number,
         text = "";
     for (let i = 0; i < answerCount; i++) {
-        if (correctIDs.contains(i)) {
+        if (correctIDs.contains(i)) { // Skip if its correct answer
             first = questions[i].graph[0];
             if (questions[i].graph.length == 2) second = questions[i].graph[1];
-        }
-        else {
-            if (Utils.withChance(0.5)) {
-                first = questionFunctions.getRandom().getIncorrectFunction(availableAxises);
-                if (Utils.withChance(chance))
-                    second = first.createNextFunction([first]);
-            }
-            else {
-                first = usedFunctions.getRandom();
-                index = usedFunctions.indexOf(first);
-                if (Utils.withChance(chance))
-                    second = first.createNextFunction([questions[index].graph.last()]);
+        } else {
+            if (Utils.withChance(0.5)) { // Create brand new function with 0.5 chance
+                first = usedFunctions.getRandom().questions.last().getIncorrectFunction(availableAxises);
+                if (Utils.withChance(chance)) second = first.createNextFunction([first]);
+            } else { // Change second function of graph else
+                let functions = usedFunctions.getRandom().functions;
+                first = functions[0];
+                if (Utils.withChance(chance)) second = functions[0].createNextFunction([functions]);
             }
         }
 
@@ -121,6 +115,26 @@ function getG2Stest(test_id: number, chance: number) {
         question: questions,
         answers: answers
     };
+}
+
+export function getG2Gtest_OneAnswerGraph(test_id: number) {
+    return getG2Gtest(test_id, 1);
+}
+
+export function getG2Gtest_TwoAnswerGraph(test_id: number) {
+    return getG2Gtest(test_id, 2);
+}
+
+export function getG2Stest_SimpleFunctions(test_id: number) {
+    return getG2Stest(test_id, 0);
+}
+
+export function getG2Stest_ComplexFunctions(test_id: number) {
+    return getG2Stest(test_id, 1);
+}
+
+export function getG2Stest_MixedFunctions(test_id: number, ComplexChance: number) {
+    return getG2Stest(test_id, ComplexChance);
 }
 
 // function getSGtest(test_id: number, chance: number, isSimple: boolean) {
@@ -182,14 +196,12 @@ exports.getTest = functions.region("europe-west1").https.onRequest((request, res
 
     let testQuiz = {tests: Array<any>()};
 
-    // testQuiz.tests.push(getG2Gtest(0, 1));
-    //
-    // testQuiz.tests.push(getG2Gtest(2, 2));
+    testQuiz.tests.push(getG2Gtest_OneAnswerGraph(0));
+
+    testQuiz.tests.push(getG2Gtest_TwoAnswerGraph(2));
 
     testQuiz.tests.push(getG2Stest(4, 1));
 
     resp.send(JSON.stringify(testQuiz));
     //return JSON.stringify(testQuiz)
 });
-
-

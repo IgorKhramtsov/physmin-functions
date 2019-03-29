@@ -62,8 +62,7 @@ class FunctionObj {
                 if (Math.sign(params.a) != Math.sign(params.v)) {
                     if (Math.abs(params.v) < 0.8)
                         params.v = 0.8 * Math.sign(params.v);
-                }
-                else if (Math.abs(params.a) < 0.5)
+                } else if (Math.abs(params.a) < 0.5)
                     params.a = 0.5 * Math.sign(params.a)
         }
         if (params.v && funcType == "v")
