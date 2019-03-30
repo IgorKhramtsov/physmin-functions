@@ -167,7 +167,6 @@ function getSGtest(test_id: number, isSimple: boolean) {
 
         questions[i] = {
             graph: [usedFunctions[i]],
-            correctIDs: [correctIDs.last()],
         };
 
     }
@@ -178,27 +177,28 @@ function getSGtest(test_id: number, isSimple: boolean) {
         prevT: any,
         leftIndex,
         rightIndex;
+    let zeroFunc = new FunctionObj(questionsCopy[0].funcType, questionsCopy[0].params);
+        zeroFunc.params.t = 0;
+        questionsCopy.splice(0, 0, zeroFunc);
     if (isSimple) {
         answersCount = 3;
         for (let i = 0; i < answersCount; i++) {
             do question = questionsCopy.getRandom();
-            while (question === undefined);
+            while (question === undefined ||
+                    questionsCopy.indexOf(question) == 0);
 
             rightIndex = questionsCopy.indexOf(question);
-            if (rightIndex != 0) {
-                do leftIndex = rightIndex.getRandom();
-                while (leftIndex == rightIndex);
-                prevT = questionsCopy[leftIndex] ? questionsCopy[leftIndex].params.t : 0;
-            } else {
-                prevT = 0;
-                leftIndex = 0;
-            }
+            do leftIndex = rightIndex.getRandom();
+            while (leftIndex == rightIndex ||
+                    questionsCopy[leftIndex] === undefined);
+
+            prevT = questionsCopy[leftIndex].params.t;
             t = question.params.t ? question.params.t : 12;
 
             answers[i] = {
                 letter: question.funcType,
                 leftIndex: leftIndex,
-                rightIndex: rightIndex + 1,
+                rightIndex: rightIndex,
                 correctSign: Math.sign(question.calculateFunctionValue(prevT) - question.calculateFunctionValue(t)),
             };
             delete questionsCopy[rightIndex];
@@ -215,17 +215,15 @@ function getSGtest(test_id: number, isSimple: boolean) {
             questionsCopy = letter == "S" ? CopyForS : CopyForDX;
 
             do question = questionsCopy.getRandom();
-            while (question === undefined);
+            while (question === undefined ||
+                    questionsCopy.indexOf(question) == 0);
 
             rightIndex = questionsCopy.indexOf(question);
-            if (rightIndex != 0) {
-                do leftIndex = rightIndex.getRandom();
-                while (leftIndex == rightIndex);
-                prevT = questionsCopy[leftIndex] ? questionsCopy[leftIndex].params.t : 0;
-            } else {
-                prevT = 0;
-                leftIndex = 0;
-            }
+            do leftIndex = rightIndex.getRandom();
+            while (leftIndex == rightIndex ||
+                    questionsCopy[leftIndex] === undefined);
+
+            prevT = questionsCopy[leftIndex].params.t;
             t = question.params.t ? question.params.t : 12;
 
             answers[i] = {
