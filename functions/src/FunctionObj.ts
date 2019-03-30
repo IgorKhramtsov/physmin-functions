@@ -11,6 +11,8 @@ class FunctionObj {
     }
 
     equalTo(obj: FunctionObj) {
+        if (obj === undefined) return false;
+
         if (this.funcType == obj.funcType)
             if ((Math.sign(this.params.x) == Math.sign(obj.params.x) || this.params.x === obj.params.x) &&
                 (Math.sign(this.params.v) == Math.sign(obj.params.v) || this.params.v === obj.params.v) &&
@@ -80,14 +82,19 @@ class FunctionObj {
 
     getCorrectFunction(availableAxises: Array<any>, usedFunc?: Array<FunctionObj>): FunctionObj {
         // Filter available function types
-        let newParams = this.copyParams(),
-            pickedAxis = availableAxises.getRandom();
+        let _availableAxises = availableAxises.copy().deleteItem(this.funcType),
+            pickedAxis = _availableAxises.getRandom(),
+            newParams = this.copyParams();
+
+        if (pickedAxis == undefined)
+            throw new Error("Cannot pick axis. Looks like available axises list is empty.");
+
         let newFunc = new FunctionObj(pickedAxis, newParams).makeCorrectParams().clearParams();
 
         if (usedFunc)
             for (let func of usedFunc)
-                if (func != undefined && newFunc.equalTo(func))
-                    return this.getCorrectFunction(availableAxises, usedFunc);
+                if (newFunc.equalTo(func))
+                    return this.getCorrectFunction(_availableAxises, usedFunc);
 
         return newFunc;
     }
@@ -97,15 +104,18 @@ class FunctionObj {
     }
 
     getIncorrectFunction(availableAxises: Array<any>, usedFuncs?: Array<FunctionObj>): FunctionObj {
+        let _availableAxises = availableAxises.copy().deleteItem(this.funcType),
+            pickedAxis = _availableAxises.getRandom(),
+            newParams = this.copyParams();
 
-        let newParams = this.copyParams(),
-            pickedAxis = availableAxises.getRandom();
+        if (pickedAxis == undefined)
+            throw new Error("Cannot pick axis. Looks like available axises list is empty.");
 
         let incorrectFunction = new FunctionObj(pickedAxis, newParams).makeIncorrectParams().clearParams();
         if (usedFuncs)
             for (let func of usedFuncs)
-                if (func != undefined && incorrectFunction.equalTo(func))
-                    return this.getIncorrectFunction(availableAxises, usedFuncs);
+                if (incorrectFunction.equalTo(func))
+                    return this.getIncorrectFunction(_availableAxises, usedFuncs);
 
         return incorrectFunction;
     }
@@ -128,20 +138,21 @@ class FunctionObj {
             params[key] = Utils.getRandomWithSign(key, params[key]);
         }
 
-        let a: string,
-            b: string;
-        if (Math.sign(params["v"]) == Math.sign(params["a"]) && Math.sign(params["a"]) != 0) {
-            if (Utils.withChance(0.5)) {
-                a = "v";
-                b = "a";
-            } else {
-                a = "a";
-                b = "v";
-            }
-
-            params[a] = Utils.withChance(0.5) ? -params[b] : 0;
-            params[a] = Utils.getRandomWithSign(a, params[a]);
-        }
+        // If two vectors have same direction make them opposite
+        // let a: string,
+        //     b: string;
+        // if (Math.sign(params["v"]) == Math.sign(params["a"]) && Math.sign(params["a"]) != 0) {
+        //     if (Utils.withChance(0.5)) {
+        //         a = "v";
+        //         b = "a";
+        //     } else {
+        //         a = "a";
+        //         b = "v";
+        //     }
+        //
+        //     params[a] = Utils.withChance(0.5) ? -params[b] : 0;
+        //     params[a] = Utils.getRandomWithSign(a, params[a]);
+        // }
 
         return this.makeFreeVariables().increaseIntensity();
     }

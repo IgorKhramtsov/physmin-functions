@@ -21,6 +21,8 @@ declare global {
         addRandomNumber(number: number): any;
 
         last(): T;
+
+        copy(): Array<T>;
     }
 }
 Number.prototype.toFloor = function (this: number): number {
@@ -56,6 +58,9 @@ Array.prototype.addRandomNumber = function <T>(this: number[], number: number) {
 };
 Array.prototype.last = function <T>(this: T[]): T {
     return this[this.length - 1];
+};
+Array.prototype.copy = function <T>(this: T[]): Array<T> {
+    return this.slice();
 };
 
 export class Utils {
