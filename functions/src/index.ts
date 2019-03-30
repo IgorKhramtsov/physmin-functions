@@ -140,7 +140,7 @@ export function getG2Stest_MixedFunctions(test_id: number, ComplexChance: number
 }
 
 function getSGtest(test_id: number, isSimple: boolean) {
-    let testType = "",
+    let testType = "relationSings",
         questions = Array<any>(),
         answers = Array<any>(),
 
@@ -196,6 +196,7 @@ function getSGtest(test_id: number, isSimple: boolean) {
             t = question.params.t ? question.params.t : 12;
 
             answers[i] = {
+                id: i,
                 letter: question.funcType,
                 leftIndex: leftIndex,
                 rightIndex: rightIndex,
@@ -227,6 +228,7 @@ function getSGtest(test_id: number, isSimple: boolean) {
             t = question.params.t ? question.params.t : 12;
 
             answers[i] = {
+                id: i,
                 letter: letter,
                 leftIndex: leftIndex,
                 rightIndex: rightIndex + 1,
@@ -247,8 +249,8 @@ function getSGtest(test_id: number, isSimple: boolean) {
     };
 }
 
-exports.getTest = functions.region("europe-west1").https.onRequest((request, resp) => {
-//exports.getTest = functions.region("europe-west1").https.onCall((data, context) => {
+// exports.getTest = functions.region("europe-west1").https.onRequest((request, resp) => {
+exports.getTest = functions.region("europe-west1").https.onCall((data, context) => {
 
     let testQuiz = {tests: Array<any>()};
 
@@ -267,6 +269,6 @@ exports.getTest = functions.region("europe-west1").https.onRequest((request, res
     testQuiz.tests.push(getSGtest(8, false));
     testQuiz.tests.push(getSGtest(9, false));
 
-    resp.send(JSON.stringify(testQuiz));
-    //return JSON.stringify(testQuiz)
+    // resp.send(JSON.stringify(testQuiz));
+    return JSON.stringify(testQuiz)
 });
