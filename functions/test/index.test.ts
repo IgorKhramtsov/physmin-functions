@@ -1,3 +1,5 @@
+import FunctionObj from "../src/FunctionObj";
+
 const chai = require('chai');
 const test = require('firebase-functions-test')();
 import * as tests from "../src/index"
@@ -24,5 +26,35 @@ describe("Test generators", () => {
         for (let i = 0; i < 100; i++)
             chai.expect(tests.getG2Stest_MixedFunctions.bind(null, 4, i / 10.0)).to.not.throw(Error);
     });
+});
 
+describe("Function generators", () => {
+    it("Correct function should have right types", () => {
+        for (let i = 0; i < 100; i++) {
+            let question = new FunctionObj().makeQuestionFunction(["x"], []);
+            let correct_array = Array<FunctionObj>();
+            correct_array.push(question.getCorrectFunction(["x", "v"], correct_array));
+            correct_array.push(question.getCorrectFunction(["x", "v", "a"], correct_array));
+
+            chai.expect(correct_array[0].funcType).to.equal("v");
+            chai.expect(correct_array[1].funcType).to.equal("a");
+        }
+    });
+    it("Correct functions should be Correct", () => {
+        for (let i = 0; i < 100; i++) {
+            let question = new FunctionObj().makeQuestionFunction(["x"], []);
+            let correct_array = Array<FunctionObj>();
+            correct_array.push(question.getCorrectFunction(["x", "v"], correct_array));
+            correct_array.push(question.getCorrectFunction(["x", "v", "a"], correct_array));
+
+            let correctFunctionToCompare = new FunctionObj(question.funcType, correct_array[0].copyParams());
+            correctFunctionToCompare.params.x = question.params.x;
+            chai.expect(correctFunctionToCompare.equalTo(question)).to.be.true;
+
+            correctFunctionToCompare = new FunctionObj(question.funcType, correct_array[1].copyParams());
+            correctFunctionToCompare.params.x = question.params.x;
+            correctFunctionToCompare.params.v = question.params.v;
+            chai.expect(correctFunctionToCompare.equalTo(question)).to.be.true;
+        }
+    });
 });
