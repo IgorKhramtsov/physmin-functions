@@ -261,6 +261,17 @@ class FunctionObj {
         }
 
     }
+
+    calcFuncValueFromRange(start: number, end: number, letter: string){
+        let value = 0;
+        if(letter == "S")
+            for(let i = end; i != 0;i--){
+                value += this.calculateFunctionValue(i) - this.calculateFunctionValue(i-1);
+            }
+        else
+            value = this.calculateFunctionValue(end) - this.calculateFunctionValue(start);
+        return value;
+    }
 }
 
 export default FunctionObj;

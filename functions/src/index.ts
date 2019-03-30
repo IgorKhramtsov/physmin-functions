@@ -58,6 +58,7 @@ export function getG2Stest(test_id: number, chance: number) {
         correctIDs = Array<number>(),
         usedFunctions = Array<any>(),
         availableAxises = Config.axisIndexes.copy().deleteItem("a");
+    let _chance = Utils.withChance(chance);
     for (let i = 0; i < questionCount; i++) {
         correctIDs.addRandomNumber(questionCount);
         usedFunctions[i] = {questions: Array<FunctionObj>(), functions: Array<FunctionObj>()};
@@ -70,7 +71,7 @@ export function getG2Stest(test_id: number, chance: number) {
             correctIDs: [correctIDs.last()],
         };
 
-        if (Utils.withChance(chance))
+        if (_chance)
             questions[i].graph.push(usedFunctions[i].functions.last().createNextFunction([usedFunctions[i]]));
 
     }
@@ -83,13 +84,14 @@ export function getG2Stest(test_id: number, chance: number) {
             first = questions[i].graph[0];
             if (questions[i].graph.length == 2) second = questions[i].graph[1];
         } else {
+
             if (Utils.withChance(0.5)) { // Create brand new function with 0.5 chance
                 first = usedFunctions.getRandom().questions.last().getIncorrectFunction(availableAxises);
-                if (Utils.withChance(chance)) second = first.createNextFunction([first]);
+                if (_chance) second = first.createNextFunction([first]);
             } else { // Change second function of graph else
                 let usedFunctionsRandommed = usedFunctions.getRandom().functions;
                 first = usedFunctionsRandommed[0];
-                if (Utils.withChance(chance)) second = usedFunctionsRandommed[0].createNextFunction([usedFunctionsRandommed]);
+                if (_chance) second = usedFunctionsRandommed[0].createNextFunction([usedFunctionsRandommed]);
             }
         }
 
@@ -137,7 +139,7 @@ export function getG2Stest_MixedFunctions(test_id: number, ComplexChance: number
     return getG2Stest(test_id, ComplexChance);
 }
 
-function getSGtest(test_id: number, chance: number, isSimple: boolean) {
+function getSGtest(test_id: number, isSimple: boolean) {
     let testType = "",
         questions = Array<any>(),
         answers = Array<any>(),
@@ -170,44 +172,70 @@ function getSGtest(test_id: number, chance: number, isSimple: boolean) {
 
     }
 
+    let questionsCopy = usedFunctions.copy(),
+        question: any,
+        t: any,
+        prevT: any,
+        leftIndex,
+        rightIndex;
     if (isSimple) {
-        let question: any,
-            t: any;
         answersCount = 3;
         for (let i = 0; i < answersCount; i++) {
-            question = questions[i].graph[0];
-            t = question.params.t;
+            do question = questionsCopy.getRandom();
+            while (question === undefined);
+
+            rightIndex = questionsCopy.indexOf(question);
+            if (rightIndex != 0) {
+                do leftIndex = rightIndex.getRandom();
+                while (leftIndex == rightIndex);
+                prevT = questionsCopy[leftIndex] ? questionsCopy[leftIndex].params.t : 0;
+            } else {
+                prevT = 0;
+                leftIndex = 0;
+            }
+            t = question.params.t ? question.params.t : 12;
+
             answers[i] = {
                 letter: question.funcType,
-                leftIndex: questions.indexOf(question),
-                rightIndex: questions.indexOf(question) + 1,
-                correctSign: Math.sign(question.calculateFunctionValue(t) - question.calculateFunctionValue(t + 1)),
-            }
+                leftIndex: leftIndex,
+                rightIndex: rightIndex + 1,
+                correctSign: Math.sign(question.calculateFunctionValue(prevT) - question.calculateFunctionValue(t)),
+            };
+            delete questionsCopy[rightIndex];
         }
     }
     else {
         let letters = Config.letters.copy(),
-            questionsCopy = usedFunctions.copy(),
-            question: any,
-            t: any,
-            prevT: any,
-            index;
+            CopyForS = usedFunctions.copy(),
+            CopyForDX = usedFunctions.copy(),
+            letter: any;
         answersCount = 6;
         for (let i = 0; i < answersCount; i++) {
+            letter = letters.getRandom();
+            questionsCopy = letter == "S" ? CopyForS : CopyForDX;
+
             do question = questionsCopy.getRandom();
-            while (question == undefined);
-            t = question.params.t;
-            index = questionsCopy.indexOf(question);
-            prevT = questionsCopy[index - 1] ? questionsCopy[index - 1].params.t : 0;
+            while (question === undefined);
+
+            rightIndex = questionsCopy.indexOf(question);
+            if (rightIndex != 0) {
+                do leftIndex = rightIndex.getRandom();
+                while (leftIndex == rightIndex);
+                prevT = questionsCopy[leftIndex] ? questionsCopy[leftIndex].params.t : 0;
+            } else {
+                prevT = 0;
+                leftIndex = 0;
+            }
+            t = question.params.t ? question.params.t : 12;
 
             answers[i] = {
-                letter: letters.getRandom(),
-                leftIndex: index,
-                rightIndex: index + 1,
-                correctSign: Math.sign(question.calculateFunctionValue(prevT) - question.calculateFunctionValue(t)),
+                letter: letter,
+                leftIndex: leftIndex,
+                rightIndex: rightIndex + 1,
+                correctSign: Math.sign(question.calcFuncValueFromRange(prevT, t, letter)),
             };
-            letters.deleteItem(answers[i].letter);
-            delete questionsCopy[index];
+            letters.deleteItem(letter);
+            delete questionsCopy[rightIndex];
         }
     }
 
@@ -221,24 +249,26 @@ function getSGtest(test_id: number, chance: number, isSimple: boolean) {
     };
 }
 
-// exports.getTest = functions.region("europe-west1").https.onRequest((request, resp) => {
-exports.getTest = functions.region("europe-west1").https.onCall((data, context) => {
+exports.getTest = functions.region("europe-west1").https.onRequest((request, resp) => {
+//exports.getTest = functions.region("europe-west1").https.onCall((data, context) => {
 
     let testQuiz = {tests: Array<any>()};
 
-    testQuiz.tests.push(getG2Gtest_OneAnswerGraph(0));
+    // testQuiz.tests.push(getG2Gtest_OneAnswerGraph(0));
+    //
+    // testQuiz.tests.push(getG2Gtest_TwoAnswerGraph(1));
+    //
+    // testQuiz.tests.push(getG2Stest(4, 1));
 
-    testQuiz.tests.push(getG2Gtest_TwoAnswerGraph(1));
+    // testQuiz.tests.push(getG2Stest_SimpleFunctions(2));
+    // testQuiz.tests.push(getG2Stest_ComplexFunctions(3));
+    // testQuiz.tests.push(getG2Stest_MixedFunctions(4, 0.5));
 
-    testQuiz.tests.push(getG2Stest_SimpleFunctions(2));
-    testQuiz.tests.push(getG2Stest_ComplexFunctions(3));
-    testQuiz.tests.push(getG2Stest_MixedFunctions(4, 0.5));
+    testQuiz.tests.push(getSGtest(6, true));
+    testQuiz.tests.push(getSGtest(7, true));
+    testQuiz.tests.push(getSGtest(8, false));
+    testQuiz.tests.push(getSGtest(9, false));
 
-    // testQuiz.tests.push(getSGtest(6, 1, true));
-    // testQuiz.tests.push(getSGtest(7, 1, true));
-    // testQuiz.tests.push(getSGtest(8, 1, false));
-    // testQuiz.tests.push(getSGtest(9, 1, false));
-
-    // resp.send(JSON.stringify(testQuiz));
-    return JSON.stringify(testQuiz)
+    resp.send(JSON.stringify(testQuiz));
+    //return JSON.stringify(testQuiz)
 });
