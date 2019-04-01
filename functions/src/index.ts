@@ -151,8 +151,6 @@ function getSGtest(test_id: number, isSimple: boolean) {
         questionCount = Math.round(Utils.getRandomFromBound("t")),
         answersCount = 0,
 
-        correctIDs = Array<number>(),
-        //questionFunctions = Array<any>(),
         usedFunctions = Array<any>(),
         availableAxises = Config.axisIndexes.copy();
 
@@ -165,14 +163,10 @@ function getSGtest(test_id: number, isSimple: boolean) {
             prevFunc = new FunctionObj().makeQuestionFunction(availableAxises)
                 .getCorrectFunction(availableAxises);
 
-        usedFunctions[i] = prevFunc.createNextFunction();
-        correctIDs.addRandomNumber(questionCount);
+        usedFunctions[i] = prevFunc.createNextFunction([prevFunc]);
         prevFunc = usedFunctions[i];
 
-        questions[i] = {
-            graph: [usedFunctions[i]],
-        };
-
+        questions.push(usedFunctions[i]);
     }
 
     let questionsCopy = usedFunctions.copy(),
@@ -203,16 +197,16 @@ function getSGtest(test_id: number, isSimple: boolean) {
                 id: i,
                 letter: question.funcType,
                 leftIndex: leftIndex,
-                rightIndex: rightIndex,
-                correctSign: Math.sign(question.calculateFunctionValue(prevT) - question.calculateFunctionValue(t)),
+                rightIndex: rightIndex+1,
+                correctSign: Math.sign(question.calculateFunctionValue(t) - question.calculateFunctionValue(prevT)),
             };
             delete questionsCopy[rightIndex];
         }
     }
     else {
         let letters = Config.letters.copy(),
-            CopyForS = usedFunctions.copy(),
-            CopyForDX = usedFunctions.copy(),
+            CopyForS = questionsCopy.copy(),
+            CopyForDX = questionsCopy.copy(),
             letter: any;
         answersCount = 6;
         for (let i = 0; i < answersCount; i++) {
@@ -248,27 +242,29 @@ function getSGtest(test_id: number, isSimple: boolean) {
         type: testType,
         test_id: test_id,
         title: "",
-        question: questions,
+        question: [{graph: questions}],
         answers: answers,
     };
 }
 
-// exports.getTest = functions.region("europe-west1").https.onRequest((request, resp) => {
+//exports.getTest = functions.region("europe-west1").https.onRequest((request, resp) => {
 exports.getTest = functions.region("europe-west1").https.onCall((data, context) => {
 
     let testQuiz = {tests: Array<any>()};
 
-    testQuiz.tests.push(getG2Gtest_OneAnswerGraph(0));
+    // testQuiz.tests.push(getG2Gtest_OneAnswerGraph(0));
+    //
+    // testQuiz.tests.push(getG2Gtest_TwoAnswerGraph(1));
+    //
+    // testQuiz.tests.push(getG2Stest_SimpleFunctions(2));
+    // testQuiz.tests.push(getG2Stest_ComplexFunctions(3));
+    // testQuiz.tests.push(getG2Stest_MixedFunctions(4, 0.5));
 
-    testQuiz.tests.push(getG2Gtest_TwoAnswerGraph(1));
-
-    testQuiz.tests.push(getG2Stest_SimpleFunctions(2));
-    testQuiz.tests.push(getG2Stest_ComplexFunctions(3));
-    testQuiz.tests.push(getG2Stest_MixedFunctions(4, 0.5));
-
-    testQuiz.tests.push(getSGtest(6, true));
+    testQuiz.tests.push(getSGtest(6, false));
+    testQuiz.tests.push(getSGtest(7, false));
     testQuiz.tests.push(getSGtest(8, false));
+    // testQuiz.tests.push(getSGtest(8, false));
 
-    // resp.send(JSON.stringify(testQuiz));
+     //resp.send(JSON.stringify(testQuiz));
     return JSON.stringify(testQuiz)
 });

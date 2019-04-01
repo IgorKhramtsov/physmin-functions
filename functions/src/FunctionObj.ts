@@ -233,9 +233,6 @@ class FunctionObj {
             case "v":
                 nextFunc.params.v = this.calculateFunctionValue(t);
                 break;
-            case "a":
-                nextFunc.params.a = this.calculateFunctionValue(t);
-                break;
         }
 
         if (usedFunctions)
