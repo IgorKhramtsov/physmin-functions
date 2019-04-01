@@ -54,12 +54,14 @@ export function getG2Stest(test_id: number, chance: number) {
 
         answerCount = 6,
         questionCount = 4,
+        _chance: boolean,
 
         correctIDs = Array<number>(),
         usedFunctions = Array<any>(),
         availableAxises = Config.axisIndexes.copy().deleteItem("a");
-    let _chance = Utils.withChance(chance);
+
     for (let i = 0; i < questionCount; i++) {
+        _chance = Utils.withChance(chance);
         correctIDs.addRandomNumber(questionCount);
         usedFunctions[i] = {questions: Array<FunctionObj>(), functions: Array<FunctionObj>()};
 
@@ -80,6 +82,8 @@ export function getG2Stest(test_id: number, chance: number) {
         second: any,
         text = "";
     for (let i = 0; i < answerCount; i++) {
+        _chance = Utils.withChance(chance);
+
         if (correctIDs.contains(i)) { // Skip if its correct answer
             first = questions[i].graph[0];
             if (questions[i].graph.length == 2) second = questions[i].graph[1];
@@ -254,20 +258,16 @@ exports.getTest = functions.region("europe-west1").https.onCall((data, context) 
 
     let testQuiz = {tests: Array<any>()};
 
-    // testQuiz.tests.push(getG2Gtest_OneAnswerGraph(0));
-    //
-    // testQuiz.tests.push(getG2Gtest_TwoAnswerGraph(1));
-    //
-    // testQuiz.tests.push(getG2Stest(4, 1));
+    testQuiz.tests.push(getG2Gtest_OneAnswerGraph(0));
 
-    // testQuiz.tests.push(getG2Stest_SimpleFunctions(2));
-    // testQuiz.tests.push(getG2Stest_ComplexFunctions(3));
-    // testQuiz.tests.push(getG2Stest_MixedFunctions(4, 0.5));
+    testQuiz.tests.push(getG2Gtest_TwoAnswerGraph(1));
+
+    testQuiz.tests.push(getG2Stest_SimpleFunctions(2));
+    testQuiz.tests.push(getG2Stest_ComplexFunctions(3));
+    testQuiz.tests.push(getG2Stest_MixedFunctions(4, 0.5));
 
     testQuiz.tests.push(getSGtest(6, true));
-    testQuiz.tests.push(getSGtest(7, true));
     testQuiz.tests.push(getSGtest(8, false));
-    testQuiz.tests.push(getSGtest(9, false));
 
     // resp.send(JSON.stringify(testQuiz));
     return JSON.stringify(testQuiz)
