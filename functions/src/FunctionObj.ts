@@ -220,11 +220,15 @@ class FunctionObj {
         return text;
     }
 
-    createNextFunction(usedFunctions?: Array<FunctionObj>): FunctionObj {
+    createNextFunction(usedFunctions?: Array<FunctionObj>, questionInterval?: Array<number>): FunctionObj {
         let funcType = this.funcType,
             nextFunc = new FunctionObj(funcType).generateParams().clearParams();
 
-        let t = Math.round(Utils.getRandomFromBound("t"));
+        let t: number;
+        if (questionInterval)
+            t = Math.round(Utils.getRandomFromRange(questionInterval[0], questionInterval[1]));
+        else
+            t = Math.round(Utils.getRandomFromBound("t"));
 
         switch (funcType) {
             case "x":
@@ -238,8 +242,7 @@ class FunctionObj {
         if (usedFunctions)
             for (let func of usedFunctions)
                 if (nextFunc.equalTo(func))
-                    return this.createNextFunction(usedFunctions);
-
+                    return this.createNextFunction(usedFunctions, questionInterval);
         this.params.t = t;
 
         return nextFunc;
@@ -259,11 +262,11 @@ class FunctionObj {
 
     }
 
-    calcFuncValueFromRange(start: number, end: number, letter: string){
+    calcFuncValueFromRange(start: number, end: number, letter: string) {
         let value = 0;
-        if(letter == "S")
-            for(let i = end; i != 0;i--){
-                value += this.calculateFunctionValue(i) - this.calculateFunctionValue(i-1);
+        if (letter == "S")
+            for (let i = end; i != 0; i--) {
+                value += this.calculateFunctionValue(i) - this.calculateFunctionValue(i - 1);
             }
         else
             value = this.calculateFunctionValue(end) - this.calculateFunctionValue(start);
