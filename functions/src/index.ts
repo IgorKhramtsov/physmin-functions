@@ -153,24 +153,25 @@ function getSGtest(test_id: number, isSimple: boolean) {
         answersCount = 0,
 
         usedFunctions = Array<any>(),
-        availableAxises = Config.axisIndexes.copy();
+        availableAxises = Config.axisIndexes.copy().deleteItem("a");
 
-    let prevFunc = undefined;
+    let tmp = undefined;
     for (let i = 0; i < questionCount; i++) {
-        if (prevFunc == undefined) {
-            prevFunc = new FunctionObj().makeQuestionFunction(availableAxises).getCorrectFunction(availableAxises);
-            usedFunctions.push(prevFunc);
+        if (i == 0) {
+            usedFunctions.push(new FunctionObj().makeQuestionFunction(availableAxises).getCorrectFunction(availableAxises));
             continue;
         }
 
-        usedFunctions[i] = prevFunc.createNextFunction(
-            [prevFunc],
+        tmp = [usedFunctions[i-1]];
+        if(i > 1) tmp.push(usedFunctions[i-2]);
+
+        usedFunctions[i] = usedFunctions[i-1].createNextFunction(
+            tmp,
             [questionInterval * (i - 1), questionInterval * i]);
-        prevFunc = usedFunctions[i];
 
         questions.push(usedFunctions[i]);
     }
-
+    // console.log(questions[0], questions[1]);
     let questionsCopy = usedFunctions.copy(),
         question: any,
         t: any,
@@ -249,8 +250,8 @@ function getSGtest(test_id: number, isSimple: boolean) {
     };
 }
 
-//exports.getTest = functions.region("europe-west1").https.onRequest((request, resp) => {
-exports.getTest = functions.region("europe-west1").https.onCall((data, context) => {
+exports.getTest = functions.region("europe-west1").https.onRequest((request, resp) => {
+//exports.getTest = functions.region("europe-west1").https.onCall((data, context) => {
 
     let testQuiz = {tests: Array<any>()};
 
@@ -264,6 +265,6 @@ exports.getTest = functions.region("europe-west1").https.onCall((data, context) 
     testQuiz.tests.push(getSGtest(7, true));
     // testQuiz.tests.push(getSGtest(8, false));
 
-    //resp.send(JSON.stringify(testQuiz));
-    return JSON.stringify(testQuiz)
+    resp.send(JSON.stringify(testQuiz));
+    //return JSON.stringify(testQuiz)
 });

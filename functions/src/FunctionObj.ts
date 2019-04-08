@@ -224,18 +224,26 @@ class FunctionObj {
         let funcType = this.funcType,
             nextFunc = new FunctionObj(funcType).generateParams().clearParams();
 
-        let t: number;
-        if (questionInterval)
+        let t: number,
+            prevT = 0;
+        if (questionInterval) {
             t = Math.round(Utils.getRandomFromRange(questionInterval[0], questionInterval[1]));
+            // console.log(usedFunctions!);
+            // console.log(usedFunctions!.last());
+            // console.log(usedFunctions!.last().params.t);
+            if (usedFunctions && usedFunctions.length == 2)
+                prevT = usedFunctions.last().params.t;
+        }
         else
             t = Math.round(Utils.getRandomFromBound("t"));
-
+       console.log(this.params, t, prevT);
         switch (funcType) {
             case "x":
-                nextFunc.params.x = this.calculateFunctionValue(t);
+                nextFunc.params.x = this.calculateFunctionValue(t - prevT);
+                // console.log(nextFunc.params.x);
                 break;
             case "v":
-                nextFunc.params.v = this.calculateFunctionValue(t);
+                nextFunc.params.v = this.calculateFunctionValue(t - prevT);
                 break;
         }
 

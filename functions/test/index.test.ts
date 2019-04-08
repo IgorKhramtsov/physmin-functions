@@ -71,4 +71,18 @@ describe("Function generators", () => {
             }
         }
     });
+    it("All axises should be picked with equal possibility", () => {
+        let availableAxises = ["x", "v", "a"],
+            axis: string,
+            x_c = 0,
+            v_c = 0,
+            a_c = 0;
+        for(let i = 0; i < 100;i++){
+            axis = availableAxises.getRandom();
+            if(axis == "x") x_c++;
+            if(axis == "v") v_c++;
+            if(axis == "a") a_c++;
+        }
+        console.log("x: ", x_c, ", v: ", v_c, ", a: ", a_c);
+    });
 });
