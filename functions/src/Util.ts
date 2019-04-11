@@ -60,7 +60,11 @@ Array.prototype.last = function <T>(this: T[]): T {
     return this[this.length - 1];
 };
 Array.prototype.copy = function <T>(this: T[]): Array<T> {
-    return this.slice();
+    let array =  Array<T>(this.length);
+    for (let i = 0; i < this.length; i++) {
+        array[i] = this[i];
+    }
+    return array;
 };
 
 export class Utils {

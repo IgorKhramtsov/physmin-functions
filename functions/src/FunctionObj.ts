@@ -220,30 +220,21 @@ class FunctionObj {
         return text;
     }
 
-    createNextFunction(usedFunctions?: Array<FunctionObj>, questionInterval?: Array<number>): FunctionObj {
+    createNextFunction(usedFunctions?: Array<FunctionObj>, questionInterval?: number): FunctionObj {
         let funcType = this.funcType,
             nextFunc = new FunctionObj(funcType).generateParams().clearParams();
 
-        let t: number,
-            prevT = 0;
-        if (questionInterval) {
-            t = Math.round(Utils.getRandomFromRange(questionInterval[0], questionInterval[1]));
-            // console.log(usedFunctions!);
-            // console.log(usedFunctions!.last());
-            // console.log(usedFunctions!.last().params.t);
-            if (usedFunctions && usedFunctions.length == 2)
-                prevT = usedFunctions.last().params.t;
-        }
+        let len: number;
+        if (questionInterval)
+            len = Math.round(Utils.getRandomFromRange(Config.minLength, questionInterval));
         else
-            t = Math.round(Utils.getRandomFromBound("t"));
-       console.log(this.params, t, prevT);
+            len = Math.round(Utils.getRandomFromBound("t"));
         switch (funcType) {
             case "x":
-                nextFunc.params.x = this.calculateFunctionValue(t - prevT);
-                // console.log(nextFunc.params.x);
+                nextFunc.params.x = this.calculateFunctionValue(len);
                 break;
             case "v":
-                nextFunc.params.v = this.calculateFunctionValue(t - prevT);
+                nextFunc.params.v = this.calculateFunctionValue(len);
                 break;
         }
 
@@ -251,7 +242,7 @@ class FunctionObj {
             for (let func of usedFunctions)
                 if (nextFunc.equalTo(func))
                     return this.createNextFunction(usedFunctions, questionInterval);
-        this.params.t = t;
+        this.params.len = len;
 
         return nextFunc;
     }

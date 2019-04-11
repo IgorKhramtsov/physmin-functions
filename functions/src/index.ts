@@ -145,101 +145,78 @@ export function getG2Stest_MixedFunctions(test_id: number, ComplexChance: number
 
 function getSGtest(test_id: number, isSimple: boolean) {
     let testType = "relationSings",
-        questions = Array<any>(),
         answers = Array<any>(),
+        questions = Array<any>(),
 
-        questionCount = Math.round(Utils.getRandomFromBound("t")),
+        questionCount = Math.round(Utils.getRandomFromBound("questionCount")),
         questionInterval = Math.round(12 / questionCount),
-        answersCount = 0,
 
         usedFunctions = Array<any>(),
         availableAxises = Config.axisIndexes.copy().deleteItem("a");
 
-    let tmp = undefined;
     for (let i = 0; i < questionCount; i++) {
         if (i == 0) {
             usedFunctions.push(new FunctionObj().makeQuestionFunction(availableAxises).getCorrectFunction(availableAxises));
             continue;
         }
 
-        tmp = [usedFunctions[i-1]];
-        if(i > 1) tmp.push(usedFunctions[i-2]);
-
-        usedFunctions[i] = usedFunctions[i-1].createNextFunction(
-            tmp,
-            [questionInterval * (i - 1), questionInterval * i]);
-
-        questions.push(usedFunctions[i]);
+        usedFunctions[i] = usedFunctions[i - 1].createNextFunction(
+            [usedFunctions[i - 1]],
+            questionInterval);
     }
-    // console.log(questions[0], questions[1]);
-    let questionsCopy = usedFunctions.copy(),
-        question: any,
-        t: any,
-        prevT: any,
-        leftIndex,
-        rightIndex;
+    questions = usedFunctions.copy();
+
+    let questionsCopy = questions.copy(),
+        question: FunctionObj,
+        t: number,
+        prevT: number,
+        leftIndex: number,
+        rightIndex: number,
+        answersCount = isSimple ? 3 : 6;
+
+    let letters = null,
+        letter = null,
+        CopyForS: any,
+        CopyForDX: any;
+
+    if (!isSimple) {
+        letters = Config.letters.copy();
+        CopyForS = questionsCopy.copy();
+        CopyForDX = questionsCopy.copy();
+    }
+
     let zeroFunc = new FunctionObj(questionsCopy[0].funcType, questionsCopy[0].params);
-    zeroFunc.params.t = 0;
+    zeroFunc.params.len = 0;
     questionsCopy.splice(0, 0, zeroFunc);
-    if (isSimple) {
-        answersCount = 3;
-        for (let i = 0; i < answersCount; i++) {
-            do question = questionsCopy.getRandom();
-            while (question === undefined ||
-            questionsCopy.indexOf(question) == 0);
 
-            rightIndex = questionsCopy.indexOf(question);
-            do leftIndex = rightIndex.getRandom();
-            while (leftIndex == rightIndex ||
-            questionsCopy[leftIndex] === undefined);
-
-            prevT = questionsCopy[leftIndex].params.t;
-            t = question.params.t ? question.params.t : 12;
-
-            answers[i] = {
-                id: i,
-                letter: question.funcType,
-                leftIndex: leftIndex,
-                rightIndex: rightIndex + 1,
-                correctSign: Math.sign(question.calculateFunctionValue(t) - question.calculateFunctionValue(prevT)),
-            };
-            delete questionsCopy[rightIndex];
-        }
-    }
-    else {
-        const letters = Config.letters.copy(),
-            CopyForS = questionsCopy.copy(),
-            CopyForDX = questionsCopy.copy();
-        let letter: any;
-        answersCount = 6;
-        for (let i = 0; i < answersCount; i++) {
+    for (let i = 0; i < answersCount; i++) {
+        if (isSimple && letters) {
             letter = letters.getRandom();
             questionsCopy = letter == "S" ? CopyForS : CopyForDX;
-
-            do question = questionsCopy.getRandom();
-            while (question === undefined ||
-            questionsCopy.indexOf(question) == 0);
-
-            rightIndex = questionsCopy.indexOf(question);
-            do leftIndex = rightIndex.getRandom();
-            while (leftIndex == rightIndex ||
-            questionsCopy[leftIndex] === undefined);
-
-            prevT = questionsCopy[leftIndex].params.t;
-            t = question.params.t ? question.params.t : 12;
-
-            answers[i] = {
-                id: i,
-                letter: letter,
-                leftIndex: leftIndex,
-                rightIndex: rightIndex + 1,
-                correctSign: Math.sign(question.calcFuncValueFromRange(prevT, t, letter)),
-            };
-            letters.deleteItem(letter);
-            delete questionsCopy[rightIndex];
         }
-    }
+        do question = questionsCopy.getRandom();
+        while (question === undefined ||
+        questionsCopy.indexOf(question) == 0);
 
+        rightIndex = questionsCopy.indexOf(question);
+        do leftIndex = rightIndex.getRandom();
+        while (leftIndex == rightIndex ||
+        questionsCopy[leftIndex] === undefined);
+
+        prevT = questionsCopy[leftIndex].params.len;
+        t = question.params.len ? question.params.len : 12;
+
+        answers[i] = {
+            id: i,
+            letter: isSimple ? question.funcType : letter,
+            leftIndex: leftIndex,
+            rightIndex: rightIndex + 1,
+            correctSign: !isSimple && letter ? Math.sign(question.calcFuncValueFromRange(prevT, t, letter)) :
+                Math.sign(question.calculateFunctionValue(t) - question.calculateFunctionValue(prevT)),
+        };
+        if (isSimple && letter) letters!.deleteItem(letter);
+        delete questionsCopy[rightIndex];
+    }
 
     return {
         type: testType,
@@ -266,5 +243,7 @@ exports.getTest = functions.region("europe-west1").https.onRequest((request, res
     // testQuiz.tests.push(getSGtest(8, false));
 
     resp.send(JSON.stringify(testQuiz));
-    //return JSON.stringify(testQuiz)
+    // return JSON.stringify(testQuiz)
 });
+
+export default getSGtest;

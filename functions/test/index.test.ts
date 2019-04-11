@@ -3,6 +3,7 @@ import FunctionObj from "../src/FunctionObj";
 const chai = require('chai');
 const test = require('firebase-functions-test')();
 import * as tests from "../src/index"
+import getSGtest from "../src";
 
 
 describe("Test generators", () => {
@@ -84,5 +85,12 @@ describe("Function generators", () => {
             if(axis == "a") a_c++;
         }
         console.log("x: ", x_c, ", v: ", v_c, ", a: ", a_c);
+    });
+    it("Graphs cannot have less than 2 functions", () => {
+        let a: any;
+        for(let i = 0; i < 100;i++){
+            a = getSGtest(i, false);
+            chai.expect(a.question.length).to.be.greaterThan(2);
+        }
     });
 });
