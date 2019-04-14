@@ -15,6 +15,7 @@
   "dependencies": {
     "@types/chai": "^4.1.7",
     "@types/mocha": "^5.2.6",
+    "chai": "^4.2.0",
     "firebase-admin": "~7.0.0",
     "firebase-functions": "^2.2.0",
     "mocha": "^6.0.2"
