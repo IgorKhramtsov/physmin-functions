@@ -11,7 +11,7 @@ cache:
 
 before_script:
  - cd ./functions/
- - npm intall
+ - npm install
 
 test_async:
   script:
