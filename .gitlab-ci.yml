@@ -9,7 +9,7 @@ cache:
   paths:
   - node_modules/
 
-before_scripts:
+before_script:
  - npm intall
 
 test_async:
