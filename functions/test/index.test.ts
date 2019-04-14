@@ -86,11 +86,18 @@ describe("Function generators", () => {
         }
         console.log("x: ", x_c, ", v: ", v_c, ", a: ", a_c);
     });
-    it("Graphs cannot have less than 2 functions", () => {
+    it("SG test graphs should have more than 2 functions", () => {
         let a: any;
         for(let i = 0; i < 100;i++){
-            a = getSGtest(i, false);
-            chai.expect(a.question.length).to.be.greaterThan(2);
+            a = getSGtest(i, true);
+            chai.expect(a.question[0].graph.length).to.be.greaterThan(2);
+        }
+    });
+    it("Check for SG test copy bug", () => {
+        for (let i = 0; i < 10; i++) {
+            let test = getSGtest(i, true);
+            chai.expect(test.question[0].graph[0].params).haveOwnProperty("len");
+            chai.expect(test.question[0].graph[0].params.len).to.be.greaterThan(0);
         }
     });
 });
