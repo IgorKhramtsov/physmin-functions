@@ -36,7 +36,7 @@ export function getG2Gtest(test_id: number, correctAnswersCount: number) {
             };
         }
 
-    testType = correctAnswersCount == 1 ? "graph2graph" : "graph2graph2";
+    testType = correctAnswersCount === 1 ? "graph2graph" : "graph2graph2";
 
     return {
         type: testType,
@@ -147,6 +147,7 @@ function getSGtest(test_id: number, isSimple: boolean) {
     let testType = "relationSings",
         answers = Array<any>(),
         questions = Array<any>(),
+        sumLengthFunc = 0,
 
         questionCount = Math.round(Utils.getRandomFromBound("questionCount")),
         questionInterval = Math.round(12 / questionCount),
@@ -163,10 +164,14 @@ function getSGtest(test_id: number, isSimple: boolean) {
         usedFunctions[i] = usedFunctions[i - 1].createNextFunction(
             [usedFunctions[i - 1]],
             questionInterval);
+
+        sumLengthFunc += usedFunctions[i - 1].params.len;
+        if (i === questionCount - 1)
+            usedFunctions[i].params.len = 12 - sumLengthFunc;
     }
     questions = usedFunctions.copy();
 
-    let questionsCopy = questions.copy(),
+    let questionsCopy: Array<FunctionObj> = questions.copy(),
         question: FunctionObj,
         t: number,
         prevT: number,
@@ -185,37 +190,41 @@ function getSGtest(test_id: number, isSimple: boolean) {
         CopyForDX = questionsCopy.copy();
     }
 
-    let zeroFunc = new FunctionObj(questionsCopy[0].funcType, questionsCopy[0].params);
+    let zeroFunc = new FunctionObj(questionsCopy[0].funcType, questionsCopy[0].copyParams());
     zeroFunc.params.len = 0;
     questionsCopy.splice(0, 0, zeroFunc);
 
+    let indexes = FunctionObj.getIndexes(questionCount, answersCount),
+        leftValue, rightValue;
+    let leftCouple, rightCouple,
+        leftQuestion, rightQuestion;
     for (let i = 0; i < answersCount; i++) {
-        if (isSimple && letters) {
+        leftCouple = {
+            left: indexes[i][0][0],
+            right: indexes[i][0][1],
+        };
+        rightCouple = {
+            left: indexes[i][1][0],
+            right: indexes[i][1][1],
+        };
+        if (!isSimple && letters !== null) {
             letter = letters.getRandom();
-            questionsCopy = letter == "S" ? CopyForS : CopyForDX;
+            leftValue = FunctionObj.calcFuncValueFromRange(leftCouple.left, leftCouple.right, letter, questionsCopy);
+            rightValue = FunctionObj.calcFuncValueFromRange(rightCouple.left, rightCouple.right, letter, questionsCopy);
+        } else {
+            leftQuestion = questionsCopy[leftCouple.left];
+            rightQuestion = questionsCopy[leftCouple.right];
+            leftValue = leftQuestion.calculateFunctionValue(leftQuestion.params.len);
+            rightValue = rightQuestion.calculateFunctionValue(rightQuestion.params.len);
         }
-        do question = questionsCopy.getRandom();
-        while (question === undefined ||
-        questionsCopy.indexOf(question) == 0);
-
-        rightIndex = questionsCopy.indexOf(question);
-        do leftIndex = rightIndex.getRandom();
-        while (leftIndex == rightIndex ||
-        questionsCopy[leftIndex] === undefined);
-
-        prevT = questionsCopy[leftIndex].params.len;
-        t = question.params.len ? question.params.len : 12;
-
         answers[i] = {
             id: i,
-            letter: isSimple ? question.funcType : letter,
-            leftIndex: leftIndex,
-            rightIndex: rightIndex + 1,
-            correctSign: !isSimple && letter ? Math.sign(question.calcFuncValueFromRange(prevT, t, letter)) :
-                Math.sign(question.calculateFunctionValue(t) - question.calculateFunctionValue(prevT)),
+            letter: isSimple ? questionsCopy[0].funcType : letter,
+            leftIndex: indexes[i][0],
+            rightIndex: indexes[i][1],
+            correctSign: Math.sign(rightValue - leftValue),
         };
         if (isSimple && letter) letters!.deleteItem(letter);
-        delete questionsCopy[rightIndex];
     }
 
     return {
@@ -228,7 +237,7 @@ function getSGtest(test_id: number, isSimple: boolean) {
 }
 
 exports.getTest = functions.region("europe-west1").https.onRequest((request, resp) => {
-//exports.getTest = functions.region("europe-west1").https.onCall((data, context) => {
+// exports.getTest = functions.region("europe-west1").https.onCall((data, context) => {
 
     let testQuiz = {tests: Array<any>()};
 
@@ -240,7 +249,7 @@ exports.getTest = functions.region("europe-west1").https.onRequest((request, res
 
     testQuiz.tests.push(getSGtest(6, true));
     testQuiz.tests.push(getSGtest(7, true));
-    // testQuiz.tests.push(getSGtest(8, false));
+    testQuiz.tests.push(getSGtest(8, false));
 
     resp.send(JSON.stringify(testQuiz));
     // return JSON.stringify(testQuiz)

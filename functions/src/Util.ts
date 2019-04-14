@@ -38,33 +38,29 @@ Array.prototype.getRandom = function <T>(this: T[]): T {
     return this[this.length.getRandom()];
 };
 Array.prototype.deleteItem = function <T>(this: T[], item: T): any {
-    if (this.indexOf(item) != -1)
+    if (this.indexOf(item) !== -1)
         this.splice(this.indexOf(item), 1);
     return this;
 };
 Array.prototype.contains = function <T>(this: T[], item: T): any {
-    return this.indexOf(item) != -1
+    return this.indexOf(item) !== -1
 };
 Array.prototype.addRandom = function <T>(this: T[], array: Array<T>) {
     let index = this.length;
 
     do this[index] = array.getRandom();
-    while (this.indexOf(this[index]) != index);
+    while (this.indexOf(this[index]) !== index);
 };
 Array.prototype.addRandomNumber = function <T>(this: number[], number: number) {
     let index = this.length;
     do this[index] = number.getRandom();
-    while (this.indexOf(this[index]) != index);
+    while (this.indexOf(this[index]) !== index);
 };
 Array.prototype.last = function <T>(this: T[]): T {
     return this[this.length - 1];
 };
 Array.prototype.copy = function <T>(this: T[]): Array<T> {
-    let array =  Array<T>(this.length);
-    for (let i = 0; i < this.length; i++) {
-        array[i] = this[i];
-    }
-    return array;
+    return this.slice();
 };
 
 export class Utils {
@@ -80,7 +76,7 @@ export class Utils {
         if (Math.abs(value) <= 0.3)
             value = 0;
 
-        if (value == 0)
+        if (value === 0)
             return Utils.getRandomNonZeroFromBound(axis);
         return value
     }
