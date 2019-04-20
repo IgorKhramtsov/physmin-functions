@@ -1,7 +1,7 @@
 import FunctionObj from "../src/FunctionObj";
 
 const chai = require('chai');
-const test = require('firebase-functions-test')();
+// const test = require('firebase-functions-test')();
 import * as tests from "../src/index"
 import getSGtest from "../src";
 

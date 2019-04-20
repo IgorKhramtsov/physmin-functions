@@ -1,0 +1,24 @@
+# This file is a template, and might need editing before it works on your project.
+# Official framework image. Look for the different tagged releases at:
+# https://hub.docker.com/r/library/node/tags/
+image: registry.gitlab.com/crataegus27/physmin-docker
+
+# This folder is cached between builds
+# http://docs.gitlab.com/ce/ci/yaml/README.html#cache
+cache:
+  paths:
+  - node_modules/
+
+before_script:
+ - cd ./functions/
+ - npm install
+
+test_async:
+  script:
+   - npm test
+#   - node ./specs/start.js ./specs/async.spec.js
+
+#test_db:
+#  script:
+#   - npm install
+#   - node ./specs/start.js ./specs/db-postgres.spec.js
