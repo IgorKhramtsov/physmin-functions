@@ -14,6 +14,12 @@ export let Config = {
     V: "v",
     A: "a",
 
+    upperLimit: 6,
+    lowerLimit: 1,
+
+    vLowerLimit: 0.1,
+    aLowerLimit: 0.1,
+
     minLength: 2,
 
     movements: [
