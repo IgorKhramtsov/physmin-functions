@@ -2,6 +2,8 @@ import * as functions from 'firebase-functions';
 import FunctionObj from './FunctionObj'
 import { Config } from "./Config";
 import { Utils } from "./Util";
+import * as cors from 'cors';
+const corsHandler = cors({origin:true});
 
 export function getG2Gtest(test_id: number, correctAnswersCount: number) {
   const count = 6,
@@ -260,6 +262,7 @@ exports.getTestDev = functions.region("europe-west1").https.onRequest((request, 
 // exports.getTestDev = functions.region("europe-west1").https.onCall((data, context) => {
   const testQuiz = { tests: Array<any>() };
 
+
   // testQuiz.tests.push(getG2Gtest_OneAnswerGraph(0));
   // testQuiz.tests.push(getG2Gtest_TwoAnswerGraph(1));
   // testQuiz.tests.push(getG2Stest_SimpleFunctions(2));
@@ -270,7 +273,10 @@ exports.getTestDev = functions.region("europe-west1").https.onRequest((request, 
   testQuiz.tests.push(getSGtest(7, true));
   testQuiz.tests.push(getSGtest(8, false));
 
-  resp.send(JSON.stringify(testQuiz));
+  return corsHandler(request, resp, () => {
+    resp.send(JSON.stringify(testQuiz));
+  });
+  //resp.send(JSON.stringify(testQuiz));
   // return JSON.stringify(testQuiz)
 });
 
