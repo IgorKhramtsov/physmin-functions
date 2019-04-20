@@ -21,7 +21,11 @@ class FunctionObj {
     return false;
   }
   equalToByDirection(obj: FunctionObj) {
-    if (obj === undefined) return false;
+    if (obj === undefined || obj.params === undefined)  {
+      console.log("equalToByDirection: obj undefined: ", obj)
+      // FIXME: Somehow we get an array with one FO [FunctionObj]
+      return false;
+    }
 
     switch (this.funcType) {
       case "x":
@@ -280,7 +284,7 @@ class FunctionObj {
       len = Math.round(Utils.getRandomFromBound("t"));
 
     nextFunc.params[funcType] = Math.round(this.calculateFunctionValue(len));
-    console.log(nextFunc.params[funcType]);
+    // console.log(nextFunc.params[funcType]);
     // let frst = funcType;
     // let scnd = Config.axisIndexes[Config.axisIndexes.indexOf(frst) + 1];
     // let thrd: string | undefined = undefined;

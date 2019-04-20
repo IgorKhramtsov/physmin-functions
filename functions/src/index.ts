@@ -77,7 +77,7 @@ export function getG2Stest(test_id: number, chance: number) {
     };
 
     if (_chance)
-      questions[i].graph.push(usedFunctions[i].functions.last().createNextFunction([usedFunctions[i]]));
+      questions[i].graph.push(usedFunctions[i].functions.last().createNextFunction(usedFunctions[i].functions));
 
   }
 
@@ -240,23 +240,24 @@ export function getSGtest(test_id: number, isSimple: boolean) {
 * противоположное.
 * */
 // exports.getTest = functions.region("europe-west1").https.onRequest((request, resp) => {
-// exports.getTest = functions.region("europe-west1").https.onCall((data, context) => {
-//
-//   const testQuiz = { tests: Array<any>() };
-//
-//   testQuiz.tests.push(getG2Gtest_OneAnswerGraph(0));
-//   testQuiz.tests.push(getG2Gtest_TwoAnswerGraph(1));
-//   testQuiz.tests.push(getG2Stest_SimpleFunctions(2));
-//   testQuiz.tests.push(getG2Stest_ComplexFunctions(3));
-//   testQuiz.tests.push(getG2Stest_MixedFunctions(4, 0.5));
-//
-//   // testQuiz.tests.push(getSGtest(6, true));
-//   // testQuiz.tests.push(getSGtest(7, true));
-//   // testQuiz.tests.push(getSGtest(8, false));
-//
-//   // resp.send(JSON.stringify(testQuiz));
-//   return JSON.stringify(testQuiz)
-// });
+exports.getTest = functions.region("europe-west1").https.onCall((data, context) => {
+
+  const testQuiz = { tests: Array<any>() };
+
+  testQuiz.tests.push(getG2Gtest_OneAnswerGraph(0));
+  testQuiz.tests.push(getG2Gtest_TwoAnswerGraph(1));
+  testQuiz.tests.push(getG2Stest_SimpleFunctions(2));
+  testQuiz.tests.push(getG2Stest_ComplexFunctions(3));
+  testQuiz.tests.push(getG2Stest_MixedFunctions(4, 0.5));
+
+  // testQuiz.tests.push(getSGtest(6, true));
+  // testQuiz.tests.push(getSGtest(7, true));
+  // testQuiz.tests.push(getSGtest(8, false));
+
+  // resp.send(JSON.stringify(testQuiz));
+
+  return JSON.stringify(testQuiz)
+});
 
 exports.getTestDev = functions.region("europe-west1").https.onRequest((request, resp) => {
 // exports.getTestDev = functions.region("europe-west1").https.onCall((data, context) => {
@@ -279,6 +280,3 @@ exports.getTestDev = functions.region("europe-west1").https.onRequest((request, 
   //resp.send(JSON.stringify(testQuiz));
   // return JSON.stringify(testQuiz)
 });
-
-
-export default getSGtest;

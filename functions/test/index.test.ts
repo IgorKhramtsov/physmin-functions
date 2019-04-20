@@ -3,7 +3,6 @@ import FunctionObj from "../src/FunctionObj";
 const chai = require('chai');
 // const test = require('firebase-functions-test')();
 import * as tests from "../src/index"
-import getSGtest from "../src";
 
 
 describe("Test generators", () => {
@@ -89,13 +88,13 @@ describe("Function generators", () => {
     it("SG test graphs should have more than 2 functions", () => {
         let a: any;
         for(let i = 0; i < 100;i++){
-            a = getSGtest(i, true);
+            a = tests.getSGtest(i, true);
             chai.expect(a.question[0].graph.length).to.be.greaterThan(2);
         }
     });
     it("Check for SG test copy bug", () => {
         for (let i = 0; i < 10; i++) {
-            let test = getSGtest(i, true);
+            let test = tests.getSGtest(i, true);
             chai.expect(test.question[0].graph[0].params).haveOwnProperty("len");
             chai.expect(test.question[0].graph[0].params.len).to.be.greaterThan(0);
         }
