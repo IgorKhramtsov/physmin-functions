@@ -163,8 +163,7 @@ export function getSGtest(test_id: number, isSimple: boolean) {
     if (i === 0) {
       usedFunctions.push(new FunctionObj().
         makeQuestionFunction(availableAxises).
-        getCorrectFunction(availableAxises).
-        snapToGrid());
+        getCorrectFunction(availableAxises));
       continue;
     }
 
@@ -240,24 +239,24 @@ export function getSGtest(test_id: number, isSimple: boolean) {
 * противоположное.
 * */
 // exports.getTest = functions.region("europe-west1").https.onRequest((request, resp) => {
-exports.getTest = functions.region("europe-west1").https.onCall((data, context) => {
-
-  const testQuiz = { tests: Array<any>() };
-
-  testQuiz.tests.push(getG2Gtest_OneAnswerGraph(0));
-  testQuiz.tests.push(getG2Gtest_TwoAnswerGraph(1));
-  testQuiz.tests.push(getG2Stest_SimpleFunctions(2));
-  testQuiz.tests.push(getG2Stest_ComplexFunctions(3));
-  testQuiz.tests.push(getG2Stest_MixedFunctions(4, 0.5));
-
-  // testQuiz.tests.push(getSGtest(6, true));
-  // testQuiz.tests.push(getSGtest(7, true));
-  // testQuiz.tests.push(getSGtest(8, false));
-
-  // resp.send(JSON.stringify(testQuiz));
-
-  return JSON.stringify(testQuiz)
-});
+// // exports.getTest = functions.region("europe-west1").https.onCall((data, context) => {
+//
+//   const testQuiz = { tests: Array<any>() };
+//
+//   testQuiz.tests.push(getG2Gtest_OneAnswerGraph(0));
+//   testQuiz.tests.push(getG2Gtest_TwoAnswerGraph(1));
+//   testQuiz.tests.push(getG2Stest_SimpleFunctions(2));
+//   testQuiz.tests.push(getG2Stest_ComplexFunctions(3));
+//   testQuiz.tests.push(getG2Stest_MixedFunctions(4, 0.5));
+//
+//   // testQuiz.tests.push(getSGtest(6, true));
+//   // testQuiz.tests.push(getSGtest(7, true));
+//   // testQuiz.tests.push(getSGtest(8, false));
+//
+//   resp.send(JSON.stringify(testQuiz));
+//
+//   // return JSON.stringify(testQuiz)
+// });
 
 exports.getTestDev = functions.region("europe-west1").https.onRequest((request, resp) => {
 // exports.getTestDev = functions.region("europe-west1").https.onCall((data, context) => {
@@ -275,8 +274,8 @@ exports.getTestDev = functions.region("europe-west1").https.onRequest((request, 
   testQuiz.tests.push(getSGtest(8, false));
 
   return corsHandler(request, resp, () => {
-    resp.send(JSON.stringify(testQuiz));
+  resp.send(JSON.stringify(testQuiz));
   });
-  //resp.send(JSON.stringify(testQuiz));
+  // resp.send(JSON.stringify(testQuiz));
   // return JSON.stringify(testQuiz)
 });

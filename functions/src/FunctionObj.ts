@@ -252,7 +252,7 @@ class FunctionObj {
     const funcType = this.funcType,
       params = this.params,
       len = this.params.len;
-      if(len === undefined) {
+      if(len === undefined || len === null) {
         params[funcType] = Math.round(params[funcType]);
         return this;
       }
@@ -267,7 +267,7 @@ class FunctionObj {
         else if (params.a !== 0) params.a = 2 * (value - params.x - params.v * len) / len * len;
         break;
       case "v":
-        if (params.a !== 0) params.a = 2 * (value - params.x - params.v * len) / len * len;
+        if (params.a !== 0) params.a =  (value  - params.v ) / len;
         break;
     }
     return this;
