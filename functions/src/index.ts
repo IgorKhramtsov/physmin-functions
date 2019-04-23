@@ -164,6 +164,7 @@ export function getSGtest(test_id: number, isSimple: boolean) {
       usedFunctions.push(new FunctionObj().
         makeQuestionFunction(availableAxises).
         getCorrectFunction(availableAxises));
+        usedFunctions[i].params[usedFunctions[i].funcType] = Math.round(usedFunctions[i].params[usedFunctions[i].funcType]); //TODO: FIXME
       continue;
     }
 

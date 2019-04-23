@@ -21,7 +21,7 @@ function resolve(test) {
     ctx.fillText(letter, 850, 200);
     ctx.translate(0, height / 2);
     outputFunc(graph, list);
-    let y = 0, x = 0, scaleX = width / 12, scaleY = -1 * height / 6, point = 0, step = 0;
+    let y = 0, x = 0, scaleX = width / 12, scaleY = -1 * height / 10, point = 0, step = 0;
     ctx.beginPath();
     ctx.strokeStyle = "#FF0000";
     for (let func of graph) {
@@ -56,7 +56,7 @@ function outputFunc(graph, list) {
     }
 }
 function calcFuncValue(func, t) {
-    let funcType = func.funcType, params = func.params, len = t === undefined ? params.len : t;
+    let funcType = func.funcType, params = func.params, len = (t === undefined) ? params.len : t;
     switch (funcType) {
         case "x":
             return params.x + params.v * len + (params.a * len * len) / 2;

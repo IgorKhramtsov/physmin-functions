@@ -39,7 +39,7 @@ function resolve(test: any) {
   let y = 0,
     x = 0,
     scaleX = width / 12,
-    scaleY = -1 * height / 6,
+    scaleY = -1 * height / 10,
     point = 0,
     step = 0;
 

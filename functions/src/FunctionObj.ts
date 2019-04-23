@@ -102,11 +102,7 @@ class FunctionObj {
     return Object.assign({}, this.params);
   }
 
-  // normilizeFunc(func: FunctionObj, questionInterval: number) {
-  //   if (func.calculateFunctionValue(questionInterval) > Config.upperLimit) {
-  //
-  //   }
-  // }
+
 
   getCorrectFunction(availableAxises: Array<any>, usedFunc?: Array<FunctionObj>): FunctionObj {
     // Filter available function types
@@ -273,6 +269,26 @@ class FunctionObj {
     return this;
   }
 
+  normilizeFunc() {
+    let params = this.params,
+        len = params.len,
+        first = params.x ? params.x : params.v,
+        second = params.v ? params.v: params.a,
+        third = params.a ? params.a : undefined;
+
+      // If func start is too high -> reverse func direction
+      let i=0;
+      while(Math.abs(this.calculateFunctionValue(len)) >=  Config.upperLimit - 1 && i < 15){
+        this.params[second] *= 0.9;
+        if (third)
+          this.params[third] *= 0.95;
+          i++;
+        }
+        if(i >= 15) console.log("normilizeFunc iteration more than 15");
+      return this;
+    }
+
+
   createNextFunction(usedFunctions?: Array<FunctionObj>, questionInterval?: number): FunctionObj {
     const funcType = this.funcType,
       nextFunc = new FunctionObj(funcType).generateParams().clearParams();
@@ -284,29 +300,15 @@ class FunctionObj {
       len = Math.round(Utils.getRandomFromBound("t"));
 
     nextFunc.params[funcType] = Math.round(this.calculateFunctionValue(len));
-    // console.log(nextFunc.params[funcType]);
-    // let frst = funcType;
-    // let scnd = Config.axisIndexes[Config.axisIndexes.indexOf(frst) + 1];
-    // let thrd: string | undefined = undefined;
-    //
-    // if (Config.axisIndexes.indexOf(scnd) + 1 < Config.axisIndexes.length) {
-    //   thrd = Config.axisIndexes[Config.axisIndexes.indexOf(scnd) + 1];
-    //
-    //   // If nextFunc start is too low -> increase velocity
-    //   while (Math.abs(this.calculateFunctionValue(len)) < Config.lowerLimit) {
-    //     if(Math.sign(this.params[scnd]) != 0)
-    //         this.params[scnd] += 0.1 * Math.sign(this.params[scnd]);
-    //     else if(thrd && Math.sign(this.params[thrd]) != 0)
-    //             this.params[thrd] += 0.05 * Math.sign(this.params[thrd]);
+    // let params = nextFunc.params,
+    //     first = params.x ? params.x : params.v,
+    //     second = params.v ? params.v: params.a,
+    //     third = params.a ? params.a : undefined;
+    // if(nextFunc.params[funcType] >= (Config.upperLimit - 1)){
+    //   nextFunc.params[second] = -Math.sign(nextFunc.params[first]) * Math.abs(nextFunc.params[second]);
+    //   if(third)
+    //     nextFunc.params[third] = Math.sign(nextFunc.params[first]) * Math.abs(nextFunc.params[third]);
     //   }
-    //
-    //   nextFunc.params[frst] = this.calculateFunctionValue(len);
-    //   if (Math.abs(nextFunc.params[frst]) > 0.9 * Config.upperLimit) { // If nextFunc start is too high -> reverse func direction
-    //     nextFunc.params[scnd] = Math.abs(nextFunc.params[scnd]) * Math.sign(nextFunc.params[frst]) * -1;
-    //     if (thrd)
-    //       nextFunc.params[thrd] = Math.abs(nextFunc.params[thrd]) * Math.sign(nextFunc.params[scnd]) * -1;
-    //   }
-    // }
 
     if (usedFunctions) {
       for (const func of usedFunctions)
@@ -317,8 +319,9 @@ class FunctionObj {
       }
     }
     this.params.len = len;
-
-    return nextFunc;
+    this.snapToGrid();
+    nextFunc.params[funcType] = Math.round(this.calculateFunctionValue(len));
+    return nextFunc.normilizeFunc();
   }
 
   calculateFunctionValue(t: number) {

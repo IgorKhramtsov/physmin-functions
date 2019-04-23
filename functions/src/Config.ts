@@ -3,7 +3,7 @@ export let Config = {
         'x', 'v', 'a'
     ],
     bounds: {
-        x: [-2, 2], // x
+        x: [-4, 4], // x
         v: [-1, 1], // v
         a: [-0.5, 0.5], // a
         t: [3, 6],
@@ -14,8 +14,7 @@ export let Config = {
     V: "v",
     A: "a",
 
-    upperLimit: 6,
-    lowerLimit: 1,
+    upperLimit: 5,
 
     vLowerLimit: 0.1,
     aLowerLimit: 0.1,
