@@ -169,16 +169,16 @@ export function getSGtest(test_id: number, isSimple: boolean) {
     }
 
     usedFunctions[i] = usedFunctions[i - 1].createNextFunction([usedFunctions[i - 1]], questionInterval);
-    usedFunctions[i - 1].snapToGrid();
+    // usedFunctions[i - 1].snapToGrid();
 
     sumLengthFunc += usedFunctions[i - 1].params.len;
     if (i === questionCount - 1)
       usedFunctions[i].params.len = 12 - sumLengthFunc;
   }
-  usedFunctions.last().createNextFunction();
+  usedFunctions.last().normilizeFunc();
   usedFunctions.last().snapToGrid();
   questions = usedFunctions.copy();
-
+  console.log("----------");
   const questionsCopy: Array<FunctionObj> = questions.copy(),
     answersCount = isSimple ? 3 : 6;
 

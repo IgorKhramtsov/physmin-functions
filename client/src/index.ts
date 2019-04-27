@@ -14,7 +14,9 @@ function resolve(test: any) {
     list = document.getElementById("list"),
     letter = graph[0].funcType,
     height = canvas.height,
-    width = canvas.width;
+    width = canvas.width,
+    scaleX = width / 12,
+    scaleY = -1 * height / 10;
   ctx = canvas.getContext("2d");
 
   ctx.beginPath();
@@ -25,12 +27,21 @@ function resolve(test: any) {
   ctx.lineTo(0, height);
   ctx.stroke();
 
-  ctx.moveTo(0, height / 2);
+  ctx.moveTo(0, height / 2 );
   ctx.lineTo(width, height / 2);
   ctx.stroke();
 
+  ctx.beginPath();
+  ctx.lineWidth = 2;
+  for (let i = 0; i < 12; i++) {
+    if(i === 5) continue;
+    ctx.moveTo(0,   -i*scaleY);
+    ctx.lineTo(width,  -i*scaleY);
+    ctx.stroke();
+  }
+
   ctx.font = "50px Georgia";
-  ctx.fillText(letter, 850, 200);
+  ctx.fillText(letter, 850, 180);
 
   ctx.translate(0, height / 2);
 
@@ -38,17 +49,15 @@ function resolve(test: any) {
 
   let y = 0,
     x = 0,
-    scaleX = width / 12,
-    scaleY = -1 * height / 10,
     point = 0,
     step = 0;
 
-    ctx.beginPath();
-    ctx.strokeStyle = "#FF0000";
+  ctx.beginPath();
+  ctx.lineWidth = 5;
+  ctx.strokeStyle = "#FF0000";
   for (let func of graph) {
     step = func.params.len / 10;
     y = calcFuncValue(func, 0) * scaleY;
-    console.log(y);
 
     ctx.moveTo(x, y);
     for (let i = 0; i < 10; i++) {
@@ -68,10 +77,10 @@ function outputFunc(graph: any, list: any) {
   let node;
   for (let func of graph) {
     node = document.createElement("li");
-    if (func.params.x) node.innerHTML += "x: " + func.params.x;
-    if (func.params.v) node.innerHTML += " v: " + func.params.v;
-    if (func.params.a) node.innerHTML += " a: " + func.params.a;
-    if (func.params.len) node.innerHTML += " len: " + func.params.len;
+    if (func.params.x !== undefined) node.innerHTML += "x: " + func.params.x;
+    if (func.params.v !== undefined) node.innerHTML += " v: " + func.params.v;
+    if (func.params.a !== undefined) node.innerHTML += " a: " + func.params.a;
+    if (func.params.len !== undefined) node.innerHTML += " len: " + func.params.len;
     if (list) list.appendChild(node);
   }
 }
@@ -79,7 +88,7 @@ function outputFunc(graph: any, list: any) {
 function calcFuncValue(func: any, t?: number) {
   let funcType = func.funcType,
     params = func.params,
-    len = (t === undefined)? params.len : t;
+    len = (t === undefined) ? params.len : t;
   switch (funcType) {
     case "x":
       return params.x + params.v * len + (params.a * len * len) / 2;
