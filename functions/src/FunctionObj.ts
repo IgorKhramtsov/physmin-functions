@@ -26,20 +26,34 @@ class FunctionObj {
       // FIXME: Somehow we get an array with one FO [FunctionObj]
       return false;
     }
-
-    switch (this.funcType) {
-      case "x":
-        if ((Math.sign(this.params.v) === Math.sign(obj.params.v) || this.params.v === obj.params.v) &&
-          (Math.sign(this.params.a) === Math.sign(obj.params.a) || this.params.a === obj.params.a))
-          return true;
-        break;
-      case "v":
-        if ((Math.sign(this.params.a) === Math.sign(obj.params.a) || this.params.a === obj.params.a))
-          return true;
-        break;
-      default:
-        return true;
+    let this_dif,
+        nextFunc_dif;
+    switch(obj.funcType){
+        case "x":
+            this_dif = this.params.v + this.params.a * this.params.len;
+            nextFunc_dif = obj.params.v + obj.params.a * obj.params.len;
+            console.log(this_dif, this.params, nextFunc_dif)
+          return Math.sign(this_dif) === Math.sign(nextFunc_dif);
+        case "v":
+            this_dif = this.params.a;
+            nextFunc_dif = obj.params.a;
+            console.log(this_dif, this.params, nextFunc_dif)
+            return Math.sign(this_dif) === Math.sign(nextFunc_dif);
     }
+
+    // switch (this.funcType) {
+    //   case "x":
+    //     if ((Math.sign(this.params.v) === Math.sign(obj.params.v) || this.params.v === obj.params.v) &&
+    //       (Math.sign(this.params.a) === Math.sign(obj.params.a) || this.params.a === obj.params.a))
+    //       return true;
+    //     break;
+    //   case "v":
+    //     if ((Math.sign(this.params.a) === Math.sign(obj.params.a) || this.params.a === obj.params.a))
+    //       return true;
+    //     break;
+    //   default:
+    //     return true;
+    // }
     return false;
   }
 
@@ -255,14 +269,15 @@ class FunctionObj {
       params[funcType] = Math.round(params[funcType]);
       return this;
     }
-    const value = Math.round(this.calculateFunctionValue(len));
-    console.log("snap before", this.params);
-    console.log("snap value", value);
+    const value = Math.round(this.calculateFunctionValue(len)),
+          result = Math.min(Math.abs(value), Config.upperLimit) * Math.sign(value);
+    // console.log("snap before", this.params);
+    // console.log("snap result", result);
     switch (funcType) {
       case "x":
         if (params.v !== 0 && params.a !== 0) {
-          let v_calc = (value - params.x - (params.a * len * len) / 2) / len,
-            a_calc = 2 * (value - params.x - params.v * len) / (len * len),
+          let v_calc = (result - params.x - (params.a * len * len) / 2) / len,
+            a_calc = 2 * (result - params.x - params.v * len) / (len * len),
             sign_a = Math.sign(params.a), sign_v = Math.sign(params.v);
           if (sign_a === Math.sign(a_calc) && sign_v === Math.sign(v_calc)) {
             if (sign_v === 0)
@@ -284,57 +299,17 @@ class FunctionObj {
           //   console.log(params);
           // }
         }
-        else if (params.v !== 0) params.v = (value - params.x - (params.a * len * len) / 2) / len;
-        else if (params.a !== 0) params.a = 2 * (value - params.x - params.v * len) / (len * len);
-        // params.a =  (value  - params.v ) / len;
+        else if (params.v !== 0) params.v = (result - params.x - (params.a * len * len) / 2) / len;
+        else if (params.a !== 0) params.a = 2 * (result - params.x - params.v * len) / (len * len);
+        // params.a =  (result  - params.v ) / len;
         break;
       case "v":
-        if (params.a !== 0) params.a = (value - params.v) / len;
+        if (params.a !== 0) params.a = (result - params.v) / len;
         break;
     }
-    console.log("snap after", this.params);
+    // console.log("snap after", this.params);
     return this;
   }
-
-  normilizeFunc() {
-    let params = this.params,
-      len = params.len,
-      firstIndex = "",
-      secondIndex = "",
-      first,
-      second;
-    if (this.funcType === "x") {
-      firstIndex = "v";
-      secondIndex = "a";
-    } else if (this.funcType === "v") {
-      firstIndex = "a";
-    }
-
-    first = params[firstIndex];
-    second = params[secondIndex] ? params[secondIndex] : 0;
-    // If func start is too high -> reverse func direction
-    console.log("========")
-    console.log("norm prev ", this.params);
-    console.log(Math.abs(this.calculateFunctionValue(len)))
-    console.log(Config.upperLimit - 1)
-    let count = 0;
-    while (Math.abs(this.calculateFunctionValue(len)) >= (Config.upperLimit - 1)
-      && ((Math.abs(first) > 0.1 && first !== 0) || (Math.abs(second) > 0.1 && second !== 0))) {
-      first *= 0.7;
-      second *= 0.8;
-      first = Math.abs(first) < 0.05 ? 0 : first;
-      second = Math.abs(second) < 0.05 ? 0 : second;
-      count++;
-
-    }
-    params[firstIndex] = first;
-    params[secondIndex] = second;
-    console.log(count);
-    console.log("norm after ", this.params);
-    console.log("========")
-    return this;
-  }
-
 
   createNextFunction(usedFunctions?: Array<FunctionObj>, questionInterval?: number): FunctionObj {
     const funcType = this.funcType,
@@ -347,7 +322,7 @@ class FunctionObj {
       len = Math.round(Utils.getRandomFromBound("t"));
 
     this.params.len = len;
-    this.normilizeFunc();
+    this.snapToGrid();
 
     nextFunc.params[funcType] = Math.round(this.calculateFunctionValue(len));
     if (nextFunc.params[funcType] >= (Config.upperLimit - 1)) {
@@ -369,7 +344,6 @@ class FunctionObj {
       }
     }
 
-    this.snapToGrid();
     // nextFunc.params[funcType] = Math.round(this.calculateFunctionValue(len));
     return nextFunc;
   }

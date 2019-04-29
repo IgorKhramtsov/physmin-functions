@@ -175,7 +175,7 @@ export function getSGtest(test_id: number, isSimple: boolean) {
     if (i === questionCount - 1)
       usedFunctions[i].params.len = 12 - sumLengthFunc;
   }
-  usedFunctions.last().normilizeFunc();
+  // usedFunctions.last().normilizeFunc();
   usedFunctions.last().snapToGrid();
   questions = usedFunctions.copy();
   console.log("----------");
