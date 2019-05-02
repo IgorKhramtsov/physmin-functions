@@ -6,7 +6,7 @@ window.onload = function () {
         .then(body => { resolve(body.tests[0]); });
 };
 function resolve(test) {
-    let graph = test.question[0].graph, canvas = document.getElementById("canvas"), list = document.getElementById("list"), letter = graph[0].funcType, height = canvas.height, width = canvas.width, scaleX = width / 12, scaleY = -1 * height / 10;
+    let graph = test.question[0].graph, answers = test.answers, canvas = document.getElementById("canvas"), list = document.getElementById("list"), letter = graph[0].funcType, height = canvas.height, width = canvas.width, scaleX = width / 12, scaleY = -1 * height / 10;
     ctx = canvas.getContext("2d");
     ctx.beginPath();
     ctx.lineWidth = 5;
@@ -20,16 +20,19 @@ function resolve(test) {
     ctx.beginPath();
     ctx.lineWidth = 2;
     for (let i = 0; i < 12; i++) {
-        if (i === 5)
-            continue;
-        ctx.moveTo(0, -i * scaleY);
-        ctx.lineTo(width, -i * scaleY);
+        ctx.moveTo(i * scaleX, 0);
+        ctx.lineTo(i * scaleX, height);
         ctx.stroke();
+        if (i !== 5) {
+            ctx.moveTo(0, -i * scaleY);
+            ctx.lineTo(width, -i * scaleY);
+            ctx.stroke();
+        }
     }
     ctx.font = "50px Georgia";
     ctx.fillText(letter, 850, 180);
     ctx.translate(0, height / 2);
-    outputFunc(graph, list);
+    outputFunc(graph, answers, list);
     let y = 0, x = 0, point = 0, step = 0;
     ctx.beginPath();
     ctx.lineWidth = 5;
@@ -48,7 +51,7 @@ function resolve(test) {
         point = 0;
     }
 }
-function outputFunc(graph, list) {
+function outputFunc(graph, answers, list) {
     let node;
     for (let func of graph) {
         node = document.createElement("li");
@@ -60,6 +63,12 @@ function outputFunc(graph, list) {
             node.innerHTML += " a: " + func.params.a;
         if (func.params.len !== undefined)
             node.innerHTML += " len: " + func.params.len;
+        if (list)
+            list.appendChild(node);
+    }
+    for (let answer of answers) {
+        node = document.createElement("li");
+        node.innerHTML += answer.letter + "[" + answer.leftIndex + "] " + answer.correctSign + " " + answer.letter + "[" + answer.rightIndex + "]";
         if (list)
             list.appendChild(node);
     }

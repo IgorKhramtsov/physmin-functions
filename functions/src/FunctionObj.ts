@@ -22,23 +22,23 @@ class FunctionObj {
   }
   equalToByDirection(obj: FunctionObj) {
     if (obj === undefined || obj.params === undefined) {
-      console.log("equalToByDirection: obj undefined: ", obj)
+      // console.log("equalToByDirection: obj undefined: ", obj)
       // FIXME: Somehow we get an array with one FO [FunctionObj]
       return false;
     }
-    let this_dif,
-        nextFunc_dif;
-    switch(obj.funcType){
-        case "x":
-            this_dif = this.params.v + this.params.a * this.params.len;
-            nextFunc_dif = obj.params.v + obj.params.a * obj.params.len;
-            console.log(this_dif, this.params, nextFunc_dif)
-          return Math.sign(this_dif) === Math.sign(nextFunc_dif);
-        case "v":
-            this_dif = this.params.a;
-            nextFunc_dif = obj.params.a;
-            console.log(this_dif, this.params, nextFunc_dif)
-            return Math.sign(this_dif) === Math.sign(nextFunc_dif);
+    let this_dir,
+      nextFunc_dir;
+    switch (obj.funcType) {
+      case "x":
+        this_dir = this.params.v + this.params.a * this.params.len;
+        nextFunc_dir = obj.params.v + obj.params.a * obj.params.len;
+        // console.log(this_dif, this.params, nextFunc_dif)
+        return Math.sign(this_dir) === Math.sign(nextFunc_dir);
+      case "v":
+        this_dir = this.params.a;
+        nextFunc_dir = obj.params.a;
+        // console.log(this_dif, this.params, nextFunc_dif)
+        return Math.sign(this_dir) === Math.sign(nextFunc_dir);
     }
 
     // switch (this.funcType) {
@@ -270,7 +270,7 @@ class FunctionObj {
       return this;
     }
     const value = Math.round(this.calculateFunctionValue(len)),
-          result = Math.min(Math.abs(value), Config.upperLimit) * Math.sign(value);
+      result = Math.min(Math.abs(value), Config.upperLimit) * Math.sign(value);
     // console.log("snap before", this.params);
     // console.log("snap result", result);
     switch (funcType) {
@@ -311,20 +311,15 @@ class FunctionObj {
     return this;
   }
 
-  createNextFunction(usedFunctions?: Array<FunctionObj>, questionInterval?: number): FunctionObj {
+  createNextFunction(usedFunctions?: Array<FunctionObj>, _len?: number): FunctionObj {
     const funcType = this.funcType,
       nextFunc = new FunctionObj(funcType).generateParams().clearParams();
 
-    let len: number;
-    if (questionInterval)
-      len = Math.round(Utils.getRandomFromRange(Config.minLength, questionInterval));
-    else
-      len = Math.round(Utils.getRandomFromBound("t"));
+    const len = _len ? _len : Math.round(Utils.getRandomFromBound("t"));
+    nextFunc.params.len = len;
 
-    this.params.len = len;
     this.snapToGrid();
-
-    nextFunc.params[funcType] = Math.round(this.calculateFunctionValue(len));
+    nextFunc.params[funcType] = Math.round(this.calculateFunctionValue(this.params.len));
     if (nextFunc.params[funcType] >= (Config.upperLimit - 1)) {
       let params = nextFunc.params,
         first = params.x ? "x" : "v",
@@ -334,13 +329,12 @@ class FunctionObj {
       if (third)
         nextFunc.params[third] = Math.sign(nextFunc.params[first]) * Math.abs(nextFunc.params[third]);
     }
-
     if (usedFunctions) {
       for (const func of usedFunctions)
         if (nextFunc.equalTo(func))
-          return this.createNextFunction(usedFunctions, questionInterval);
+          return this.createNextFunction(usedFunctions, len);
       if (nextFunc.equalToByDirection(usedFunctions.last())) {
-        return this.createNextFunction(usedFunctions, questionInterval);
+        return this.createNextFunction(usedFunctions, len);
       }
     }
 
@@ -368,9 +362,9 @@ class FunctionObj {
       for (let i = end; i !== start; i--) {
         value += functions[i].params.len;
       }
-    else
-      value = functions[end].calculateFunctionValue(functions[end].params.len)
-        - functions[start].calculateFunctionValue(0);
+      // value = functions[end].calculateFunctionValue(functions[end].params.len)
+      //   - functions[start].calculateFunctionValue(0);
+
     return value;
   }
 

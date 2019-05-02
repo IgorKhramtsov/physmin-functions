@@ -10,6 +10,7 @@ window.onload = function() {
 
 function resolve(test: any) {
   let graph = test.question[0].graph,
+    answers = test.answers,
     canvas: any = document.getElementById("canvas"),
     list = document.getElementById("list"),
     letter = graph[0].funcType,
@@ -27,17 +28,21 @@ function resolve(test: any) {
   ctx.lineTo(0, height);
   ctx.stroke();
 
-  ctx.moveTo(0, height / 2 );
+  ctx.moveTo(0, height / 2);
   ctx.lineTo(width, height / 2);
   ctx.stroke();
 
   ctx.beginPath();
   ctx.lineWidth = 2;
   for (let i = 0; i < 12; i++) {
-    if(i === 5) continue;
-    ctx.moveTo(0,   -i*scaleY);
-    ctx.lineTo(width,  -i*scaleY);
+    ctx.moveTo(i * scaleX, 0);
+    ctx.lineTo(i * scaleX, height);
     ctx.stroke();
+    if (i !== 5) {
+      ctx.moveTo(0, -i * scaleY);
+      ctx.lineTo(width, -i * scaleY);
+      ctx.stroke();
+    }
   }
 
   ctx.font = "50px Georgia";
@@ -45,7 +50,7 @@ function resolve(test: any) {
 
   ctx.translate(0, height / 2);
 
-  outputFunc(graph, list);
+  outputFunc(graph, answers, list);
 
   let y = 0,
     x = 0,
@@ -73,7 +78,7 @@ function resolve(test: any) {
   }
 }
 
-function outputFunc(graph: any, list: any) {
+function outputFunc(graph: any, answers: any, list: any) {
   let node;
   for (let func of graph) {
     node = document.createElement("li");
@@ -81,6 +86,12 @@ function outputFunc(graph: any, list: any) {
     if (func.params.v !== undefined) node.innerHTML += " v: " + func.params.v;
     if (func.params.a !== undefined) node.innerHTML += " a: " + func.params.a;
     if (func.params.len !== undefined) node.innerHTML += " len: " + func.params.len;
+
+    if (list) list.appendChild(node);
+  }
+  for (let answer of answers) {
+    node = document.createElement("li");
+    node.innerHTML += answer.letter + "[" + answer.leftIndex + "] " + answer.correctSign + " " + answer.letter + "[" + answer.rightIndex + "]";
     if (list) list.appendChild(node);
   }
 }

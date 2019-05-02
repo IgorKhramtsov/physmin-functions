@@ -3,7 +3,7 @@ import FunctionObj from './FunctionObj'
 import { Config } from "./Config";
 import { Utils } from "./Util";
 import * as cors from 'cors';
-const corsHandler = cors({origin:true});
+const corsHandler = cors({ origin: true });
 
 export function getG2Gtest(test_id: number, correctAnswersCount: number) {
   const count = 6,
@@ -157,28 +157,35 @@ export function getSGtest(test_id: number, isSimple: boolean) {
     availableAxises = Config.axisIndexes.copy().deleteItem("a");
 
   let questions = Array<any>(),
-    sumLengthFunc = 0;
-
+    funcPoints = Array<number>(),
+    temp = 0,
+    funcLength;
+  funcPoints.push(0);
+  for (let i = 0; i < questionCount - 1; i++) {
+    temp += questionInterval;
+    funcPoints.push(Math.round(Utils.getRandomFromRange(temp - 1, temp)));
+  }
   for (let i = 0; i < questionCount; i++) {
     if (i === 0) {
       usedFunctions.push(new FunctionObj().
         makeQuestionFunction(availableAxises).
         getCorrectFunction(availableAxises));
-        usedFunctions[i].params[usedFunctions[i].funcType] = Math.round(usedFunctions[i].params[usedFunctions[i].funcType]); //TODO: FIXME
+      usedFunctions[i].params[usedFunctions[i].funcType] = Math.round(usedFunctions[i].params[usedFunctions[i].funcType]); //TODO: FIXME
+      usedFunctions[i].params.len = funcPoints[i+1] - funcPoints[i];
       continue;
     }
 
-    usedFunctions[i] = usedFunctions[i - 1].createNextFunction([usedFunctions[i - 1]], questionInterval);
+    funcLength = funcPoints[i+1] - funcPoints[i];
+    usedFunctions[i] = usedFunctions[i - 1].createNextFunction([usedFunctions[i - 1]], funcLength);
     // usedFunctions[i - 1].snapToGrid();
 
-    sumLengthFunc += usedFunctions[i - 1].params.len;
+
     if (i === questionCount - 1)
-      usedFunctions[i].params.len = 12 - sumLengthFunc;
+      usedFunctions[i].params.len = 12 - funcPoints[i];
   }
   // usedFunctions.last().normilizeFunc();
   usedFunctions.last().snapToGrid();
   questions = usedFunctions.copy();
-  console.log("----------");
   const questionsCopy: Array<FunctionObj> = questions.copy(),
     answersCount = isSimple ? 3 : 6;
 
@@ -186,14 +193,14 @@ export function getSGtest(test_id: number, isSimple: boolean) {
     letter = null;
   if (!isSimple) letters = Config.letters.copy();
 
-  const zeroFunc = new FunctionObj(questionsCopy[0].funcType, questionsCopy[0].copyParams());
-  zeroFunc.params.len = 0;
-  questionsCopy.splice(0, 0, zeroFunc);
-
-  const indexes = FunctionObj.getIndexes(questionCount + 1, answersCount);
+  // const zeroFunc = new FunctionObj(questionsCopy[0].funcType, questionsCopy[0].copyParams());
+  // zeroFunc.params.len = 0;
+  // questionsCopy.splice(0, 0, zeroFunc);
+  const indexes = FunctionObj.getIndexes(questionCount, answersCount);
   let leftValue, rightValue,
     leftCouple, rightCouple,
-    leftQuestion, rightQuestion;
+    leftCoupleLeftQuestion, leftCoupleRightQuestion,
+    rightCoupleLeftQuestion, rightCoupleRightQuestion;
   for (let i = 0; i < answersCount; i++) {
     leftCouple = {
       left: indexes[i][0][0],
@@ -208,10 +215,15 @@ export function getSGtest(test_id: number, isSimple: boolean) {
       leftValue = FunctionObj.calcFuncValueFromRange(leftCouple.left, leftCouple.right, letter, questionsCopy);
       rightValue = FunctionObj.calcFuncValueFromRange(rightCouple.left, rightCouple.right, letter, questionsCopy);
     } else {
-      leftQuestion = questionsCopy[leftCouple.left];
-      rightQuestion = questionsCopy[leftCouple.right];
-      leftValue = leftQuestion.calculateFunctionValue(leftQuestion.params.len);
-      rightValue = rightQuestion.calculateFunctionValue(rightQuestion.params.len);
+      leftCoupleLeftQuestion = questionsCopy[leftCouple.left];
+      leftCoupleRightQuestion = questionsCopy[leftCouple.right];
+      rightCoupleLeftQuestion = questionsCopy[rightCouple.left];
+      rightCoupleRightQuestion = questionsCopy[rightCouple.right];
+
+      leftValue = leftCoupleRightQuestion.calculateFunctionValue(leftCoupleRightQuestion.params.len) -
+                  leftCoupleLeftQuestion.calculateFunctionValue(leftCoupleLeftQuestion.params.len);
+      rightValue = rightCoupleRightQuestion.calculateFunctionValue(rightCoupleRightQuestion.params.len) -
+                  rightCoupleLeftQuestion.calculateFunctionValue(rightCoupleLeftQuestion.params.len);
     }
     answers[i] = {
       id: i,
@@ -260,7 +272,7 @@ export function getSGtest(test_id: number, isSimple: boolean) {
 // });
 
 exports.getTestDev = functions.region("europe-west1").https.onRequest((request, resp) => {
-// exports.getTestDev = functions.region("europe-west1").https.onCall((data, context) => {
+  // exports.getTestDev = functions.region("europe-west1").https.onCall((data, context) => {
   const testQuiz = { tests: Array<any>() };
 
 
@@ -275,7 +287,7 @@ exports.getTestDev = functions.region("europe-west1").https.onRequest((request, 
   testQuiz.tests.push(getSGtest(8, false));
 
   return corsHandler(request, resp, () => {
-  resp.send(JSON.stringify(testQuiz));
+    resp.send(JSON.stringify(testQuiz));
   });
   // resp.send(JSON.stringify(testQuiz));
   // return JSON.stringify(testQuiz)
