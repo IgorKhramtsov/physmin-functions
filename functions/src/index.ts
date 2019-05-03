@@ -163,7 +163,7 @@ export function getSGtest(test_id: number, isSimple: boolean) {
   funcPoints.push(0);
   for (let i = 0; i < questionCount - 1; i++) {
     temp += questionInterval;
-    funcPoints.push(Math.round(Utils.getRandomFromRange(temp - 1, temp)));
+    funcPoints.push(Math.round(Utils.getRandomFromRange(temp, temp)));
   }
   for (let i = 0; i < questionCount; i++) {
     if (i === 0) {
@@ -171,11 +171,11 @@ export function getSGtest(test_id: number, isSimple: boolean) {
         makeQuestionFunction(availableAxises).
         getCorrectFunction(availableAxises));
       usedFunctions[i].params[usedFunctions[i].funcType] = Math.round(usedFunctions[i].params[usedFunctions[i].funcType]); //TODO: FIXME
-      usedFunctions[i].params.len = funcPoints[i+1] - funcPoints[i];
+      usedFunctions[i].params.len = funcPoints[i + 1] - funcPoints[i];
       continue;
     }
 
-    funcLength = funcPoints[i+1] - funcPoints[i];
+    funcLength = funcPoints[i + 1] - funcPoints[i];
     usedFunctions[i] = usedFunctions[i - 1].createNextFunction([usedFunctions[i - 1]], funcLength);
     // usedFunctions[i - 1].snapToGrid();
 
@@ -189,52 +189,73 @@ export function getSGtest(test_id: number, isSimple: boolean) {
   const questionsCopy: Array<FunctionObj> = questions.copy(),
     answersCount = isSimple ? 3 : 6;
 
-  let letters = null,
-    letter = null;
-  if (!isSimple) letters = Config.letters.copy();
+
 
   // const zeroFunc = new FunctionObj(questionsCopy[0].funcType, questionsCopy[0].copyParams());
   // zeroFunc.params.len = 0;
   // questionsCopy.splice(0, 0, zeroFunc);
-  const indexes = FunctionObj.getIndexes(questionCount, answersCount);
+  let firstIndexes: any,
+    secondIndexes: any,
+    indexes: any,
+    letter = "S";
+  if (!isSimple) {
+    firstIndexes = FunctionObj.getIndexes(questionCount, answersCount / 2);
+    secondIndexes = FunctionObj.getIndexes(questionCount, answersCount / 2);
+  } else firstIndexes = FunctionObj.getIndexes(questionCount, answersCount);
+
   let leftValue, rightValue,
     leftCouple, rightCouple,
-    leftCoupleLeftQuestion, leftCoupleRightQuestion,
-    rightCoupleLeftQuestion, rightCoupleRightQuestion;
+    rightFunction, leftFunction,
+    countS = 0, countDX = 0, count = 0;
   for (let i = 0; i < answersCount; i++) {
+    if (!isSimple) {
+      letter = countS < Config.letters.S ? "S" : "d" + questionsCopy[0].funcType;
+      if (letter === "S") {
+        indexes = firstIndexes;
+        count = countS;
+      } else {
+        indexes = secondIndexes;
+        count = countDX;
+      }
+    } else indexes = firstIndexes;
+
     leftCouple = {
-      left: indexes[i][0][0],
-      right: indexes[i][0][1],
+      left: indexes[count][0][0],
+      right: indexes[count][0][1],
     };
     rightCouple = {
-      left: indexes[i][1][0],
-      right: indexes[i][1][1],
+      left: indexes[count][1][0],
+      right: indexes[count][1][1],
     };
-    if (!isSimple && letters !== null) {
-      letter = letters.getRandom();
-      leftValue = FunctionObj.calcFuncValueFromRange(leftCouple.left, leftCouple.right, letter, questionsCopy);
-      rightValue = FunctionObj.calcFuncValueFromRange(rightCouple.left, rightCouple.right, letter, questionsCopy);
-    } else {
-      leftCoupleLeftQuestion = questionsCopy[leftCouple.left];
-      leftCoupleRightQuestion = questionsCopy[leftCouple.right];
-      rightCoupleLeftQuestion = questionsCopy[rightCouple.left];
-      rightCoupleRightQuestion = questionsCopy[rightCouple.right];
+    if (!isSimple && letter != null) {
+      if (letter == "S") {
+        leftValue = FunctionObj.calcFuncValueFromRange(leftCouple.left, leftCouple.right, questionsCopy);
+        rightValue = FunctionObj.calcFuncValueFromRange(rightCouple.left, rightCouple.right, questionsCopy);
+      } else {
+        leftFunction = questionsCopy[leftCouple.right];
+        rightFunction = questionsCopy[rightCouple.right];
 
-      leftValue = leftCoupleRightQuestion.calculateFunctionValue(leftCoupleRightQuestion.params.len) -
-                  leftCoupleLeftQuestion.calculateFunctionValue(leftCoupleLeftQuestion.params.len);
-      rightValue = rightCoupleRightQuestion.calculateFunctionValue(rightCoupleRightQuestion.params.len) -
-                  rightCoupleLeftQuestion.calculateFunctionValue(rightCoupleLeftQuestion.params.len);
+        leftValue = leftFunction.calculateFunctionValue(leftFunction.params.len);
+        rightValue = rightFunction.calculateFunctionValue(rightFunction.params.len);
+      }
+    } else {
+      leftFunction = questionsCopy[leftCouple.right];
+      rightFunction = questionsCopy[rightCouple.right];
+
+      leftValue = leftFunction.calculateFunctionValue(leftFunction.params.len);
+      rightValue = rightFunction.calculateFunctionValue(rightFunction.params.len);
     }
+
     answers[i] = {
       id: i,
       letter: isSimple ? questionsCopy[0].funcType : letter,
-      leftIndex: indexes[i][0],
-      rightIndex: indexes[i][1],
+      leftIndex:[indexes[count][0][0],(parseInt(indexes[count][0][1]) + 1)],
+      rightIndex: [indexes[count][1][0],(parseInt(indexes[count][1][1]) + 1)],
       correctSign: Math.sign(leftValue - rightValue),
     };
-    if (isSimple && letter) letters!.deleteItem(letter);
+    if (!isSimple) if (letter === "S") countS++; else countDX++;
+    else count++;
   }
-
   return {
     type: testType,
     test_id: test_id,
@@ -282,8 +303,8 @@ exports.getTestDev = functions.region("europe-west1").https.onRequest((request, 
   // testQuiz.tests.push(getG2Stest_ComplexFunctions(3));
   // testQuiz.tests.push(getG2Stest_MixedFunctions(4, 0.5));
 
-  testQuiz.tests.push(getSGtest(6, true));
-  testQuiz.tests.push(getSGtest(7, true));
+  testQuiz.tests.push(getSGtest(6, false));
+  testQuiz.tests.push(getSGtest(7, false));
   testQuiz.tests.push(getSGtest(8, false));
 
   return corsHandler(request, resp, () => {

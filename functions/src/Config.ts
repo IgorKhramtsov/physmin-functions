@@ -7,7 +7,7 @@ export let Config = {
         v: [-1, 1], // v
         a: [-0.5,0.5], // a
         t: [3, 6],
-        questionCount: [3,4],
+        questionCount: [3,5],
     } as any,
 
     X: "x",
@@ -40,13 +40,5 @@ export let Config = {
         "потом",
     ],
 
-    letters: [
-        "S",
-        "S",
-        "S",
-        "dx",
-        "dx",
-        "dx",
-    ]
-
+    letters: {"S": 3, "d": 3},
 };

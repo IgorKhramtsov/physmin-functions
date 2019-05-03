@@ -356,16 +356,23 @@ class FunctionObj {
 
   }
 
-  static calcFuncValueFromRange(start: number, end: number, letter: string, functions: Array<FunctionObj>): number {
-    let value = 0;
-    if (letter === "S")
-      for (let i = end; i !== start; i--) {
-        value += functions[i].params.len;
-      }
-      // value = functions[end].calculateFunctionValue(functions[end].params.len)
-      //   - functions[start].calculateFunctionValue(0);
+  calcIntegral() {
+    const params = this.params;
+    switch (this.funcType) {
+      case "x":
+        return params.x * params.len + (params.v * params.len * params.len) / 2 +
+          (params.a * params.len * params.len * params.len) / 6;
+      case "v":
+        return params.v * params.len + (params.a * params.len * params.len) / 2;
+    }
+    return 0;
+  }
 
-    return value;
+  static calcFuncValueFromRange(start: number, end: number, functions: Array<FunctionObj>): number {
+    let result = 0;
+    for (let i = start; i < end + 1; i++)
+      result += functions[i].calcIntegral();
+    return result;
   }
 
   static getIndexes(questionCount: number, answersCount: number) {
