@@ -6,7 +6,140 @@ window.onload = function () {
         .then(body => { resolve(body.tests[0]); });
 };
 function resolve(test) {
-    let graph = test.question[0].graph, answers = test.answers, canvas = document.getElementById("canvas"), list = document.getElementById("list"), letter = graph[0].funcType, height = canvas.height, width = canvas.width, scaleX = width / 12, scaleY = -1 * height / 10;
+    let graph, answers = test.answers, list = document.getElementById("list"), list1 = document.getElementById("list1"), canvas = document.getElementById("canvas"), canvas1 = document.getElementById("canvas1"), letter;
+    putButton();
+    drawGrid(canvas);
+    drawGrid(canvas1);
+    if (test.type === "relationSings") {
+        graph = test.question[0].graph;
+        letter = graph[0].funcType;
+        drawFunctions(canvas, graph, letter);
+        drawAnswers(canvas1, test.answers, test.question.correctIDs);
+    }
+    if (test.type === "graph2state") {
+        graph = test.question[0].graph;
+        letter = graph[0].funcType;
+        canvas1.style.display = "none";
+        drawFunctions(canvas, graph, letter);
+        drawTextAnswers(list1, test.answers);
+    }
+    if (test.type === "graph2graph" || test.type === "graph2graph2") {
+        graph = test.question.graph;
+        letter = graph[0].funcType;
+        drawFunctions(canvas, graph, letter);
+        drawAnswers(canvas1, test.answers, test.question.correctIDs);
+    }
+    if (test.testType === "relationSings")
+        outputFunc(graph, answers, list, true);
+    else
+        outputFunc(graph, answers, list);
+}
+function outputFunc(graph, answers, list, isSG = false) {
+    let node;
+    for (let func of graph) {
+        node = document.createElement("li");
+        if (func.params.x !== undefined)
+            node.innerHTML += "x: " + func.params.x;
+        if (func.params.v !== undefined)
+            node.innerHTML += " v: " + func.params.v;
+        if (func.params.a !== undefined)
+            node.innerHTML += " a: " + func.params.a;
+        if (func.params.len !== undefined)
+            node.innerHTML += " len: " + func.params.len;
+        if (list)
+            list.appendChild(node);
+    }
+    if (isSG) {
+        for (let answer of answers) {
+            node = document.createElement("li");
+            node.innerHTML += answer.letter + "[" + answer.leftIndex + "] " + answer.correctSign + " " + answer.letter + "[" + answer.rightIndex + "]";
+            if (list)
+                list.appendChild(node);
+        }
+    }
+}
+function calcFuncValue(func, t) {
+    let funcType = func.funcType, params = func.params, len = (t === undefined) ? params.len : t;
+    switch (funcType) {
+        case "x":
+            return params.x + params.v * len + (params.a * len * len) / 2;
+        case "v":
+            return params.v + params.a * len;
+        case "a":
+            return params.a;
+    }
+}
+function drawTextAnswers(list, answers) {
+    let node;
+    for (let func of answers) {
+        node = document.createElement("li");
+        node.innerHTML += "id: " + func.id;
+        node.innerHTML += ", text: " + func.text;
+        if (list)
+            list.appendChild(node);
+    }
+}
+function drawFunctions(canvas, graph, letter) {
+    let height = canvas.height, width = canvas.width, scaleX = width / 12, scaleY = -1 * height / 10;
+    ctx = canvas.getContext("2d");
+    ctx.font = "50px Georgia";
+    ctx.fillText(letter, 850, 180);
+    ctx.beginPath();
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = "#FF0000";
+    ctx.translate(0, height / 2);
+    let y = 0, x = 0, point = 0, step = 0;
+    for (let func of graph) {
+        step = func.params.len ? func.params.len / 10 : 0.3;
+        y = calcFuncValue(func, 0) * scaleY;
+        ctx.moveTo(x, y);
+        for (let i = 0; i < 10; i++) {
+            point += step;
+            y = calcFuncValue(func, point) * scaleY;
+            x += step * scaleX;
+            ctx.lineTo(x, y);
+            ctx.stroke();
+        }
+        point = 0;
+    }
+}
+function drawAnswers(canvas, answers, ids) {
+    let height = canvas.height, width = canvas.width, scaleX = width / 18, scaleY = -1 * height / 10;
+    let y = 0, x = 0, point = 0, step = 0;
+    ctx = canvas.getContext("2d");
+    ctx.translate(0, height / 2);
+    console.log(answers);
+    // console.log(ids);
+    for (let func of answers) {
+        if (func.id === ids[0] || func.id === ids[1]) {
+            ctx.beginPath();
+            ctx.lineWidth = 5;
+            ctx.strokeStyle = "#8bc34a";
+        }
+        else {
+            ctx.beginPath();
+            ctx.lineWidth = 5;
+            ctx.strokeStyle = "#03a9f4";
+        }
+        // console.log(func.id);
+        func = func.graph[0];
+        step = func.params.len ? func.params.len / 20 : 0.3;
+        y = calcFuncValue(func, 0) * scaleY;
+        ctx.moveTo(x, y);
+        for (let i = 0; i < 10; i++) {
+            point += step;
+            y = calcFuncValue(func, point) * scaleY;
+            x += step * scaleX;
+            ctx.lineTo(x, y);
+            ctx.stroke();
+        }
+        ctx.font = "50px Georgia";
+        ctx.fillText(func.funcType, x - 30, y - 50);
+        point = 0;
+    }
+}
+function drawGrid(canvas) {
+    let height = canvas.height, width = canvas.width, scaleX = width / 12, scaleY = -1 * height / 10;
     ctx = canvas.getContext("2d");
     ctx.beginPath();
     ctx.lineWidth = 5;
@@ -29,58 +162,11 @@ function resolve(test) {
             ctx.stroke();
         }
     }
-    ctx.font = "50px Georgia";
-    ctx.fillText(letter, 850, 180);
-    ctx.translate(0, height / 2);
-    outputFunc(graph, answers, list);
-    let y = 0, x = 0, point = 0, step = 0;
-    ctx.beginPath();
-    ctx.lineWidth = 5;
-    ctx.strokeStyle = "#FF0000";
-    for (let func of graph) {
-        step = func.params.len / 10;
-        y = calcFuncValue(func, 0) * scaleY;
-        ctx.moveTo(x, y);
-        for (let i = 0; i < 10; i++) {
-            point += step;
-            y = calcFuncValue(func, point) * scaleY;
-            x += step * scaleX;
-            ctx.lineTo(x, y);
-            ctx.stroke();
-        }
-        point = 0;
-    }
 }
-function outputFunc(graph, answers, list) {
-    let node;
-    for (let func of graph) {
-        node = document.createElement("li");
-        if (func.params.x !== undefined)
-            node.innerHTML += "x: " + func.params.x;
-        if (func.params.v !== undefined)
-            node.innerHTML += " v: " + func.params.v;
-        if (func.params.a !== undefined)
-            node.innerHTML += " a: " + func.params.a;
-        if (func.params.len !== undefined)
-            node.innerHTML += " len: " + func.params.len;
-        if (list)
-            list.appendChild(node);
-    }
-    for (let answer of answers) {
-        node = document.createElement("li");
-        node.innerHTML += answer.letter + "[" + answer.leftIndex + "] " + answer.correctSign + " " + answer.letter + "[" + answer.rightIndex + "]";
-        if (list)
-            list.appendChild(node);
-    }
-}
-function calcFuncValue(func, t) {
-    let funcType = func.funcType, params = func.params, len = (t === undefined) ? params.len : t;
-    switch (funcType) {
-        case "x":
-            return params.x + params.v * len + (params.a * len * len) / 2;
-        case "v":
-            return params.v + params.a * len;
-        case "a":
-            return params.a;
-    }
+function putButton() {
+    let button = document.getElementById("button");
+    let container = document.getElementById("container");
+    button.addEventListener("click", function (e) {
+        container.classList.toggle('hidden');
+    });
 }

@@ -19,6 +19,8 @@ export let Config = {
     vLowerLimit: 0.1,
     aLowerLimit: 0.1,
 
+    defaultLength: 12,
+
     minLength: 2,
 
     movements: [
@@ -40,5 +42,4 @@ export let Config = {
         "потом",
     ],
 
-    letters: {"S": 3, "d": 3},
 };

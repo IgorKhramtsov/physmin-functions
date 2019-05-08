@@ -134,6 +134,7 @@ class FunctionObj {
         if (newFunc.equalTo(func))
           return this.getCorrectFunction(_availableAxises, usedFunc);
 
+    newFunc.params[pickedAxis] = Math.round(newParams[pickedAxis]);
     return newFunc;
   }
 
@@ -155,13 +156,13 @@ class FunctionObj {
         if (incorrectFunction.equalTo(func))
           return this.getIncorrectFunction(_availableAxises, usedFuncs);
 
+      incorrectFunction.params[pickedAxis] = Math.round(newParams[pickedAxis]);
     return incorrectFunction;
   }
 
   makeIncorrectParams() {
     const params = this.params,
-      paramsKeys = Object.keys(params).deleteItem("t");
-
+      paramsKeys = Object.keys(params).deleteItem("len");
     // Inverting current params
     for (const key of paramsKeys) {
       switch (Math.sign(params[key])) {
@@ -221,6 +222,7 @@ class FunctionObj {
         if (this.equalTo(func))
           return this.makeQuestionFunction(availableAxises, usedFuncs);
 
+
     return this;
   }
 
@@ -265,10 +267,11 @@ class FunctionObj {
     const funcType = this.funcType,
       params = this.params,
       len = this.params.len;
-    if (len === undefined || len === null) {
+    // if (len === undefined || len === null) {
+    //   params[funcType] = Math.round(params[funcType]);
+    //   return this;
+    // }
       params[funcType] = Math.round(params[funcType]);
-      return this;
-    }
     const value = Math.round(this.calculateFunctionValue(len)),
       result = Math.min(Math.abs(value), Config.upperLimit) * Math.sign(value);
     // console.log("snap before", this.params);
@@ -315,10 +318,11 @@ class FunctionObj {
     const funcType = this.funcType,
       nextFunc = new FunctionObj(funcType).generateParams().clearParams();
 
-    const len = _len ? _len : Math.round(Utils.getRandomFromBound("t"));
+    const len = _len ? _len : Config.defaultLength/2;
     nextFunc.params.len = len;
 
     this.snapToGrid();
+    if(!this.params.len) throw new Error("this.params.len is undefined");
     nextFunc.params[funcType] = Math.round(this.calculateFunctionValue(this.params.len));
     if (nextFunc.params[funcType] >= (Config.upperLimit - 1)) {
       let params = nextFunc.params,
