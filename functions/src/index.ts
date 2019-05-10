@@ -141,6 +141,7 @@ export function getG2Stest(test_id: number, chance: number) {
     text = first.getTextDescription(true);
     if (second)
       text = "Cперва " + first.getTextDescription(false) + ", затем " + second.getTextDescription(false);
+      //Сперва покой, затем покой
     answers[i] = {
       text: text,
       id: i

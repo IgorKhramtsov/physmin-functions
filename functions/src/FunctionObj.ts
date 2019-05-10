@@ -156,7 +156,7 @@ class FunctionObj {
         if (incorrectFunction.equalTo(func))
           return this.getIncorrectFunction(_availableAxises, usedFuncs);
 
-      incorrectFunction.params[pickedAxis] = Math.round(newParams[pickedAxis]);
+    incorrectFunction.params[pickedAxis] = Math.round(newParams[pickedAxis]);
     return incorrectFunction;
   }
 
@@ -226,34 +226,28 @@ class FunctionObj {
     return this;
   }
 
+  getKeyByValue(object: any, value: any) {
+    let _key = Object.keys(object).find(key => object[key] === value)
+    if (_key) return _key
+    else throw Error("Key is not found!");
+  }
+
   getTextDescription(flag: boolean) {
     let params = this.params,
       text = "";
-
-    if (Math.sign(params.v) === -1)
-      text += "назад";
-
-    if (Math.sign(params.v) === 1)
-      text += "вперед";
-
-    switch (Math.sign(params.a)) {
-      case 0:
-        text += " равномерно";
-        break;
-      case 1:
-        text += " ускоряясь вперед";
-        break;
-      case -1:
-        text += " ускоряясь назад";
-        break;
-    }
     if (params.v === 0 && params.a === 0) {
-      if (Math.sign(params.x) == 1)
-        text = "покой выше нуля";
-      else if (Math.sign(params.x) === -1)
-        text = "покой ниже нуля";
-      else text = "все время покой";
+      text += this.getKeyByValue(Config.directions, params.v)
+      if(params.x) text += this.getKeyByValue(Config.position, Math.sign(params.x));
     }
+    else {
+      if(Math.sign(params.v) === 0)
+        text += this.getKeyByValue(Config.directions, Math.sign(params.v))
+      else {
+        text += this.getKeyByValue(Config.directions, Math.sign(params.v))
+        if (params.a) text += this.getKeyByValue(Config.how, Math.sign(params.a))
+      }
+    }
+
 
     if (flag) {
       if (text[0] === ' ')
@@ -271,7 +265,7 @@ class FunctionObj {
     //   params[funcType] = Math.round(params[funcType]);
     //   return this;
     // }
-      params[funcType] = Math.round(params[funcType]);
+    params[funcType] = Math.round(params[funcType]);
     const value = Math.round(this.calculateFunctionValue(len)),
       result = Math.min(Math.abs(value), Config.upperLimit) * Math.sign(value);
     // console.log("snap before", this.params);
@@ -311,6 +305,7 @@ class FunctionObj {
         break;
     }
     // console.log("snap after", this.params);
+
     return this;
   }
 
@@ -318,19 +313,20 @@ class FunctionObj {
     const funcType = this.funcType,
       nextFunc = new FunctionObj(funcType).generateParams().clearParams();
 
-    const len = _len ? _len : Config.defaultLength/2;
+    const len = _len ? _len : Config.defaultLength / 2;
     nextFunc.params.len = len;
 
     this.snapToGrid();
-    if(!this.params.len) throw new Error("this.params.len is undefined");
+    if (!this.params.len) throw new Error("this.params.len is undefined");
     nextFunc.params[funcType] = Math.round(this.calculateFunctionValue(this.params.len));
     if (nextFunc.params[funcType] >= (Config.upperLimit - 1)) {
       let params = nextFunc.params,
         first = params.x ? "x" : "v",
         second = params.v ? "v" : "a",
         third = params.a ? "a" : undefined;
-      nextFunc.params[second] = -Math.sign(nextFunc.params[first]) * Math.abs(nextFunc.params[second]);
-      if (third)
+      if (nextFunc.params[second] !== 0)
+        nextFunc.params[second] = -Math.sign(nextFunc.params[first]) * Math.abs(nextFunc.params[second]);
+      if (third && nextFunc.params[third] !== 0)
         nextFunc.params[third] = Math.sign(nextFunc.params[first]) * Math.abs(nextFunc.params[third]);
     }
     if (usedFunctions) {

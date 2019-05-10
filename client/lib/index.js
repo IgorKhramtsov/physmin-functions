@@ -14,7 +14,7 @@ function resolve(test) {
         graph = test.question[0].graph;
         letter = graph[0].funcType;
         drawFunctions(canvas, graph, letter);
-        drawAnswers(canvas1, test.answers, test.question.correctIDs);
+        // drawAnswers(canvas1, test.answers,test.question.correctIDs);
     }
     if (test.type === "graph2state") {
         graph = test.question[0].graph;
@@ -29,7 +29,7 @@ function resolve(test) {
         drawFunctions(canvas, graph, letter);
         drawAnswers(canvas1, test.answers, test.question.correctIDs);
     }
-    if (test.testType === "relationSings")
+    if (test.type === "relationSings")
         outputFunc(graph, answers, list, true);
     else
         outputFunc(graph, answers, list);
