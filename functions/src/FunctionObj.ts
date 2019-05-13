@@ -32,12 +32,10 @@ class FunctionObj {
       case "x":
         this_dir = this.params.v + this.params.a * this.params.len;
         nextFunc_dir = obj.params.v + obj.params.a * obj.params.len;
-        // console.log(this_dif, this.params, nextFunc_dif)
         return Math.sign(this_dir) === Math.sign(nextFunc_dir);
       case "v":
         this_dir = this.params.a;
         nextFunc_dir = obj.params.a;
-        // console.log(this_dif, this.params, nextFunc_dif)
         return Math.sign(this_dir) === Math.sign(nextFunc_dir);
     }
 
@@ -93,9 +91,10 @@ class FunctionObj {
   increaseIntensity() {
     const params = this.params,
       funcType = this.funcType;
+      //should we kill it?
     if (params.x && funcType === "x") {
-      if (Math.abs(params.x) < 1)
-        params.x = 1 * Math.sign(params.x);
+      // if (Math.abs(params.x) < 1)
+      //   params.x = 1 * Math.sign(params.x);
       if (Math.abs(params.v) > 0 && Math.abs(params.a) > 0)
         if (Math.sign(params.a) !== Math.sign(params.v)) {
           if (Math.abs(params.v) < 0.8)
@@ -103,12 +102,12 @@ class FunctionObj {
         } else if (Math.abs(params.a) < 0.5)
           params.a = 0.5 * Math.sign(params.a)
     }
-    if (params.v && funcType === "v")
-      if (Math.abs(params.v) < 1)
-        params.v = 1 * Math.sign(params.v);
-    if (params.a && funcType === "a")
-      if (Math.abs(params.a) < 1)
-        params.a = 1 * Math.sign(params.a);
+    // if (params.v && funcType === "v")
+    //   if (Math.abs(params.v) < 1)
+    //     params.v = 1 * Math.sign(params.v);
+    // if (params.a && funcType === "a")
+    //   if (Math.abs(params.a) < 1)
+    //     params.a = 1 * Math.sign(params.a);
     return this;
   }
 
@@ -118,7 +117,7 @@ class FunctionObj {
 
 
 
-  getCorrectFunction(availableAxises: Array<any>, usedFunc?: Array<FunctionObj>): FunctionObj {
+  getCorrectFunction(availableAxises: Array<any>,funcLength:number, usedFunc?: Array<FunctionObj>): FunctionObj {
     // Filter available function types
     const _availableAxises = availableAxises.copy().deleteItem(this.funcType),
       pickedAxis = _availableAxises.getRandom(),
@@ -132,17 +131,17 @@ class FunctionObj {
     if (usedFunc)
       for (const func of usedFunc)
         if (newFunc.equalTo(func))
-          return this.getCorrectFunction(_availableAxises, usedFunc);
+          return this.getCorrectFunction(_availableAxises,funcLength, usedFunc);
 
-    newFunc.params[pickedAxis] = Math.round(newParams[pickedAxis]);
-    return newFunc;
+   newFunc.params.len = funcLength;
+    return newFunc.snapToGrid();
   }
 
   makeCorrectParams(): FunctionObj {
     return this.makeFreeVariables().increaseIntensity();
   }
 
-  getIncorrectFunction(availableAxises: Array<any>, usedFuncs?: Array<FunctionObj>): FunctionObj {
+  getIncorrectFunction(availableAxises: Array<any>,funcLength: number,usedFuncs?: Array<FunctionObj>): FunctionObj {
     const _availableAxises = availableAxises.copy().deleteItem(this.funcType),
       pickedAxis = _availableAxises.getRandom(),
       newParams = this.copyParams();
@@ -154,10 +153,10 @@ class FunctionObj {
     if (usedFuncs)
       for (const func of usedFuncs)
         if (incorrectFunction.equalTo(func))
-          return this.getIncorrectFunction(_availableAxises, usedFuncs);
+          return this.getIncorrectFunction(_availableAxises,funcLength, usedFuncs);
 
-    incorrectFunction.params[pickedAxis] = Math.round(newParams[pickedAxis]);
-    return incorrectFunction;
+          incorrectFunction.params.len = funcLength;
+    return incorrectFunction.snapToGrid();
   }
 
   makeIncorrectParams() {
@@ -176,23 +175,6 @@ class FunctionObj {
       }
       params[key] = Utils.getRandomWithSign(key, params[key]);
     }
-
-    // If two vectors have same direction make them opposite
-    // let a: string,
-    //     b: string;
-    // if (Math.sign(params["v"]) == Math.sign(params["a"]) && Math.sign(params["a"]) != 0) {
-    //     if (Utils.withChance(0.5)) {
-    //         a = "v";
-    //         b = "a";
-    //     } else {
-    //         a = "a";
-    //         b = "v";
-    //     }
-    //
-    //     params[a] = Utils.withChance(0.5) ? -params[b] : 0;
-    //     params[a] = Utils.getRandomWithSign(a, params[a]);
-    // }
-
     return this.makeFreeVariables().increaseIntensity();
   }
 
@@ -213,17 +195,17 @@ class FunctionObj {
     return this;
   }
 
-  makeQuestionFunction(availableAxises: Array<string>, usedFuncs?: Array<FunctionObj>): FunctionObj {
+  makeQuestionFunction(availableAxises: Array<string>,funcLength: number ,usedFuncs?: Array<FunctionObj>): FunctionObj {
     this.funcType = availableAxises.getRandom();
     this.generateParams().clearParams().increaseIntensity();
 
     if (usedFuncs)
       for (const func of usedFuncs)
         if (this.equalTo(func))
-          return this.makeQuestionFunction(availableAxises, usedFuncs);
+          return this.makeQuestionFunction(availableAxises, funcLength,usedFuncs);
 
-
-    return this;
+   this.params.len = funcLength;
+    return this.snapToGrid();
   }
 
   getKeyByValue(object: any, value: any) {
@@ -240,14 +222,13 @@ class FunctionObj {
       if(params.x) text += this.getKeyByValue(Config.position, Math.sign(params.x));
     }
     else {
-      if(Math.sign(params.v) === 0)
+      if(Math.sign(params.v) === 0 || !params.a)
         text += this.getKeyByValue(Config.directions, Math.sign(params.v))
       else {
-        text += this.getKeyByValue(Config.directions, Math.sign(params.v))
-        if (params.a) text += this.getKeyByValue(Config.how, Math.sign(params.a))
+        text += this.getKeyByValue(Config.how, Math.abs(Math.sign(params.a)))
+              + this.getKeyByValue(Config.directions, Math.sign(params.v))
       }
     }
-
 
     if (flag) {
       if (text[0] === ' ')
@@ -261,21 +242,17 @@ class FunctionObj {
     const funcType = this.funcType,
       params = this.params,
       len = this.params.len;
-    // if (len === undefined || len === null) {
-    //   params[funcType] = Math.round(params[funcType]);
-    //   return this;
-    // }
+
     params[funcType] = Math.round(params[funcType]);
     const value = Math.round(this.calculateFunctionValue(len)),
       result = Math.min(Math.abs(value), Config.upperLimit) * Math.sign(value);
-    // console.log("snap before", this.params);
-    // console.log("snap result", result);
     switch (funcType) {
       case "x":
         if (params.v !== 0 && params.a !== 0) {
           let v_calc = (result - params.x - (params.a * len * len) / 2) / len,
             a_calc = 2 * (result - params.x - params.v * len) / (len * len),
             sign_a = Math.sign(params.a), sign_v = Math.sign(params.v);
+
           if (sign_a === Math.sign(a_calc) && sign_v === Math.sign(v_calc)) {
             if (sign_v === 0)
               params.a = a_calc;
@@ -287,24 +264,14 @@ class FunctionObj {
             params.a = a_calc;
           } else
             console.log("oy choto slomalos ", params);
-          //  if(Math.sign(v_calc) === -Math.sign(params[funcType]))
-          //     params.v = v_calc
-          //  else if(Math.sign(a_calc) === Math.sign(params[funcType]))
-          //     params.a = a_calc;
-          // else {
-          //   console.log("igar loshara DAVAAY ECHE ODIN IF SDELAEM KANESHNA CHO TAKOVA CHO TAKOVA");
-          //   console.log(params);
-          // }
         }
         else if (params.v !== 0) params.v = (result - params.x - (params.a * len * len) / 2) / len;
         else if (params.a !== 0) params.a = 2 * (result - params.x - params.v * len) / (len * len);
-        // params.a =  (result  - params.v ) / len;
         break;
       case "v":
         if (params.a !== 0) params.a = (result - params.v) / len;
         break;
     }
-    // console.log("snap after", this.params);
 
     return this;
   }

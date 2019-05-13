@@ -6,7 +6,7 @@ import * as cors from 'cors';
 const corsHandler = cors({ origin: true });
 
 export function getG2Gtest(test_id: number, correctAnswersCount: number) {
-  const count = 6,
+  const count = Config.answerCount,
     answers = Array<any>(),
     usedFunctions = Array<FunctionObj>(),
     availableAxises = Config.axisIndexes.copy();
@@ -14,9 +14,8 @@ export function getG2Gtest(test_id: number, correctAnswersCount: number) {
     testType: String,
     question: any;
 
-  questionFunction = new FunctionObj().makeQuestionFunction(availableAxises);
-  questionFunction.params.len = Config.defaultLength;
-  questionFunction.snapToGrid();
+  questionFunction = new FunctionObj().makeQuestionFunction(availableAxises, Config.defaultLength);
+
   question = {
     graph: [questionFunction],
     correctIDs: Array<number>()
@@ -24,11 +23,9 @@ export function getG2Gtest(test_id: number, correctAnswersCount: number) {
 
   for (let i = 0; i < correctAnswersCount; i++) {
     question.correctIDs.addRandomNumber(count);
-    usedFunctions.push(questionFunction.getCorrectFunction(availableAxises, usedFunctions));
-    usedFunctions.last().params.len = Config.defaultLength;
-    usedFunctions.last().snapToGrid();
+    usedFunctions.push(questionFunction.getCorrectFunction(availableAxises, Config.defaultLength, usedFunctions));
+
     availableAxises.deleteItem(usedFunctions.last().funcType);
-    // answers[question.correctIDs[i]] = {
     answers.push({
       graph: [usedFunctions.last()],
       id: question.correctIDs[i]
@@ -36,9 +33,7 @@ export function getG2Gtest(test_id: number, correctAnswersCount: number) {
   }
   for (let i = 0; i < count; i++)
     if (!question.correctIDs.contains(i)) {
-      usedFunctions.push(questionFunction.getIncorrectFunction(Config.axisIndexes.copy(), usedFunctions));
-      usedFunctions.last().params.len = Config.defaultLength;
-      usedFunctions.last().snapToGrid();
+      usedFunctions.push(questionFunction.getIncorrectFunction(Config.axisIndexes.copy(), Config.defaultLength, usedFunctions));
       answers.push({
         graph: [usedFunctions.last()],
         id: i
@@ -61,38 +56,37 @@ export function getG2Stest(test_id: number, chance: number) {
     questions = Array<any>(),
     answers = Array<any>(),
 
-    answerCount = 6,
-    questionCount = 4,
+    answerCount = Config.answerCount,
+    questionCount = Config.G2S_questionCount,
 
     correctIDs = Array<number>(),
     usedFunctions = Array<any>(),
     availableAxises = Config.axisIndexes.copy().deleteItem("a");
 
-  let _chance: boolean;
+  let _chance: boolean,
+    _funcLength: number;
 
   for (let i = 0; i < questionCount; i++) {
     _chance = Utils.withChance(chance);
-
     correctIDs.addRandomNumber(questionCount);
+
     usedFunctions[i] = { questions: Array<FunctionObj>(), functions: Array<FunctionObj>() };
+    usedFunctions[i].questions.push(new FunctionObj().makeQuestionFunction(availableAxises,
+      Config.defaultLength, usedFunctions[i].questions));
 
-    usedFunctions[i].questions.push(new FunctionObj().makeQuestionFunction(availableAxises, usedFunctions[i].questions));
+    if (_chance) _funcLength = Config.defaultLength / 2;
+    else _funcLength = Config.defaultLength;
 
-    usedFunctions[i].functions.push(usedFunctions[i].questions.last().getCorrectFunction(availableAxises, usedFunctions[i].functions));
-
-    if (_chance) {
-      usedFunctions[i].functions.last().params.len = Config.defaultLength / 2;
-    } else usedFunctions[i].functions.last().params.len = Config.defaultLength;
-    usedFunctions[i].functions.last().snapToGrid();
-
+    usedFunctions[i].functions.push(usedFunctions[i].questions.last().
+      getCorrectFunction(availableAxises, _funcLength, usedFunctions[i].functions));
     questions[i] = {
       graph: [usedFunctions[i].functions.last()],
       correctIDs: [correctIDs.last()],
     };
 
-    if (_chance) {
-      questions[i].graph.push(usedFunctions[i].functions.last().createNextFunction(usedFunctions[i].functions, Config.defaultLength / 2));
-    }
+    if (_chance)
+      questions[i].graph.push(usedFunctions[i].functions.last().
+        createNextFunction(usedFunctions[i].functions, Config.defaultLength / 2));
 
   }
 
@@ -101,47 +95,34 @@ export function getG2Stest(test_id: number, chance: number) {
     text = "";
   for (let i = 0; i < answerCount; i++) {
     _chance = Utils.withChance(chance);
+    if (_chance) _funcLength = Config.defaultLength / 2;
+    else _funcLength = Config.defaultLength;
 
     if (correctIDs.contains(i)) { // Skip if its correct answer
       first = questions[i].graph[0];
-
-      if (questions[i].graph.length === 2) {
-        // first.params.len = 6;
-        second = questions[i].graph[1];
-      }
-
+      if (questions[i].graph.length === 2) second = questions[i].graph[1];
     } else {
 
       if (Utils.withChance(0.5)) { // Create brand new function with 0.5 chance
-        first = usedFunctions.getRandom().questions.last().getIncorrectFunction(availableAxises);
-        if (_chance) {
-          first.params.len = Config.defaultLength / 2;
+        first = usedFunctions.getRandom().questions.last().getIncorrectFunction(availableAxises, _funcLength);
+        if (_chance)
           second = first.createNextFunction([first], Config.defaultLength / 2);
-          second.snapToGrid();
-        } else {
-          first.params.len = Config.defaultLength;
-          first.snapToGrid();
-        }
-
       } else { // Change second function of graph else
         const usedFunctionsRandommed = usedFunctions.getRandom().functions;
         first = usedFunctionsRandommed[0];
-
-        if (_chance) {
-          first.params.len = Config.defaultLength / 2;
+        if (_chance)
           second = usedFunctionsRandommed[0].createNextFunction([usedFunctionsRandommed], Config.defaultLength / 2);
-          second.snapToGrid();
-        } else {
-          first.params.len = Config.defaultLength;
-          first.snapToGrid();
-        }
       }
     }
-
     text = first.getTextDescription(true);
-    if (second)
-      text = "Cперва " + first.getTextDescription(false) + ", затем " + second.getTextDescription(false);
-      //Сперва покой, затем покой
+    if (second) {
+      let firstText = first.getTextDescription(false),
+        secondText = second.getTextDescription(false);
+      if (firstText === secondText)
+        text = "Все время " + firstText;
+      else text = "Cперва " + firstText + ", затем " + secondText;
+    }
+    //Сперва покой, затем покой
     answers[i] = {
       text: text,
       id: i
@@ -152,6 +133,7 @@ export function getG2Stest(test_id: number, chance: number) {
       if (answers[j].id !== questions[i].correctIDs[0])
         if (answers[j].text === answers[questions[i].correctIDs[0]].text)
           questions[i].correctIDs.push(j);
+
 
   return {
     type: testType,
@@ -187,7 +169,7 @@ export function getSGtest(test_id: number, isSimple: boolean) {
     answers = Array<any>(),
 
     questionCount = Math.round(Utils.getRandomFromBound("questionCount")),
-    questionInterval = Math.round(12 / questionCount),
+    questionInterval = Math.round(Config.defaultLength / questionCount),
 
     usedFunctions = Array<any>(),
     availableAxises = Config.axisIndexes.copy().deleteItem("a");
@@ -196,38 +178,35 @@ export function getSGtest(test_id: number, isSimple: boolean) {
     funcPoints = Array<number>(),
     temp = 0,
     funcLength;
+
   funcPoints.push(0);
   for (let i = 0; i < questionCount - 1; i++) {
     temp += questionInterval;
     funcPoints.push(Math.round(Utils.getRandomFromRange(temp, temp)));
   }
+
   for (let i = 0; i < questionCount; i++) {
     if (i === 0) {
       usedFunctions.push(new FunctionObj().
-        makeQuestionFunction(availableAxises).
-        getCorrectFunction(availableAxises));
-      usedFunctions[i].params.len = funcPoints[i + 1] - funcPoints[i];
+        makeQuestionFunction(availableAxises, (funcPoints[i + 1] - funcPoints[i])).
+        getCorrectFunction(availableAxises, (funcPoints[i + 1] - funcPoints[i])));
       continue;
     }
 
     funcLength = funcPoints[i + 1] - funcPoints[i];
     usedFunctions[i] = usedFunctions[i - 1].createNextFunction([usedFunctions[i - 1]], funcLength);
-    // usedFunctions[i - 1].snapToGrid();
-
 
     if (i === questionCount - 1)
       usedFunctions[i].params.len = 12 - funcPoints[i];
   }
-  // usedFunctions.last().normilizeFunc();
   usedFunctions.last().snapToGrid();
+
+
+
   questions = usedFunctions.copy();
   const questionsCopy: Array<FunctionObj> = questions.copy(),
     answersCount = isSimple ? 3 : 6;
 
-
-  // const zeroFunc = new FunctionObj(questionsCopy[0].funcType, questionsCopy[0].copyParams());
-  // zeroFunc.params.len = 0;
-  // questionsCopy.splice(0, 0, zeroFunc);
   let firstIndexes: any,
     secondIndexes: any,
     indexes: any,
