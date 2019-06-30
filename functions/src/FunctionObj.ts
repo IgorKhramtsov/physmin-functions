@@ -88,28 +88,6 @@ class FunctionObj {
     return this;
   }
 
-  increaseIntensity() {
-    const params = this.params,
-      funcType = this.funcType;
-      //should we kill it?
-    if (params.x && funcType === "x") {
-      // if (Math.abs(params.x) < 1)
-      //   params.x = 1 * Math.sign(params.x);
-      if (Math.abs(params.v) > 0 && Math.abs(params.a) > 0)
-        if (Math.sign(params.a) !== Math.sign(params.v)) {
-          if (Math.abs(params.v) < 0.8)
-            params.v = 0.8 * Math.sign(params.v);
-        } else if (Math.abs(params.a) < 0.5)
-          params.a = 0.5 * Math.sign(params.a)
-    }
-    // if (params.v && funcType === "v")
-    //   if (Math.abs(params.v) < 1)
-    //     params.v = 1 * Math.sign(params.v);
-    // if (params.a && funcType === "a")
-    //   if (Math.abs(params.a) < 1)
-    //     params.a = 1 * Math.sign(params.a);
-    return this;
-  }
 
   copyParams(): any {
     return Object.assign({}, this.params);
@@ -117,7 +95,7 @@ class FunctionObj {
 
 
 
-  getCorrectFunction(availableAxises: Array<any>,funcLength:number, usedFunc?: Array<FunctionObj>): FunctionObj {
+  getCorrectFunction(availableAxises: Array<any>, funcLength: number, usedFunc?: Array<FunctionObj>): FunctionObj {
     // Filter available function types
     const _availableAxises = availableAxises.copy().deleteItem(this.funcType),
       pickedAxis = _availableAxises.getRandom(),
@@ -131,17 +109,17 @@ class FunctionObj {
     if (usedFunc)
       for (const func of usedFunc)
         if (newFunc.equalTo(func))
-          return this.getCorrectFunction(_availableAxises,funcLength, usedFunc);
+          return this.getCorrectFunction(_availableAxises, funcLength, usedFunc);
 
-   newFunc.params.len = funcLength;
+    newFunc.params.len = funcLength;
     return newFunc.snapToGrid();
   }
 
   makeCorrectParams(): FunctionObj {
-    return this.makeFreeVariables().increaseIntensity();
+    return this.makeFreeVariables();
   }
 
-  getIncorrectFunction(availableAxises: Array<any>,funcLength: number,usedFuncs?: Array<FunctionObj>): FunctionObj {
+  getIncorrectFunction(availableAxises: Array<any>, funcLength: number, usedFuncs?: Array<FunctionObj>): FunctionObj {
     const _availableAxises = availableAxises.copy().deleteItem(this.funcType),
       pickedAxis = _availableAxises.getRandom(),
       newParams = this.copyParams();
@@ -153,9 +131,9 @@ class FunctionObj {
     if (usedFuncs)
       for (const func of usedFuncs)
         if (incorrectFunction.equalTo(func))
-          return this.getIncorrectFunction(_availableAxises,funcLength, usedFuncs);
+          return this.getIncorrectFunction(_availableAxises, funcLength, usedFuncs);
 
-          incorrectFunction.params.len = funcLength;
+    incorrectFunction.params.len = funcLength;
     return incorrectFunction.snapToGrid();
   }
 
@@ -175,15 +153,15 @@ class FunctionObj {
       }
       params[key] = Utils.getRandomWithSign(key, params[key]);
     }
-    return this.makeFreeVariables().increaseIntensity();
+    return this.makeFreeVariables();
   }
 
   generateParams() {
     let x, v, a = 0;
     x = Utils.getRandomFromBound(Config.X);
     v = Utils.getRandomFromBound(Config.V);
-    if (Utils.withChance(0.5))
-      a = Utils.getRandomFromBound(Config.A);
+    if (Utils.withChance(0.7))
+      a = Utils.getRandomNonZeroFromBound(Config.A);
 
     if (x === 0 && v === 0 && a === 0)
       this.generateParams();
@@ -195,16 +173,16 @@ class FunctionObj {
     return this;
   }
 
-  makeQuestionFunction(availableAxises: Array<string>,funcLength: number ,usedFuncs?: Array<FunctionObj>): FunctionObj {
+  makeQuestionFunction(availableAxises: Array<string>, funcLength: number, usedFuncs?: Array<FunctionObj>): FunctionObj {
     this.funcType = availableAxises.getRandom();
-    this.generateParams().clearParams().increaseIntensity();
+    this.generateParams().clearParams();
 
     if (usedFuncs)
       for (const func of usedFuncs)
         if (this.equalTo(func))
-          return this.makeQuestionFunction(availableAxises, funcLength,usedFuncs);
+          return this.makeQuestionFunction(availableAxises, funcLength, usedFuncs);
 
-   this.params.len = funcLength;
+    this.params.len = funcLength;
     return this.snapToGrid();
   }
 
@@ -217,18 +195,20 @@ class FunctionObj {
   getTextDescription(flag: boolean) {
     let params = this.params,
       text = "";
+
     if (params.v === 0 && params.a === 0) {
       text += this.getKeyByValue(Config.directions, params.v)
-      if(params.x) text += this.getKeyByValue(Config.position, Math.sign(params.x));
+      if (params.x) text += this.getKeyByValue(Config.position, Math.sign(params.x));
     }
     else {
-      if(Math.sign(params.v) === 0 || !params.a)
+      if (Math.sign(params.v) === 0)
         text += this.getKeyByValue(Config.directions, Math.sign(params.v))
       else {
-        text += this.getKeyByValue(Config.how, Math.abs(Math.sign(params.a)))
-              + this.getKeyByValue(Config.directions, Math.sign(params.v))
+        if (params.a) text += this.getKeyByValue(Config.how, Math.sign(params.a))
+        text += this.getKeyByValue(Config.directions, Math.sign(params.v))
       }
     }
+
 
     if (flag) {
       if (text[0] === ' ')
@@ -243,9 +223,12 @@ class FunctionObj {
       params = this.params,
       len = this.params.len;
 
-    params[funcType] = Math.round(params[funcType]);
+    if(funcType == 'x' || funcType == 'v' )
+      params[funcType] = Math.round(params[funcType]);
+
     const value = Math.round(this.calculateFunctionValue(len)),
       result = Math.min(Math.abs(value), Config.upperLimit) * Math.sign(value);
+
     switch (funcType) {
       case "x":
         if (params.v !== 0 && params.a !== 0) {

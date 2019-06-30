@@ -78,7 +78,17 @@ export class Utils {
 
   static getRandomNonZeroFromBound(axis: string): number {
     let value = Utils.getRandomFromRange(Config.bounds[axis][0], Config.bounds[axis][1]);
-    if (Math.abs(value) <= 0.3)
+
+    let threshold: number;
+    if(axis == 'a'){
+      threshold = 0.05
+    } else if(axis == 'v'){
+      threshold = 0.1
+    } else if(axis == 'x'){
+      threshold = 0.4
+    } else throw new Error('Incorrect axis.')
+
+    if (Math.abs(value) <= threshold)
       value = 0;
 
     if (value === 0)

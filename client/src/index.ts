@@ -154,7 +154,7 @@ console.log(answers);
       ctx.strokeStyle = "#03a9f4";}
     // console.log(func.id);
     func = func.graph[0];
-    step = func.params.len ? func.params.len / 20 : 0.3;
+    step = func.params.len ? func.params.len / 40 : 0.3;
     y = calcFuncValue(func, 0) * scaleY;
     ctx.moveTo(x, y);
     for (let i = 0; i < 10; i++) {
