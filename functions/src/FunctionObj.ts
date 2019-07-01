@@ -194,20 +194,76 @@ class FunctionObj {
 
   getTextDescription(flag: boolean) {
     let params = this.params,
-      text = "";
+      text = "",
+      x = params.x,
+      v = params.v,
+      a = params.a;
+    console.log(this.params);
+    console.log(x, v, a);
+    // --------------------------------------------------------------------
+    if (x !== undefined && v !== undefined && a !== undefined) {
 
-    if (params.v === 0 && params.a === 0) {
-      text += this.getKeyByValue(Config.directions, params.v)
-      if (params.x) text += this.getKeyByValue(Config.position, Math.sign(params.x));
-    }
-    else {
-      if (Math.sign(params.v) === 0)
-        text += this.getKeyByValue(Config.directions, Math.sign(params.v))
+      if (x == 0 && v == 0 && a == 0)
+        text += this.getKeyByValue(Config.movement, 0) + ' ' +
+          this.getKeyByValue(Config.position, 0);
+
+      else if (x != 0 && v == 0 && a == 0)
+        text += this.getKeyByValue(Config.movement, 0) + ' ' +
+          this.getKeyByValue(Config.position, Math.sign(x));
+
       else {
-        if (params.a) text += this.getKeyByValue(Config.how, Math.sign(params.a))
-        text += this.getKeyByValue(Config.directions, Math.sign(params.v))
+        text += this.getKeyByValue(Config.movement, 1)
+        if (v && v != 0) {
+          text += ' ' + this.getKeyByValue(Config.directions, Math.sign(v));
+          if (a && a != 0)
+            text += ', ' + this.getKeyByValue(Config.how, Math.sign(a));
+        }
+        else if (a) {
+          text += ' ' + this.getKeyByValue(Config.how, Math.sign(a));
+        }
+      }
+
+    }
+    // --------------------------------------------------------------------
+    else if (v !== undefined && a !== undefined) {
+
+      if (v == 0 && a == 0)
+        text += this.getKeyByValue(Config.movement, 0);
+
+      else {
+        text += this.getKeyByValue(Config.movement, 1)
+        if (v && v != 0) {
+          text += ' ' + this.getKeyByValue(Config.directions, Math.sign(v));
+          if (a && a != 0)
+            text += ', ' + this.getKeyByValue(Config.how, Math.sign(a));
+        }
+        else if (a)
+          text += ' ' + this.getKeyByValue(Config.how, Math.sign(a));
       }
     }
+    // --------------------------------------------------------------------
+    else if (a !== undefined) {
+      if (a == 0)
+        text += this.getKeyByValue(Config.movement, 0);
+      else
+        text += this.getKeyByValue(Config.how, Math.sign(a));
+    }
+    // --------------------------------------------------------------------
+    else throw new Error('Incorrect func type.')
+
+
+    // if (params.v === 0 && params.a === 0) {
+    //   text += this.getKeyByValue(Config.directions, params.v)
+    //   if (params.x) text += this.getKeyByValue(Config.position, Math.sign(params.x));
+    // }
+    // else {
+    //   if (Math.sign(params.v) === 0)
+    //     text += this.getKeyByValue(Config.directions, Math.sign(params.v))
+    //   else {
+    //     if (params.a) text += this.getKeyByValue(Config.how, Math.sign(params.a))
+    //     text += this.getKeyByValue(Config.directions, Math.sign(params.v))
+    //   }
+    // }
 
 
     if (flag) {
@@ -223,7 +279,7 @@ class FunctionObj {
       params = this.params,
       len = this.params.len;
 
-    if(funcType == 'x' || funcType == 'v' )
+    if (funcType == 'x' || funcType == 'v')
       params[funcType] = Math.round(params[funcType]);
 
     const value = Math.round(this.calculateFunctionValue(len)),

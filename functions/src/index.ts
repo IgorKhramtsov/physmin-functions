@@ -114,8 +114,7 @@ export function getG2Stest(test_id: number, chance: number) {
           second = usedFunctionsRandommed[0].createNextFunction([usedFunctionsRandommed], Config.defaultLength / 2);
       }
     }
-    console.log('first ',first);
-    console.log('second',second);
+
     text = first.getTextDescription(true);
     if (second) {
       let firstText = first.getTextDescription(false),
@@ -136,8 +135,6 @@ export function getG2Stest(test_id: number, chance: number) {
         if (answers[j].text === answers[questions[i].correctIDs[0]].text)
           questions[i].correctIDs.push(j);
 
-  console.log(answers);
-  console.log('---------');
   return {
     type: testType,
     test_id: test_id,
@@ -314,10 +311,10 @@ exports.getTestDev = functions.region("europe-west1").https.onRequest((request, 
 
   //
   // testQuiz.tests.push(getG2Gtest_OneAnswerGraph(1));
-  testQuiz.tests.push(getG2Gtest_TwoAnswerGraph(2));
+  // testQuiz.tests.push(getG2Gtest_TwoAnswerGraph(2));
 
   // testQuiz.tests.push(getG2Stest_SimpleFunctions(2));
-  // testQuiz.tests.push(getG2Stest_ComplexFunctions(3));
+  testQuiz.tests.push(getG2Stest_ComplexFunctions(3));
   // testQuiz.tests.push(getG2Stest_MixedFunctions(4, 0.5));
 
   // testQuiz.tests.push(getSGtest(6, true));
