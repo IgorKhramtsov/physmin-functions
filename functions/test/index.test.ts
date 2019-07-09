@@ -79,27 +79,6 @@ describe("Function generators", () => {
       }
     }
   });
-  it("All axises should be picked with equal possibility", () => {
-    let availableAxises = ["x", "v", "a"],
-      axis: string,
-      x_c = 0,
-      v_c = 0,
-      a_c = 0;
-    for (let i = 0; i < 100; i++) {
-      axis = availableAxises.getRandom();
-      if (axis == "x") x_c++;
-      if (axis == "v") v_c++;
-      if (axis == "a") a_c++;
-    }
-    console.log("x: ", x_c, ", v: ", v_c, ", a: ", a_c);
-  });
-  it("SG test graphs should have more than 2 functions", () => {
-    let a: any;
-    for (let i = 0; i < 100; i++) {
-      a = tests.getSGtest(i, true);
-      chai.expect(a.question[0].graph.length).to.be.greaterThan(2);
-    }
-  });
   it("Check for SG test copy bug", () => {
     for (let i = 0; i < 10; i++) {
       let test = tests.getSGtest(i, true);
@@ -134,76 +113,26 @@ describe('Minor functions', () => {
       chai.expect(nextFunc.equalToByDirection(question)).to.be.false;
     }
   })
-  it('createNextFunction should not have recursive count more than 30.', () => {
-    let _funcLength = Config.defaultLength,
-      question: any,
-      nextFunc: any,
-      recursive_count = 0;
-    for (let i = 0; i < 100; i++) {
-      question = new FunctionObj().
-        makeQuestionFunction(Config.axisIndexes, _funcLength / 2).
-        getCorrectFunction(Config.axisIndexes, _funcLength / 2);
-      nextFunc = question.createNextFunction([], _funcLength / 2, recursive_count)
-      chai.expect(recursive_count < 30).to.be.true;
-      recursive_count = 0;
-    }
-  })
   // ----------------------------------------------------------------------------------
   it('snapToGrid should not throw any exceptions.', () => {
-    let _funcLength = Config.defaultLength,
-      question: any;
-
-    // Copy of makeQuestionFunction hence original returns this.snapToGrid()
-    function makeQuestionFunction_test(question_: FunctionObj, availableAxises: Array<string>,
-      funcLength: number, usedFuncs?: Array<FunctionObj>): FunctionObj {
-
-      question_.funcType = availableAxises.getRandom();
-      question_.generateParams().clearParams();
-
-      if (usedFuncs)
-        for (const func of usedFuncs)
-          if (question_.equalTo(func))
-            return this.makeQuestionFunction(availableAxises, funcLength, usedFuncs);
-
-      question_.params.len = funcLength;
-      return question_;
-    }
-
-    for (let i = 0; i < 100; i++) {
-      question = new FunctionObj();
-      question = makeQuestionFunction_test(question, Config.axisIndexes, _funcLength / 2)
-
-      chai.expect(question.snapToGrid).to.not.throw(Error);
-    }
+    let _funcLength = Config.defaultLength;
+    for (let i = 0; i < 100; i++)
+      chai.expect(new FunctionObj().makeQuestionFunction(Config.axisIndexes, _funcLength / 2)).to.not.throw(Error);
   })
   // ----------------------------------------------------------------------------------
-  it('createNextCoupleIndexes should not have recursive count more than 30', () => {
+  it('createNextCoupleIndexes should not throw any exceptions.', () => {
     let indexes = Array<Array<Array<number>>>(),
-      answersCount = 6,
-      questionCount = 5,
-      recursive_count = 0;
-    for (let i = 0; i < 100; i++) {
-
-      for (let i = 0; i < answersCount; i++) {
-        indexes.push(FunctionObj.createNextCoupleIndexes(questionCount, indexes, recursive_count));
-      }
-      chai.expect(recursive_count < 30).to.be.true;
-      recursive_count = 0;
-    }
+      questionCount = 5;
+    for (let i = 0; i < 100; i++)
+      chai.expect(FunctionObj.createNextCoupleIndexes(questionCount, indexes)).to.not.throw(Error);
   })
   it('createNextIndex should not have cicle count more than 30.', () => {
     let leftCoupleIndexes: any,
       rightCoupleIndexes: any,
-      questionCount = 6,
-      cicle_count1 = 0,
-      cicle_count2 = 0;
+      questionCount = 6;
     for (let i = 0; i < 100; i++) {
-      leftCoupleIndexes = FunctionObj.createNextIndex(questionCount, [], cicle_count1),
-        rightCoupleIndexes = FunctionObj.createNextIndex(questionCount, [leftCoupleIndexes], cicle_count2);
-      chai.expect(cicle_count1 < 30).to.be.true;
-      chai.expect(cicle_count2 < 30).to.be.true;
-      cicle_count1 = 0;
-      cicle_count2 = 0;
+      chai.expect(FunctionObj.createNextIndex(questionCount, [])).to.not.throw(Error)
+      chai.expect(FunctionObj.createNextIndex(questionCount, [leftCoupleIndexes])).to.not.throw(Error)
     }
   })
 })
@@ -214,39 +143,35 @@ describe('Tests correctness', () => {
     let test: any;
     for (let i = 0; i < 100; i++) {
       test = tests.getG2Gtest_OneAnswerGraph(0);
-      chai.expect(test.question.graph.length === 1).to.be.true;
-      chai.expect(test.question.correctIDs.length === 1).to.be.true;
-      chai.expect(test.answers.length === 4).to.be.true;
+      chai.expect(test.question.graph.length).to.be.equalTo(1);
+      chai.expect(test.question.correctIDs.length).to.be.equalTo(1);
+      chai.expect(test.answers.length).to.be.equalTo(4);
     }
   })
-  // correct
-  // incorrect
   // ----------------------------------------------------------------------------------
   it('getG2Gtest_TwoAnswerGraph. 1 question, 2 correct answer, 2 incorrect answers', () => {
     let test: any;
     for (let i = 0; i < 100; i++) {
       test = tests.getG2Gtest_TwoAnswerGraph(0);
-      chai.expect(test.question.graph.length === 1).to.be.true;
-      chai.expect(test.question.correctIDs.length === 2).to.be.true;
-      chai.expect(test.answers.length === 4).to.be.true;
+      chai.expect(test.question.graph.length).to.be.equalTo(1);
+      chai.expect(test.question.correctIDs.length).to.be.equalTo(2);
+      chai.expect(test.answers.length).to.be.equalTo(4);
     }
   })
-  // correct
-  // incorrect
   // ----------------------------------------------------------------------------------
   it('getG2Stest_SimpleFunctions. 4 simple question, 4 simple answers', () => {
     let test: any;
     for (let i = 0; i < 100; i++) {
       test = tests.getG2Stest_SimpleFunctions(0);
-      chai.expect(test.question.length === 4).to.be.true;
+      chai.expect(test.question.length).to.be.equalTo(4);
       for (let j = 0; j < 4; j++) {
-        chai.expect(test.question[i].graph.length === 1).to.be.true;
-        chai.expect(test.question[i].correctIDs.length === 1).to.be.true;
+        chai.expect(test.question[i].graph.length).to.be.equalTo(1);
+        chai.expect(test.question[i].correctIDs.length).to.be.equalTo(1);
       }
-      chai.expect(test.answers.length === 4).to.be.true;
+      chai.expect(test.answers.length).to.be.equalTo(4);
       for (let j = 0; j < 4; j++) {
-        chai.expect(test.answers[i].text !== null).to.be.true;
-        chai.expect(test.answers[i].id !== null).to.be.true;
+        chai.expect(test.answers[i].text).to.not.be.null;
+        chai.expect(test.answers[i].id).to.not.be.null;
       }
     }
   })
@@ -255,15 +180,15 @@ describe('Tests correctness', () => {
     let test: any;
     for (let i = 0; i < 100; i++) {
       test = tests.getG2Stest_ComplexFunctions(0);
-      chai.expect(test.question.length === 4).to.be.true;
+      chai.expect(test.question.length).to.be.equalTo(4);
       for (let j = 0; j < 4; j++) {
-        chai.expect(test.question[i].graph.length === 2).to.be.true;
-        chai.expect(test.question[i].correctIDs.length === 1).to.be.true;
+        chai.expect(test.question[i].graph.length).to.be.equalTo(2);
+        chai.expect(test.question[i].correctIDs.length).to.be.equalTo(1);
       }
-      chai.expect(test.answers.length === 4).to.be.true;
+      chai.expect(test.answers.length).to.be.equalTo(4);
       for (let j = 0; j < 4; j++) {
-        chai.expect(test.answers[i].text !== null).to.be.true;
-        chai.expect(test.answers[i].id !== null).to.be.true;
+        chai.expect(test.answers[i].text).to.not.be.null;
+        chai.expect(test.answers[i].id).to.not.be.null;
       }
     }
   })
@@ -272,22 +197,39 @@ describe('Tests correctness', () => {
     let test: any;
     for (let i = 0; i < 100; i++) {
       test = tests.getSGtest(0, true);
-      chai.expect((3 <= test.question.graph.length) && (test.question.graph.length <= 5)).to.be.true;
+      chai.expect(test.question.graph.length).to.be.lessThan(5);
+      chai.expect(test.question.graph.length).to.be.greaterThan(3);
 
-      chai.expect(test.answers.length === 3).to.be.true;
+      chai.expect(test.answers.length).to.be.equalTo(3);
       for (let j = 0; j < 4; j++) {
-        chai.expect(test.answers[i].id !== null).to.be.true;
-        chai.expect(test.answers[i].letter !== "").to.be.true;
-        chai.expect(test.answers[i].leftIndex !== null).to.be.true;
-        chai.expect(test.answers[i].rightIndex !== null).to.be.true;
-        chai.expect((test.answers[i].correctSign === -1)||
-                    (test.answers[i].correctSign === 0) ||
-                    (test.answers[i].correctSign === 1) ).to.be.true;
+        chai.expect(test.answers[i].id).to.not.be.null;
+        chai.expect(test.answers[i].letter).to.not.be.equalTo('');
+        chai.expect(test.answers[i].leftIndex).to.not.be.null;
+        chai.expect(test.answers[i].rightIndex).to.not.be.null;
+        chai.expect(test.answers[i].correctSign).to.satisfy(function(sign) {
+          return sign === -1 || sign === 0 || sign === 1;
+        });
       }
     }
   })
   // ----------------------------------------------------------------------------------
-  it('getSGtest(true). 1 complex question,  6 complex answers.', () => {
+  it('getSGtest(false). 1 complex question,  6 complex answers.', () => {
+    let test: any;
+    for (let i = 0; i < 100; i++) {
+      test = tests.getSGtest(0, true);
+      chai.expect(test.question.graph.length).to.be.lessThan(5);
+      chai.expect(test.question.graph.length).to.be.greaterThan(3);
 
+      chai.expect(test.answers.length).to.be.equalTo(6);
+      for (let j = 0; j < 4; j++) {
+        chai.expect(test.answers[i].id).to.not.be.null;
+        chai.expect(test.answers[i].letter).to.be.equalTo('');
+        chai.expect(test.answers[i].leftIndex).to.not.be.null;
+        chai.expect(test.answers[i].rightIndex).to.not.be.null;
+        chai.expect(test.answers[i].correctSign).to.satisfy(function(sign) {
+          return sign === -1 || sign === 0 || sign === 1;
+        });
+      }
+    }
   })
 })

@@ -307,7 +307,8 @@ class FunctionObj {
     const funcType = this.funcType,
       nextFunc = new FunctionObj(funcType).generateParams().clearParams();
 
-    if (recursive_count) recursive_count++;
+    if (!recursive_count) recursive_count = 1;
+    else if (recursive_count === 30) throw new Error('To much recursive calls.')
 
     const len = _len ? _len : Config.defaultLength / 2;
     nextFunc.params.len = len;
@@ -330,9 +331,9 @@ class FunctionObj {
     if (usedFunctions) {
       for (const func of usedFunctions)
         if (nextFunc.equalTo(func))
-          return this.createNextFunction(usedFunctions, len);
+          return this.createNextFunction(usedFunctions, len, ++recursive_count);
       if (nextFunc.equalToByDirection(usedFunctions.last())) {
-        return this.createNextFunction(usedFunctions, len);
+        return this.createNextFunction(usedFunctions, len, ++recursive_count);
       }
     }
 
@@ -389,7 +390,8 @@ class FunctionObj {
   }
 
   static createNextCoupleIndexes(questionCount: number, usedCoupleIndexes: Array<Array<Array<number>>>, recursive_count?: number): Array<Array<number>> {
-      if(recursive_count) recursive_count++;
+    if (!recursive_count) recursive_count = 1;
+    else if (recursive_count === 30) throw new Error('To much recursive calls.')
 
     const leftCoupleIndexes = FunctionObj.createNextIndex(questionCount),
       rightCoupleIndexes = FunctionObj.createNextIndex(questionCount, [leftCoupleIndexes]);
@@ -407,25 +409,25 @@ class FunctionObj {
       for (const coupleIndexes of usedCoupleIndexes)
         if (FunctionObj.indexToString(nextCoupleIndexes[0]) === FunctionObj.indexToString(coupleIndexes[0]) &&
           FunctionObj.indexToString(nextCoupleIndexes[1]) === FunctionObj.indexToString(coupleIndexes[1])) {
-          return FunctionObj.createNextCoupleIndexes(questionCount, usedCoupleIndexes);
+          return FunctionObj.createNextCoupleIndexes(questionCount, usedCoupleIndexes, ++recursive_count);
         }
     return nextCoupleIndexes;
   }
 
-  static createNextIndex(questionCount: number, usedIndex?: Array<Array<number>>, cicle_count?: number): Array<number> {
-    let leftIndex, rightIndex;
+  static createNextIndex(questionCount: number, usedIndex?: Array<Array<number>>): Array<number> {
+    let leftIndex, rightIndex, count = 0;
+
     rightIndex = questionCount.getRandom();
-    do {
+    for (count = 0; count < 30 && leftIndex == rightIndex; count++) {
       leftIndex = questionCount.getRandom();
-      if(cicle_count) cicle_count++;
     }
-    while (leftIndex === rightIndex);
+
+    if (leftIndex === rightIndex || leftIndex === undefined) throw new Error('To many cicle iterations.');
 
     const nextIndex = [leftIndex, rightIndex].sort();
     if (usedIndex)
       for (const index of usedIndex)
-        if (index[0] === nextIndex[0] &&
-          index[1] === nextIndex[1])
+        if (index[0] === nextIndex[0] && index[1] === nextIndex[1])
           return FunctionObj.createNextIndex(questionCount, usedIndex);
 
     return nextIndex;
