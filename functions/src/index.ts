@@ -5,6 +5,7 @@ import { Utils } from "./Util";
 import * as cors from 'cors';
 const corsHandler = cors({ origin: true });
 
+// ------------------------------------------------------------------------------
 export function getG2Gtest(test_id: number, correctAnswersCount: number) {
   const count = Config.answerCount,
     answers = Array<any>(),
@@ -31,6 +32,7 @@ export function getG2Gtest(test_id: number, correctAnswersCount: number) {
       id: question.correctIDs[i]
     });
   }
+
   for (let i = 0; i < count; i++)
     if (!question.correctIDs.contains(i)) {
       usedFunctions.push(questionFunction.getIncorrectFunction(Config.axisIndexes.copy(), Config.defaultLength, usedFunctions));
@@ -123,7 +125,7 @@ export function getG2Stest(test_id: number, chance: number) {
         text = "Все время " + firstText;
       else text = "Cперва " + firstText + ", затем " + secondText;
     }
-    //Сперва покой, затем покой
+
     answers[i] = {
       text: text,
       id: i
@@ -142,26 +144,6 @@ export function getG2Stest(test_id: number, chance: number) {
     question: questions,
     answers: answers
   };
-}
-
-export function getG2Gtest_OneAnswerGraph(test_id: number) {
-  return getG2Gtest(test_id, 1);
-}
-
-export function getG2Gtest_TwoAnswerGraph(test_id: number) {
-  return getG2Gtest(test_id, 2);
-}
-
-export function getG2Stest_SimpleFunctions(test_id: number) {
-  return getG2Stest(test_id, 0);
-}
-
-export function getG2Stest_ComplexFunctions(test_id: number) {
-  return getG2Stest(test_id, 1);
-}
-
-export function getG2Stest_MixedFunctions(test_id: number, ComplexChance: number) {
-  return getG2Stest(test_id, ComplexChance);
 }
 
 export function getSGtest(test_id: number, isSimple: boolean) {
@@ -277,14 +259,29 @@ export function getSGtest(test_id: number, isSimple: boolean) {
     answers: answers,
   };
 }
-/*
-* 1)Если две идущие подряд функции имеют одно направление и почти одинаковые V, то вторую V флипануть по
-* знаку
-* 2)Если значение функции в крайней точке интервала больше, чем верхний предел, то уменьшаем ее приращение,
-* если значение функции в крайней точке интервала меньше, чем нижний предел, то увеличиваем ее приращение.
-* 3)Если значение функции в начальной точке интервала больше или равно верхнему пределу, то меняем ее направление на
-* противоположное.
-* */
+// ------------------------------------------------------------------------------
+export function getG2Gtest_OneAnswerGraph(test_id: number) {
+  return getG2Gtest(test_id, 1);
+}
+
+export function getG2Gtest_TwoAnswerGraph(test_id: number) {
+  return getG2Gtest(test_id, 2);
+}
+
+export function getG2Stest_SimpleFunctions(test_id: number) {
+  return getG2Stest(test_id, 0);
+}
+
+export function getG2Stest_ComplexFunctions(test_id: number) {
+  return getG2Stest(test_id, 1);
+}
+
+export function getG2Stest_MixedFunctions(test_id: number, ComplexChance: number) {
+  return getG2Stest(test_id, ComplexChance);
+}
+// ------------------------------------------------------------------------------
+
+
 // exports.getTest = functions.region("europe-west1").https.onRequest((request, resp) => {
 // // exports.getTest = functions.region("europe-west1").https.onCall((data, context) => {
 //
@@ -305,25 +302,24 @@ export function getSGtest(test_id: number, isSimple: boolean) {
 //   // return JSON.stringify(testQuiz)
 // });
 
-exports.getTestDev = functions.region("europe-west1").https.onRequest((request, resp) => {
-  // exports.getTestDev = functions.region("europe-west1").https.onCall((data, context) => {
+// exports.getTestDev = functions.region("europe-west1").https.onRequest((request, resp) => {
+  exports.getTestDev = functions.region("europe-west1").https.onCall((data, context) => {
   const testQuiz = { tests: Array<any>() };
 
   //
-  // testQuiz.tests.push(getG2Gtest_OneAnswerGraph(1));
-  // testQuiz.tests.push(getG2Gtest_TwoAnswerGraph(2));
+  testQuiz.tests.push(getG2Gtest_OneAnswerGraph(1));
+  testQuiz.tests.push(getG2Gtest_TwoAnswerGraph(2));
 
-  // testQuiz.tests.push(getG2Stest_SimpleFunctions(2));
+  testQuiz.tests.push(getG2Stest_SimpleFunctions(2));
   testQuiz.tests.push(getG2Stest_ComplexFunctions(3));
-  // testQuiz.tests.push(getG2Stest_MixedFunctions(4, 0.5));
+  testQuiz.tests.push(getG2Stest_MixedFunctions(4, 0.5));
 
-  // testQuiz.tests.push(getSGtest(6, true));
-  // testQuiz.tests.push(getSGtest(7, false));
-  // testQuiz.tests.push(getSGtest(8, false));
+  testQuiz.tests.push(getSGtest(6, true));
+  testQuiz.tests.push(getSGtest(7, false));
 
-  return corsHandler(request, resp, () => {
-    resp.send(JSON.stringify(testQuiz));
-  });
+  // return corsHandler(request, resp, () => {
+    // resp.send(JSON.stringify(testQuiz));
+  // });
   // resp.send(JSON.stringify(testQuiz));
-  // return JSON.stringify(testQuiz)
+  return JSON.stringify(testQuiz)
 });
