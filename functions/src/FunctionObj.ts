@@ -13,18 +13,37 @@ class FunctionObj {
   // -----------------------------------------------------------------------------
   // Utils
   // -----------------------------------------------------------------------------
-  equalTo(obj: FunctionObj) {
+  equalTo(obj: FunctionObj): boolean {
     if (obj === undefined) return false;
+    let isEqual: boolean = false;
 
-    if (this.funcType === obj.funcType)
+    if (this.funcType === obj.funcType) {
       if ((Math.sign(this.params.x) === Math.sign(obj.params.x) || this.params.x === obj.params.x) &&
         (Math.sign(this.params.v) === Math.sign(obj.params.v) || this.params.v === obj.params.v) &&
         (Math.sign(this.params.a) === Math.sign(obj.params.a) || this.params.a === obj.params.a))
         return true;
+    }
+    // if (this.funcType === obj.funcType) {
+    //
+    //   //If X exist then do compare
+    //   if (this.params.x && obj.params.x &&
+    //     (Math.sign(this.params.x) === Math.sign(obj.params.x) || this.params.x === obj.params.x)) isEqual = true;
+    //
+    //   //If V exist then do compare
+    //   if (this.params.v && obj.params.v &&
+    //     (Math.sign(this.params.v) === Math.sign(obj.params.v) || this.params.v === obj.params.v)) isEqual = true;
+    //
+    //   //If A exist then do compare
+    //   if (this.params.a && obj.params.a &&
+    //     (Math.sign(this.params.a) === Math.sign(obj.params.a) || this.params.a === obj.params.a)) isEqual = true;
+    //
+    //   return isEqual;
+    //
+    // }
     return false;
   }
 
-  equalToByDirection(obj: FunctionObj) {
+  equalToByDirection(obj: FunctionObj): boolean {
     if (obj === undefined || obj.params === undefined) {
       // console.log("equalToByDirection: obj undefined: ", obj)
       // FIXME: Somehow we get an array with one FO [FunctionObj]
@@ -104,8 +123,7 @@ class FunctionObj {
   // -----------------------------------------------------------------------------
   // Creating FUNCTIONS
   // -----------------------------------------------------------------------------
-  makeQuestionFunction(availableAxises: Array<string>, funcLength: number,
-    usedFuncs?: Array<FunctionObj>): FunctionObj {
+  makeQuestionFunction(availableAxises: Array<string>, funcLength: number, usedFuncs?: Array<FunctionObj>): FunctionObj {
     this.funcType = availableAxises.getRandom();
     this.generateParams().clearParams();
 
@@ -118,8 +136,7 @@ class FunctionObj {
     return this.snapToGrid();
   }
 
-  getCorrectFunction(availableAxises: Array<any>, funcLength: number,
-    usedFunc?: Array<FunctionObj>): FunctionObj {
+  getCorrectFunction(availableAxises: Array<any>, funcLength: number, usedFunc?: Array<FunctionObj>): FunctionObj {
     // Filter available function types
     const _availableAxises = availableAxises.copy().deleteItem(this.funcType),
       pickedAxis = _availableAxises.getRandom(),
@@ -139,8 +156,7 @@ class FunctionObj {
     return newFunc.snapToGrid();
   }
 
-  getIncorrectFunction(availableAxises: Array<any>, funcLength: number,
-    usedFuncs?: Array<FunctionObj>): FunctionObj {
+  getIncorrectFunction(availableAxises: Array<any>, funcLength: number, usedFuncs?: Array<FunctionObj>): FunctionObj {
     // Filter available function types
     const _availableAxises = availableAxises.copy().deleteItem(this.funcType),
       pickedAxis = _availableAxises.getRandom(),
@@ -293,7 +309,6 @@ class FunctionObj {
         }
         else if (params.v !== 0) params.v = (result - params.x - (params.a * len * len) / 2) / len;
         else if (params.a !== 0) params.a = 2 * (result - params.x - params.v * len) / (len * len);
-        else throw Error("Case 'x'. All axises equals to zero.")
         break;
       case "v":
         if (params.a !== 0) params.a = (result - params.v) / len;

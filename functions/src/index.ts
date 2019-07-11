@@ -184,7 +184,6 @@ export function getSGtest(test_id: number, isSimple: boolean) {
   usedFunctions.last().snapToGrid();
 
 
-
   questions = usedFunctions.copy();
   const questionsCopy: Array<FunctionObj> = questions.copy(),
     answersCount = isSimple ? 3 : 6;
@@ -279,6 +278,13 @@ export function getG2Stest_ComplexFunctions(test_id: number) {
 export function getG2Stest_MixedFunctions(test_id: number, ComplexChance: number) {
   return getG2Stest(test_id, ComplexChance);
 }
+
+export function getSGtest_SimpleAnswers(test_id: number) {
+  return getSGtest(test_id, true);
+}
+export function getSGtest_ComplexAnswers(test_id: number) {
+  return getSGtest(test_id, false);
+}
 // ------------------------------------------------------------------------------
 
 
@@ -302,24 +308,24 @@ export function getG2Stest_MixedFunctions(test_id: number, ComplexChance: number
 //   // return JSON.stringify(testQuiz)
 // });
 
-// exports.getTestDev = functions.region("europe-west1").https.onRequest((request, resp) => {
-  exports.getTestDev = functions.region("europe-west1").https.onCall((data, context) => {
+exports.getTestDev = functions.region("europe-west1").https.onRequest((request, resp) => {
+// exports.getTestDev = functions.region("europe-west1").https.onCall((data, context) => {
   const testQuiz = { tests: Array<any>() };
 
   //
   testQuiz.tests.push(getG2Gtest_OneAnswerGraph(1));
-  testQuiz.tests.push(getG2Gtest_TwoAnswerGraph(2));
+  // testQuiz.tests.push(getG2Gtest_TwoAnswerGraph(2));
 
-  testQuiz.tests.push(getG2Stest_SimpleFunctions(2));
-  testQuiz.tests.push(getG2Stest_ComplexFunctions(3));
-  testQuiz.tests.push(getG2Stest_MixedFunctions(4, 0.5));
+  // testQuiz.tests.push(getG2Stest_SimpleFunctions(2));
+  // testQuiz.tests.push(getG2Stest_ComplexFunctions(3));
+  // testQuiz.tests.push(getG2Stest_MixedFunctions(4, 0.5));
 
-  testQuiz.tests.push(getSGtest(6, true));
-  testQuiz.tests.push(getSGtest(7, false));
+  // testQuiz.tests.push(getSGtest_SimpleAnswers(6));
+  // testQuiz.tests.push(getSGtest_ComplexAnswers(7));
 
-  // return corsHandler(request, resp, () => {
-    // resp.send(JSON.stringify(testQuiz));
-  // });
+  return corsHandler(request, resp, () => {
+  resp.send(JSON.stringify(testQuiz));
+  });
   // resp.send(JSON.stringify(testQuiz));
-  return JSON.stringify(testQuiz)
+  // return JSON.stringify(testQuiz)
 });
