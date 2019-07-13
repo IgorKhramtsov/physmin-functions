@@ -1,6 +1,6 @@
 import FunctionObj from "../src/FunctionObj";
 import { Config } from "../src/Config";
-const chai = require('chai');
+import chai = require('chai');
 // const test = require('firebase-functions-test')();
 import * as tests from "../src/index"
 
@@ -32,21 +32,21 @@ describe("Test generators", () => {
 });
 
 describe("Function generators", () => {
-  // it("Correct function should have right types", () => {
-  //   let _funcLength = Config.defaultLength,
-  //     question: any,
-  //     correct_array: any;
-  //   for (let i = 0; i < 100; i++) {
-  //     question = new FunctionObj().makeQuestionFunction(["x"], _funcLength, []);
-  //     correct_array = Array<FunctionObj>();
-  //
-  //     correct_array.push(question.getCorrectFunction(["x", "v"], _funcLength, correct_array));
-  //     correct_array.push(question.getCorrectFunction(["x", "v", "a"], _funcLength, correct_array));
-  //
-  //     chai.expect(correct_array[0].funcType).to.be.equal("v");
-  //     chai.expect(correct_array[1].funcType).to.be.equal("a");
-  //   }
-  // });
+  it("Correct function should have right types", () => {
+    let _funcLength = Config.defaultLength,
+      question: any,
+      correct_array: any;
+    for (let i = 0; i < 100; i++) {
+      question = new FunctionObj().makeQuestionFunction(["x"], _funcLength, []);
+      correct_array = Array<FunctionObj>();
+
+      correct_array.push(question.getCorrectFunction(["x", "v"], _funcLength, correct_array));
+      correct_array.push(question.getCorrectFunction(["x", "v", "a"], _funcLength, correct_array));
+
+      chai.expect(correct_array[0].funcType).to.be.equal("v");
+      chai.expect(correct_array[1].funcType).to.be.equal("a");
+    }
+  });
   it("Correct functions should be Correct", () => {
     let _funcLength = Config.defaultLength,
       question: any,
@@ -91,6 +91,19 @@ describe("Function generators", () => {
       test = tests.getSGtest_SimpleAnswers.bind(null, 0)();
       chai.expect(test.question[0].graph[0].params).haveOwnProperty("len");
       chai.expect(test.question[0].graph[0].params.len).to.be.greaterThan(0);
+    }
+  });
+  it.only("Generated functions should not going out of bounds", () => {
+    let question = new FunctionObj().makeQuestionFunction(["x"], Config.defaultLength);
+    let func: FunctionObj;
+    for (let i = 0; i < 100; i++) {
+      func = question.getCorrectFunction(Config.axisIndexes, Config.defaultLength);
+      for(const param of Object.keys(func.params).deleteItem("len"))
+        chai.expect(func.params[param]).to.be.at.least(Config.bounds[param][0]).and.at.most(Config.bounds[param][1]);
+      func = question.getIncorrectFunction(Config.axisIndexes, Config.defaultLength);
+        for(const param of Object.keys(func.params).deleteItem("len"))
+          chai.expect(func.params[param]).to.be.at.least(Config.bounds[param][0]).and.at.most(Config.bounds[param][1]);
+
     }
   });
 });

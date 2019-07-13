@@ -308,24 +308,27 @@ export function getSGtest_ComplexAnswers(test_id: number) {
 //   // return JSON.stringify(testQuiz)
 // });
 
-exports.getTestDev = functions.region("europe-west1").https.onRequest((request, resp) => {
-// exports.getTestDev = functions.region("europe-west1").https.onCall((data, context) => {
+exports.getTestDevDebug = functions.region("europe-west1").https.onRequest((request, resp) => {
+  return corsHandler(request, resp, () => {
+    resp.send(JSON.stringify(createTest));
+  });
+});
+
+exports.getTestDev = functions.region("europe-west1").https.onCall((data, context) => {
+  return createTest()
+});
+
+function createTest(): any {
   const testQuiz = { tests: Array<any>() };
 
-  //
   testQuiz.tests.push(getG2Gtest_OneAnswerGraph(1));
-  // testQuiz.tests.push(getG2Gtest_TwoAnswerGraph(2));
+  testQuiz.tests.push(getG2Gtest_TwoAnswerGraph(2));
 
-  // testQuiz.tests.push(getG2Stest_SimpleFunctions(2));
-  // testQuiz.tests.push(getG2Stest_ComplexFunctions(3));
-  // testQuiz.tests.push(getG2Stest_MixedFunctions(4, 0.5));
+  testQuiz.tests.push(getG2Stest_SimpleFunctions(2));
+  testQuiz.tests.push(getG2Stest_ComplexFunctions(3));
+  testQuiz.tests.push(getG2Stest_MixedFunctions(4, 0.5));
 
-  // testQuiz.tests.push(getSGtest_SimpleAnswers(6));
-  // testQuiz.tests.push(getSGtest_ComplexAnswers(7));
-
-  return corsHandler(request, resp, () => {
-  resp.send(JSON.stringify(testQuiz));
-  });
-  // resp.send(JSON.stringify(testQuiz));
-  // return JSON.stringify(testQuiz)
-});
+  testQuiz.tests.push(getSGtest_SimpleAnswers(6));
+  testQuiz.tests.push(getSGtest_ComplexAnswers(7));
+  return JSON.stringify(testQuiz);
+}
