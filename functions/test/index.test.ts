@@ -93,7 +93,7 @@ describe("Function generators", () => {
       chai.expect(test.question[0].graph[0].params.len).to.be.greaterThan(0);
     }
   });
-  it.only("Generated functions should not going out of bounds", () => {
+  it("Generated functions should not going out of bounds", () => {
     let question = new FunctionObj().makeQuestionFunction(["x"], Config.defaultLength);
     let func: FunctionObj;
     for (let i = 0; i < 100; i++) {
