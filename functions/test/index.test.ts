@@ -1,8 +1,7 @@
-import FunctionObj from "../src/FunctionObj";
-import { Config } from "../src/Config";
 import chai = require('chai');
-// const test = require('firebase-functions-test')();
-import * as tests from "../src/index"
+import { FunctionObj } from "../src/FunctionObj";
+import { Config } from "../src/Config";
+import { UnitFirst as tests } from "../src/UnitFirst"
 
 describe("Test generators", () => {
   it("Graph to Graph(1 answer) should not throws any exceptions", () => {
