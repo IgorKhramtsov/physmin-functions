@@ -22,7 +22,7 @@ deploy:
   stage: deploy
   when: manual
   script:
-  - npm deploy
+  - firebase deploy
 
 #test_db:
 #  script:
