@@ -15,7 +15,6 @@ class FunctionObj {
   // -----------------------------------------------------------------------------
   equalTo(obj: FunctionObj): boolean {
     if (obj === undefined) return false;
-    let isEqual: boolean = false;
 
     if (this.funcType === obj.funcType) {
       if ((Math.sign(this.params.x) === Math.sign(obj.params.x) || this.params.x === obj.params.x) &&
@@ -23,23 +22,7 @@ class FunctionObj {
         (Math.sign(this.params.a) === Math.sign(obj.params.a) || this.params.a === obj.params.a))
         return true;
     }
-    // if (this.funcType === obj.funcType) {
-    //
-    //   //If X exist then do compare
-    //   if (this.params.x && obj.params.x &&
-    //     (Math.sign(this.params.x) === Math.sign(obj.params.x) || this.params.x === obj.params.x)) isEqual = true;
-    //
-    //   //If V exist then do compare
-    //   if (this.params.v && obj.params.v &&
-    //     (Math.sign(this.params.v) === Math.sign(obj.params.v) || this.params.v === obj.params.v)) isEqual = true;
-    //
-    //   //If A exist then do compare
-    //   if (this.params.a && obj.params.a &&
-    //     (Math.sign(this.params.a) === Math.sign(obj.params.a) || this.params.a === obj.params.a)) isEqual = true;
-    //
-    //   return isEqual;
-    //
-    // }
+
     return false;
   }
 
@@ -123,21 +106,25 @@ class FunctionObj {
   // -----------------------------------------------------------------------------
   // Creating FUNCTIONS
   // -----------------------------------------------------------------------------
-  makeQuestionFunction(availableAxises: Array<string>, funcLength: number, usedFuncs?: Array<FunctionObj>): FunctionObj {
+  makeQuestionFunction(usedFuncs?: Array<FunctionObj>, funcLength: number = Config.defaultLength,
+    availableAxises: Array<string> = Config.axisIndexes): FunctionObj {
+
     this.funcType = availableAxises.getRandom();
     this.generateParams().clearParams();
 
     if (usedFuncs)
       for (const func of usedFuncs)
-        if (this.equalTo(func))
-          return this.makeQuestionFunction(availableAxises, funcLength, usedFuncs);
+        if (this.equalToByDirection(func))
+          return this.makeQuestionFunction(usedFuncs, funcLength, availableAxises);
 
     this.params.len = funcLength;
     return this.snapToGrid();
   }
 
-  getCorrectFunction(availableAxises: Array<any>, funcLength: number, usedFunc?: Array<FunctionObj>): FunctionObj {
+  getCorrectFunction(usedFunc?: Array<FunctionObj>, funcLength: number = Config.defaultLength,
+    availableAxises: Array<any> = Config.axisIndexes): FunctionObj {
     // Filter available function types
+
     const _availableAxises = availableAxises.copy().deleteItem(this.funcType),
       pickedAxis = _availableAxises.getRandom(),
       newParams = this.copyParams();
@@ -150,13 +137,15 @@ class FunctionObj {
     if (usedFunc)
       for (const func of usedFunc)
         if (newFunc.equalTo(func))
-          return this.getCorrectFunction(_availableAxises, funcLength, usedFunc);
+          return this.getCorrectFunction(usedFunc, funcLength, _availableAxises);
 
     newFunc.params.len = funcLength;
     return newFunc.snapToGrid();
   }
 
-  getIncorrectFunction(availableAxises: Array<any>, funcLength: number, usedFuncs?: Array<FunctionObj>): FunctionObj {
+  getIncorrectFunction(usedFunc?: Array<FunctionObj>, funcLength: number = Config.defaultLength,
+    availableAxises: Array<any> = Config.axisIndexes): FunctionObj {
+
     // Filter available function types
     const _availableAxises = availableAxises.copy().deleteItem(this.funcType),
       pickedAxis = _availableAxises.getRandom(),
@@ -166,10 +155,10 @@ class FunctionObj {
       throw new Error("Cannot pick axis. Looks like available axises list is empty.");
 
     const incorrectFunction = new FunctionObj(pickedAxis, newParams).makeIncorrectParams().clearParams();
-    if (usedFuncs)
-      for (const func of usedFuncs)
+    if (usedFunc)
+      for (const func of usedFunc)
         if (incorrectFunction.equalTo(func))
-          return this.getIncorrectFunction(_availableAxises, funcLength, usedFuncs);
+          return this.getIncorrectFunction(usedFunc, funcLength, _availableAxises);
 
     incorrectFunction.params.len = funcLength;
     return incorrectFunction.snapToGrid();
@@ -392,6 +381,7 @@ class FunctionObj {
     return result;
   }
 
+
   // -----------------------------------------------------------------------------
   // Holy shet for RELATION SIGNS
   // -----------------------------------------------------------------------------
@@ -433,10 +423,9 @@ class FunctionObj {
     let leftIndex, rightIndex, count = 0;
 
     rightIndex = questionCount.getRandom();
-    for (count = 0; count < 30 && leftIndex == rightIndex; count++) {
-      leftIndex = questionCount.getRandom();
-    }
 
+    for (count = 0; count < 30 && (leftIndex === rightIndex || leftIndex === undefined); count++)
+      leftIndex = questionCount.getRandom();
     if (leftIndex === rightIndex || leftIndex === undefined) throw new Error('To many cicle iterations.');
 
     const nextIndex = [leftIndex, rightIndex].sort();
