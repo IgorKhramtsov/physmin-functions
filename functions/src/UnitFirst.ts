@@ -79,6 +79,7 @@ export class UnitFirst {
       usedFunctions[i].functions.push(usedFunctions[i].questions.last().
         getCorrectFunction(usedFunctions[i].functions, _funcLength, availableAxises));
       questions[i] = {
+        id: i,
         graph: [usedFunctions[i].functions.last()],
         correctIDs: [correctIDs.last()],
       };
