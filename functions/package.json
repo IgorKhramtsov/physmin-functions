@@ -20,12 +20,21 @@
     "firebase-functions": "^3.1.0",
     "mocha": "^6.1.4",
     "typescript": "^3.5.3",
+<<<<<<< HEAD
     "tslint": "^5.18.0",
     "ts-node": "^8.3.0"
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",
     "@types/mocha": "^5.2.7"
+=======
+    "tslint": "^5.18.0"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.1.7",
+    "@types/mocha": "^5.2.7",
+    "ts-node": "^8.3.0"
+>>>>>>> 60070a4b9f7cd0de7469db2ac1d20be4df61dbed
   },
   "private": true,
   "engines": {
