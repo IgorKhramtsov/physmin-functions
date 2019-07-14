@@ -22,7 +22,7 @@ deploy:
   stage: deploy
   when: manual
   script:
-  - firebase deploy
+  - firebase deploy --token $FIREBASE_TOKEN
 
 #test_db:
 #  script:
