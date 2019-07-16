@@ -241,8 +241,8 @@ export class UnitFirst {
       answers[i] = {
         id: i,
         letter: isSimple ? questionsCopy[0].funcType : letter,
-        leftIndex: [indexes[count][0][0], (parseInt(indexes[count][0][1]) + 1)],
-        rightIndex: [indexes[count][1][0], (parseInt(indexes[count][1][1]) + 1)],
+        leftIndexes: [indexes[count][0][0], (parseInt(indexes[count][0][1]) + 1)],
+        rightIndexes: [indexes[count][1][0], (parseInt(indexes[count][1][1]) + 1)],
         correctSign: Math.sign(leftValue - rightValue),
       };
       if (!isSimple) if (letter === "S") countS++; else countDX++;
