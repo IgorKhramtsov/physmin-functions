@@ -17,12 +17,23 @@ class FunctionObj {
     if (obj === undefined) return false;
 
     if (this.funcType === obj.funcType) {
-      if ((Math.sign(this.params.x) === Math.sign(obj.params.x) || this.params.x === obj.params.x) &&
-        (Math.sign(this.params.v) === Math.sign(obj.params.v) || this.params.v === obj.params.v) &&
-        (Math.sign(this.params.a) === Math.sign(obj.params.a) || this.params.a === obj.params.a))
-        return true;
+      if (this.params.x !== undefined && obj.params.x !== undefined) {
+        if ((Math.sign(this.params.x) === Math.sign(obj.params.x)) &&
+          (Math.sign(this.params.v) === Math.sign(obj.params.v)) &&
+          (Math.sign(this.params.a) === Math.sign(obj.params.a)))
+          return true;
+      }
+      else if (this.params.v !== undefined && obj.params.v !== undefined) {
+        if ((Math.sign(this.params.v) === Math.sign(obj.params.v)) &&
+          (Math.sign(this.params.a) === Math.sign(obj.params.a))) {
+          return true;
+        }
+      }
+      else if (this.params.a !== undefined && obj.params.a !== undefined) {
+        if ((Math.sign(this.params.a) === Math.sign(obj.params.a)))
+          return true;
+      }
     }
-
     return false;
   }
 
@@ -92,8 +103,10 @@ class FunctionObj {
     if (x === 0 && v === 0 && a === 0)
       this.generateParams();
     if (Math.sign(v) === Math.sign(a)) {
-      if (Utils.withChance(0.5)) v = -v;
-      else a = -a;
+      if (Utils.withChance(0.5)) {
+        if (v !== 0) v = -v;
+      }
+      else if (a !== 0) a = -a;
     }
     this.params = { "x": x, "v": v, "a": a };
     return this;
@@ -125,22 +138,31 @@ class FunctionObj {
     availableAxises: Array<any> = Config.axisIndexes): FunctionObj {
     // Filter available function types
 
-    const _availableAxises = availableAxises.copy().deleteItem(this.funcType),
-      pickedAxis = _availableAxises.getRandom(),
+
+    const _availableAxises = availableAxises.copy().deleteItem(this.funcType);
+
+    if (usedFunc)
+      for (const func of usedFunc)
+        if (_availableAxises.legnth !== 0)
+          _availableAxises.deleteItem(func.funcType);
+        else throw Error('There are none of available axises.')
+
+    let pickedAxis = _availableAxises.getRandom(),
       newParams = this.copyParams();
 
     if (pickedAxis === undefined)
       throw new Error("Cannot pick axis. Looks like available axises list is empty.");
 
-    const newFunc = new FunctionObj(pickedAxis, newParams).makeCorrectParams().clearParams();
+    const newFunc = new FunctionObj(pickedAxis, newParams).makeCorrectParams().clearParams().snapToGrid();
 
-    if (usedFunc)
-      for (const func of usedFunc)
-        if (newFunc.equalTo(func))
-          return this.getCorrectFunction(usedFunc, funcLength, _availableAxises);
+    // if (usedFunc)
+    //   for (const func of usedFunc) {
+    //     if (newFunc.equalToByDirection(func))
+    //       return this.getCorrectFunction(usedFunc, funcLength, _availableAxises);
+    //   }
 
     newFunc.params.len = funcLength;
-    return newFunc.snapToGrid();
+    return newFunc;
   }
 
   getIncorrectFunction(usedFunc?: Array<FunctionObj>, funcLength: number = Config.defaultLength,
@@ -303,7 +325,6 @@ class FunctionObj {
         if (params.a !== 0) params.a = (result - params.v) / len;
         break;
     }
-
     return this;
   }
 
@@ -334,11 +355,11 @@ class FunctionObj {
 
     if (usedFunctions) {
       for (const func of usedFunctions)
-        if (nextFunc.equalTo(func))
+        if (nextFunc.equalToByDirection(func))
           return this.createNextFunction(usedFunctions, len, ++recursive_count);
-      if (nextFunc.equalToByDirection(usedFunctions.last())) {
-        return this.createNextFunction(usedFunctions, len, ++recursive_count);
-      }
+      // if (nextFunc.equalToByDirection(usedFunctions.last())) {
+      //   return this.createNextFunction(usedFunctions, len, ++recursive_count);
+      // }
     }
 
     return nextFunc;

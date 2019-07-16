@@ -84,6 +84,7 @@ describe("Function generators", () => {
         incorrectFunctionToCompare.params.x = question.params.x;
         if (incorrect_array[k].funcType == "a") incorrectFunctionToCompare.params.v = question.params.v;
 
+
         chai.expect(incorrectFunctionToCompare.equalTo(question)).to.be.false;
       }
     }
@@ -131,7 +132,7 @@ describe('Minor functions', () => {
         makeQuestionFunction(undefined, Config.defaultLength / 2).
         getCorrectFunction(undefined, Config.defaultLength / 2);
       nextFunc = question.createNextFunction(undefined, Config.defaultLength / 2)
-      chai.expect(nextFunc.equalTo(question)).to.be.false;
+      // chai.expect(nextFunc.equalTo(question)).to.be.false;
       chai.expect(nextFunc.equalToByDirection(question)).to.be.false;
     }
   })
@@ -159,7 +160,7 @@ describe('Minor functions', () => {
   })
 })
 
-describe.only('Tests correctness', () => {
+describe('Tests correctness', () => {
   // ----------------------------------------------------------------------------------
   it('getG2Gtest_OneAnswerGraph. 1 question, 1 correct answer, 3 incorrect answers', () => {
     let test: any;
