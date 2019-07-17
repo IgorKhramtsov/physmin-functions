@@ -201,7 +201,7 @@ export class UnitFirst {
       countS = 0, countDX = 0, count = 0;
     for (let i = 0; i < answersCount; ++i) {
       if (!isSimple) {
-        letter = countS < (answersCount / 2) ? "S" : "d" + questionsCopy[0].funcType;
+        letter = countS < (answersCount / 2) ? "S" : "Δ" + questionsCopy[0].funcType;
         if (letter === "S") {
           indexes = firstIndexes;
           count = countS;
