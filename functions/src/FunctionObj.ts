@@ -296,8 +296,11 @@ class FunctionObj {
     if (funcType == 'x' || funcType == 'v')
       params[funcType] = Math.round(params[funcType]);
 
-    const value = Math.round(this.calculateFunctionValue(len)),
+    const value = Math.round(this.calculateFunctionValue(len));
+    let result = 0;
+    if (value != 0)
       result = Math.min(Math.abs(value), Config.upperLimit) * Math.sign(value);
+    // if (result == -0) result = 0;
 
     switch (funcType) {
       case "x":
@@ -322,7 +325,9 @@ class FunctionObj {
         else if (params.a !== 0) params.a = 2 * (result - params.x - params.v * len) / (len * len);
         break;
       case "v":
-        if (params.a !== 0) params.a = (result - params.v) / len;
+        if (params.a !== 0) {
+          params.a = (result - params.v) / len;
+        }
         break;
     }
     return this;
@@ -342,14 +347,17 @@ class FunctionObj {
     if (!this.params.len) throw new Error("this.params.len is undefined");
     nextFunc.params[funcType] = Math.round(this.calculateFunctionValue(this.params.len));
 
+
     if (nextFunc.params[funcType] >= (Config.upperLimit - 1)) {
       let params = nextFunc.params,
         first = params.x ? "x" : "v",
         second = params.v ? "v" : "a",
         third = params.a ? "a" : undefined;
+        // FIXME:       V always on side of X
       if (nextFunc.params[second] !== 0)
         nextFunc.params[second] = -Math.sign(nextFunc.params[first]) * Math.abs(nextFunc.params[second]);
       if (third && nextFunc.params[third] !== 0)
+       // FIXME:                 Math.sign(nextFunc.params[SECOND?????????]) to be opposite of V???
         nextFunc.params[third] = Math.sign(nextFunc.params[first]) * Math.abs(nextFunc.params[third]);
     }
 
