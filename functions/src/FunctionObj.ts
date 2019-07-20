@@ -1,7 +1,7 @@
 import { Utils } from './Util';
 import { Config } from "./Config";
 
-class FunctionObj {
+export class FunctionObj {
   params: any;
   funcType: string;
 
@@ -470,5 +470,3 @@ class FunctionObj {
     return index[0].toString() + index[1].toString();
   }
 }
-
-export default FunctionObj;

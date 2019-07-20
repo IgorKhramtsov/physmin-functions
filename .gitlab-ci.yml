@@ -12,6 +12,7 @@ cache:
 before_script:
  - cd ./functions/
  - npm install
+ - npm update --dev
 
 test_async:
   stage: test
@@ -22,7 +23,7 @@ deploy:
   stage: deploy
   when: manual
   script:
-  - npm deploy
+  - firebase deploy --token $FIREBASE_TOKEN
 
 #test_db:
 #  script:
