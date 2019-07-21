@@ -225,6 +225,7 @@ export class FunctionObj {
       x = params.x,
       v = params.v,
       a = params.a;
+
     // Returns desctiption of function behavior by its parameters
     // --------------------------------------------------------------------
     if (x !== undefined && v !== undefined && a !== undefined) {

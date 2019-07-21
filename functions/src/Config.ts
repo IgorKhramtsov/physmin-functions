@@ -6,7 +6,7 @@ export let Config = {
         x: [-4, 4], // x
         v: [-1, 1], // v
         a: [-0.5,0.5], // a
-        t: [3, 6],
+        // t: [3, 6],
         questionCount: [3,5],
     } as any,
 
