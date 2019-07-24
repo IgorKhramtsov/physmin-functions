@@ -122,15 +122,6 @@ describe("Function generators", () => {
     }
   })
   // ----------------------------------------------------------------------------------
-  it("getSGtest_SimpleAnswers. Check for copy bug", () => {
-    let test: any;
-    for (let i = 0; i < 10; i++) {
-      test = tests.getSGtest_SimpleAnswers.bind(null, 0)();
-      chai.expect(test.question[0].graph[0].params).haveOwnProperty("len");
-      chai.expect(test.question[0].graph[0].params.len).to.be.greaterThan(0).and.lessThan(Config.defaultLength);
-    }
-  });
-  // ----------------------------------------------------------------------------------
   it("Generated functions should not going out of bounds", () => {
     let question = new FunctionObj().makeQuestionFunction(undefined, undefined, ["x"]);
     let func: FunctionObj;
@@ -151,13 +142,32 @@ describe("Function generators", () => {
 
 describe('Minor functions', () => {
   // ----------------------------------------------------------------------------------
-  it.only('createNextFunction should not throw any exceptions.', () => {
+  it('createNextFunction should not throw any exceptions.', () => {
     let question: any;
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 100; ++i) {
       question = new FunctionObj().
         makeQuestionFunction(undefined, Config.defaultLength / 2).
         getCorrectFunction(undefined, Config.defaultLength / 2);
       chai.expect(() => question.createNextFunction(undefined, Config.defaultLength / 2)).to.not.throw(Error);
+    }
+  })
+  // ----------------------------------------------------------------------------------
+  it('generateParams should generate correct parameters.', () => {
+    let func: any;
+    for (let i = 0; i < 100; ++i) {
+      func = new FunctionObj().generateParams();
+      for (var param in func.params) {
+        chai.expect(func.params[param]).to.be.greaterThan(Config.bounds[param][0]);
+        chai.expect(func.params[param]).to.be.lessThan(Config.bounds[param][1]);
+      }
+    }
+  })
+  // ----------------------------------------------------------------------------------
+  it('getTextDescription should not throw any exceptions.', () => {
+    let func: any;
+    for (let i = 0; i < 100; ++i) {
+      func = new FunctionObj().makeQuestionFunction().getCorrectFunction();
+      chai.expect(() => func.getTextDescription()).to.not.throw(Error);
     }
   })
   // ----------------------------------------------------------------------------------
@@ -202,7 +212,7 @@ describe('Minor functions', () => {
   // ----------------------------------------------------------------------------------
 })
 
-describe('Tests correctness', () => {
+describe('Tests correctness, COMPOSITION', () => {
   // ----------------------------------------------------------------------------------
   it('getG2Gtest_OneAnswerGraph. 1 question, 1 correct answer, 3 incorrect answers', () => {
     let test: any;
@@ -301,4 +311,84 @@ describe('Tests correctness', () => {
       }
     }
   })
+  // ----------------------------------------------------------------------------------
+  it.only('getG2Stest. 4 unique correct IDs', () => {
+    let test_1: any, test_2: any,
+      test_1_unique: any, test_2_unique: any;
+    for (let i = 0; i < 100; ++i) {
+      test_1 = tests.getG2Stest_SimpleFunctions(i);
+      test_2 = tests.getG2Stest_ComplexFunctions(i);
+      test_1_unique = Array<number>();
+      test_2_unique = Array<number>();
+      for (let j = 0; j < Config.G2S_questionCount; ++j) {
+        for (let id of test_1.question[j].correctIDs)
+          if (!test_1_unique.contains(id))
+            test_1_unique.push(id);
+        for (let id of test_2.question[j].correctIDs)
+          if (!test_2_unique.contains(id))
+            test_2_unique.push(id);
+      }
+      console.log(test_1_unique)
+      console.log(test_2_unique)
+      console.log('-------------')
+      chai.expect(test_1_unique.length).to.be.equal(4);
+      chai.expect(test_2_unique.length).to.be.equal(4);
+    }
+  })
+  // ----------------------------------------------------------------------------------
+})
+
+describe('Tests correctness, FUNCTION LENGTH', () => {
+  // ----------------------------------------------------------------------------------
+  it('getG2Gtest question and anwers functions should have correct length', () => {
+    let test: any;
+    for (let i = 0; i < 100; ++i) {
+      test = tests.getG2Gtest_OneAnswerGraph(i);
+      chai.expect(test.question.graph[0].params.len).to.be.equal(Config.defaultLength);
+      for (let j = 0; j < Config.answerCount; ++j)
+        chai.expect(test.answers[j].graph[0].params.len).to.be.equal(Config.defaultLength);
+    }
+  })
+  // ----------------------------------------------------------------------------------
+  it('getG2Stest question functions should have correct length', () => {
+    let test_1: any, test_2: any;
+    for (let i = 0; i < 100; ++i) {
+      test_1 = tests.getG2Stest_SimpleFunctions(i);
+      test_2 = tests.getG2Stest_ComplexFunctions(i);
+      for (let j = 0; j < Config.answerCount - 2; ++j) {
+        chai.expect(test_1.question[j].graph[0].params.len).to.be.equal(Config.defaultLength);
+        chai.expect(test_2.question[j].graph[0].params.len).to.be.equal(Config.defaultLength / 2);
+        chai.expect(test_2.question[j].graph[1].params.len).to.be.equal(Config.defaultLength / 2);
+      }
+    }
+  })
+  // ----------------------------------------------------------------------------------
+  it('getSGtest question and anwers functions should have correct length', () => {
+    let test_1: any, test_2: any, cumLength_1 = 0, cumLength_2 = 0;
+    for (let i = 0; i < 100; ++i) {
+      test_1 = tests.getSGtest_SimpleAnswers(i);
+      test_2 = tests.getSGtest_ComplexAnswers(i);
+      for (let j = 0; j < test_1.question[0].graph.length; ++j) {
+        cumLength_1 += test_1.question[0].graph[j].params.len;
+
+      }
+      for (let j = 0; j < test_2.question[0].graph.length; ++j) {
+        cumLength_2 += test_2.question[0].graph[j].params.len;
+      }
+      chai.expect(cumLength_2).to.be.equal(Config.defaultLength);
+      chai.expect(cumLength_1).to.be.equal(Config.defaultLength);
+      cumLength_1 = 0;
+      cumLength_2 = 0;
+    }
+  })
+  // ----------------------------------------------------------------------------------
+  it("getSGtest_SimpleAnswers. Check for copy bug", () => {
+    let test: any;
+    for (let i = 0; i < 10; i++) {
+      test = tests.getSGtest_SimpleAnswers.bind(null, 0)();
+      chai.expect(test.question[0].graph[0].params).haveOwnProperty("len");
+      chai.expect(test.question[0].graph[0].params.len).to.be.greaterThan(0).and.lessThan(Config.defaultLength);
+    }
+  });
+  // ----------------------------------------------------------------------------------
 })
