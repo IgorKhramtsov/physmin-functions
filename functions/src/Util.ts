@@ -24,7 +24,7 @@ declare global {
 
     copy(): Array<T>;
 
-    arrayShuffle(): Array<T>;
+    shuffle(): Array<T>;
   }
 }
 Number.prototype.toFloor = function(this: number): number {
@@ -57,6 +57,8 @@ Array.prototype.addRandomNumber = function <T>(this: number[], number: number) {
   let index = this.length;
   do this[index] = number.getRandom();
   while (this.indexOf(this[index]) !== index);
+
+  return this[index];
 };
 Array.prototype.last = function <T>(this: T[]): T {
   return this[this.length - 1];
@@ -65,7 +67,7 @@ Array.prototype.copy = function <T>(this: T[]): Array<T> {
   return this.slice();
 };
 
-Array.prototype.arrayShuffle = function <T>(this: T[]): Array<T> {
+Array.prototype.shuffle = function <T>(this: T[]): Array<T> {
   return this.sort(() => Math.random() - 0.3);
 };
 export class Utils {
