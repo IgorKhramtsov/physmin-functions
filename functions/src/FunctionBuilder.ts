@@ -1,5 +1,6 @@
 import { FunctionObj } from './FunctionObj'
 import { Config } from "./Config";
+import { Utils } from './Util';
 
 export class FunctionBuilder {
   private usedQuestionFuncs: Array<any>;
@@ -8,7 +9,7 @@ export class FunctionBuilder {
 
   private isSnapping: boolean;
   private functionLength: number;
-  private restrictedAxises: Array<String>;
+  private availableAxises: Array<string>;
 
   constructor() {
     this.usedQuestionFuncs = Array<any>();
@@ -17,7 +18,7 @@ export class FunctionBuilder {
 
     this.isSnapping = false;
     this.functionLength = Config.defaultLength;
-    this.restrictedAxises = Array<String>();
+    this.availableAxises = Config.axisIndexes;
   }
   // -----------------------------------------------------------------------------
   enableSnap() {
@@ -36,23 +37,27 @@ export class FunctionBuilder {
   setLength(length: number) {
     if (length < 0 || length > Config.defaultLength)
       throw Error('Parameter <functionLength> must be in [0,' + Config.defaultLength + '].')
-    else if (length === 0) this.functionLength = Config.defaultLength;
-    this.functionLength = length;
+    else if (length === 0)
+      this.functionLength = Config.defaultLength;
+    else
+      this.functionLength = length;
 
     return this;
   }
 
-  restrictAxis(axis: string) {
-    if (Config.axisIndexes.contains(axis) === false) throw Error('Incorrect axis.')
-    this.restrictedAxises.push(axis);
-  }
-  releaseAxis(axis: string){
-    if(this.restrictedAxises.contains(axis) === false) throw Error('Axis already released.')
-    this.restrictedAxises.deleteItem(axis);
+  setAvailableAxieses(axises: Array<string>) {
+    if (axises.length <= 0)
+      throw Error("Available axises array cant be empty!");
+
+    this.availableAxises = axises.copy();
   }
 
-  getRandomQuestionFunction(){
-    return this.usedQuestionFuncs.getRandom();
+  getAvailableAxises() {
+    return this.availableAxises.copy();
+  }
+
+  resetAvailableAxises() {
+    this.availableAxises = Config.axisIndexes.copy();
   }
   // -----------------------------------------------------------------------------
   getQuestionFunction(): FunctionObj {
@@ -76,16 +81,18 @@ export class FunctionBuilder {
     return incorrectFunction as FunctionObj;
   }
 
+  getComplexFunction(functionsLengths: Array<number>): Array<FunctionObj> {
+    let complexFunction = this.createComplexFunction(functionsLengths);
+
+    return complexFunction;
+  }
   // -----------------------------------------------------------------------------
   private createQuestionFunction(): any {
 
     let question = {
-      func: new FunctionObj(),
-      axises: Config.axisIndexes
+      func: new FunctionObj(this.availableAxises.getRandom())
+        .generateParams().clearParams(),
     };
-    question.func.funcType = question.axises.getRandom();
-    question.func.generateParams().clearParams();
-    question.axises.deleteItem(question.func.funcType);
 
     if (this.usedQuestionFuncs.length !== 0)
       for (const usedQuestion of this.usedQuestionFuncs)
@@ -93,17 +100,23 @@ export class FunctionBuilder {
           return this.createQuestionFunction();
 
     question.func.params.len = this.functionLength;
-    question.func = this.isSnapping ? question.func.snapToGrid() : question.func;
+    if (this.isSnapping)
+      question.func = question.func.snapToGrid();
+
     return question;
   }
 
   private createCorrectFunction(): FunctionObj {
+    let question: any;
 
     if (this.usedQuestionFuncs.length === 0)
-      this.usedQuestionFuncs.push(this.createQuestionFunction());
+      throw Error("There are none of question function");
 
-    const question = this.usedQuestionFuncs.last();
-    if (question.axises.length === 0) throw Error('There are none of available axises.')
+    question = this.usedQuestionFuncs.last();
+    question.axises = this.getAvailableAxises();
+
+    if (question.axises.length === 0)
+      throw Error('There are none of available axises left.');
 
     const pickedAxis = question.axises.getRandom(),
       newParams = question.func.copyParams(),
@@ -115,17 +128,15 @@ export class FunctionBuilder {
   }
 
   private createIncorrectFunction(): FunctionObj {
-
     if (this.usedQuestionFuncs.length === 0)
-      this.usedQuestionFuncs.push(this.createQuestionFunction());
+      throw Error("There are none of question function");
 
-    const question = this.usedQuestionFuncs.getRandom();
-    if (question.axises.length === 0) throw Error('There are none of available axises.')
-
-    const pickedAxis = question.axises.getRandom(),
+    const question = this.usedQuestionFuncs.getRandom(),
+      pickedAxis = this.availableAxises.getRandom(),
       newParams = question.func.copyParams(),
       incorrectFunction = new FunctionObj(pickedAxis, newParams).makeIncorrectParams().clearParams();
 
+    // TODO: Need to check is this func incorrect to every question function
     if (this.usedIncorrectFuncs)
       for (const func of this.usedIncorrectFuncs)
         if (incorrectFunction.equalTo(func))
@@ -133,6 +144,34 @@ export class FunctionBuilder {
 
     incorrectFunction.params.len = this.functionLength;
     return this.isSnapping ? incorrectFunction.snapToGrid() : incorrectFunction;
+  }
+
+  private createComplexFunction(functionsLengths: Array<number>) {
+
+    if (functionsLengths.length < Config.bounds.questionCount[0] || functionsLengths.length > Config.bounds.questionCount[1])
+      throw Error('Amount of functions lengths must be greater than ' + Config.bounds.questionCount[0]
+        + ' and less than ' + Config.bounds.questionCount[1])
+    else {
+      let count = 0;
+      for (const length of functionsLengths) {
+        if (length < Config.minLength)
+          throw Error('Length must be greater than ' + Config.minLength)
+        count += length
+      }
+
+      if (count > Config.defaultLength)
+        throw Error('The sum of functions lengths values must be less than ' + Config.defaultLength)
+
+    }
+
+    let complexFunction = Array<FunctionObj>();
+
+    complexFunction.push(this.createCorrectFunction());
+    for (const length of functionsLengths) {
+      complexFunction.push(complexFunction.last().createNextFunction(complexFunction, length))
+    }
+
+    return complexFunction;
   }
 
 }
