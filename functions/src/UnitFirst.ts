@@ -1,154 +1,20 @@
 import { FunctionObj } from './FunctionObj'
 import { Config } from "./Config";
 import { Utils } from "./Util";
-
-class FunctionBuilder {
-  // --------------------------------------------
-  // ARRAYS
-  // --------------------------------------------
-  private usedQuestionFuncs: Array<any>;
-  private usedCorrectFuncs: Array<FunctionObj>;
-  private usedIncorrectFuncs: Array<FunctionObj>;
-  // --------------------------------------------
-  // OPTIONS
-  // --------------------------------------------
-  private isSnapping: boolean;
-  private functionLength: number;
-
-  constructor() {
-    this.usedQuestionFuncs = Array<any>();
-    this.usedCorrectFuncs = Array<FunctionObj>();
-    this.usedIncorrectFuncs = Array<FunctionObj>();
-
-    this.isSnapping = false;
-    this.functionLength = Config.defaultLength;
-  }
-
-
-  // --------------------------------------------
-  // OPTIONS FUNCTUINS
-  // --------------------------------------------
-  enableSnap() {
-    this.isSnapping = true;
-  }
-  disableSnap() {
-    this.isSnapping = false;
-  }
-  // ------------------------------
-  reset() {
-    FunctionBuilder.constructor();
-
-    return this;
-  }
-  // ------------------------------
-  setLength(length: number) {
-    if (length < 0 || length > Config.defaultLength)
-      throw Error('Parameter <functionLength> must be in [0,' + Config.defaultLength + '].')
-    else if (length === 0) this.functionLength = Config.defaultLength;
-    this.functionLength = length;
-
-    return this;
-  }
-  // --------------------------------------------
-  // API FUNCTIONS
-  // --------------------------------------------
-  addQuestionFunction() {
-    let questionFunc = this.createQuestionFunction();
-    this.usedQuestionFuncs.push(questionFunc);
-
-    return questionFunc;
-  }
-
-  addCorrectFunction() {
-    let correctFunction = this.createCorrectFunction();
-    this.usedCorrectFuncs.push(correctFunction);
-
-    return correctFunction;
-  }
-
-  addIncorrectFunction() {
-    let incorrectFunction = this.createIncorrectFunction();
-    this.usedIncorrectFuncs.push(incorrectFunction);
-
-    return incorrectFunction;
-  }
-
-  // --------------------------------------------
-  // PRIVATE FUNCTIONS
-  // --------------------------------------------
-  private createQuestionFunction(): Object {
-
-    let question = {
-      func: new FunctionObj(),
-      axises: Config.axisIndexes
-    };
-    question.func.funcType = question.axises.getRandom();
-    question.func.generateParams().clearParams();
-    question.axises.deleteItem(question.func.funcType);
-
-    if (this.usedQuestionFuncs.length !== 0)
-      for (const usedQuestion of this.usedQuestionFuncs)
-        if (question.func.equalTo(usedQuestion.func))
-          return this.createQuestionFunction();
-
-    question.func.params.len = this.functionLength;
-    question.func = this.isSnapping ? question.func.snapToGrid() : question.func;
-    return question;
-  }
-  // ---------------------------------------------------------------------------------
-  private createCorrectFunction() {
-
-    if (this.usedQuestionFuncs.length === 0)
-      this.usedQuestionFuncs.push(this.createQuestionFunction());
-
-    const question = this.usedQuestionFuncs.last();
-    if (question.axises.length === 0) throw Error('There are none of available axises.')
-
-    const pickedAxis = question.axises.getRandom(),
-      newParams = question.func.copyParams(),
-      correctFunction = new FunctionObj(pickedAxis, newParams).makeCorrectParams().clearParams();
-
-    question.axises.deleteItem(pickedAxis);
-    correctFunction.params.len = this.functionLength;
-    return this.isSnapping ? correctFunction.snapToGrid() : correctFunction;
-  }
-  // ---------------------------------------------------------------------------------
-  private createIncorrectFunction(): FunctionObj {
-
-    if (this.usedQuestionFuncs.length === 0)
-      this.usedQuestionFuncs.push(this.createQuestionFunction());
-
-    const question = this.usedQuestionFuncs.getRandom();
-    if (question.axises.length === 0) throw Error('There are none of available axises.')
-
-    const pickedAxis = question.axises.getRandom(),
-      newParams = question.func.copyParams(),
-      incorrectFunction = new FunctionObj(pickedAxis, newParams).makeIncorrectParams().clearParams();
-
-    if (this.usedIncorrectFuncs)
-      for (const func of this.usedIncorrectFuncs)
-        if (incorrectFunction.equalTo(func))
-          return this.createIncorrectFunction();
-
-    incorrectFunction.params.len = this.functionLength;
-    return this.isSnapping ? incorrectFunction.snapToGrid() : incorrectFunction;
-  }
-  // ---------------------------------------------------------------------------------
-
-}
+import { FunctionBuilder } from './FunctionBuilder'
 
 export class UnitFirst {
 
   static getG2Gtest(test_id: number, correctAnswersCount: number) {
     const count = Config.answerCount,
-      answers = Array<any>(),
-      usedFunctions = Array<FunctionObj>(),
-      availableAxises = Config.axisIndexes.copy();
+      answers = Array<any>();
+    // usedFunctions = Array<FunctionObj>();
     let questionFunction: FunctionObj,
       testType: String,
-      question: any;
+      question: any,
+      funcBuilder = new FunctionBuilder();
 
-    questionFunction = new FunctionObj().makeQuestionFunction();
+    questionFunction = funcBuilder.getQuestionFunction();
 
     question = {
       graph: [questionFunction],
@@ -157,20 +23,22 @@ export class UnitFirst {
 
     for (let i = 0; i < correctAnswersCount; i++) {
       question.correctIDs.addRandomNumber(count);
-      usedFunctions.push(questionFunction.getCorrectFunction(usedFunctions));
+      // usedFunctions.push(questionFunction.getCorrectFunction(usedFunctions));
 
       // availableAxises.deleteItem(usedFunctions.last().funcType);
       answers.push({
-        graph: [usedFunctions.last()],
+        // graph: [usedFunctions.last()],
+        graph: [funcBuilder.getCorrectFunction()],
         id: question.correctIDs[i]
       });
     }
 
     for (let i = 0; i < count; i++)
       if (!question.correctIDs.contains(i)) {
-        usedFunctions.push(questionFunction.getIncorrectFunction(usedFunctions));
+        // usedFunctions.push(questionFunction.getIncorrectFunction(usedFunctions));
         answers.push({
-          graph: [usedFunctions.last()],
+          // graph: [usedFunctions.last()],
+          graph: [funcBuilder.getIncorrectFunction()],
           id: i
         });
       }
@@ -194,35 +62,42 @@ export class UnitFirst {
       answerCount = Config.answerCount,
       questionCount = Config.G2S_questionCount,
 
-      correctIDs = Array<number>(),
-      usedFunctions = Array<any>(),
-      availableAxises = Config.axisIndexes.copy().deleteItem("a");
+      correctIDs = Array<number>();
+    // usedFunctions = Array<any>();
+    // availableAxises = Config.axisIndexes.copy().deleteItem("a");
 
     let _chance: boolean,
-      _funcLength: number;
+      _funcLength: number,
+      funcBuilder = new FunctionBuilder();
 
     for (let i = 0; i < questionCount; ++i) {
       _chance = Utils.withChance(chance);
       correctIDs.addRandomNumber(questionCount);
 
-      usedFunctions[i] = { questions: Array<FunctionObj>(), functions: Array<FunctionObj>() };
-      usedFunctions[i].questions.push(new FunctionObj().makeQuestionFunction(usedFunctions[i].questions));
+      funcBuilder.getQuestionFunction();
 
-      if (_chance) _funcLength = Config.defaultLength / 2;
-      else _funcLength = Config.defaultLength;
+      // usedFunctions[i] = { questions: Array<FunctionObj>(), functions: Array<FunctionObj>() };
+      // usedFunctions[i].questions.push(new FunctionObj().makeQuestionFunction(usedFunctions[i].questions));
 
-      usedFunctions[i].functions.push(usedFunctions[i].questions.last().
-        getCorrectFunction(usedFunctions[i].functions, _funcLength, availableAxises));
+      // if (_chance) _funcLength = Config.defaultLength / 2;
+      // else _funcLength = Config.defaultLength;
+      if (_chance) funcBuilder.setLength(Config.defaultLength / 2)
+      else funcBuilder.setLength(0);
+
+
+      // usedFunctions[i].functions.push(usedFunctions[i].questions.last().
+      //   getCorrectFunction(usedFunctions[i].functions, _funcLength, availableAxises));
 
       questions[i] = {
         id: i,
-        graph: [usedFunctions[i].functions.last()],
+        graph: [funcBuilder.getCorrectFunction()],
         correctIDs: [correctIDs.last()],
       };
 
       if (_chance)
-        questions[i].graph.push(usedFunctions[i].functions.last().
-          createNextFunction(usedFunctions[i].functions, Config.defaultLength / 2));
+        questions[i].graph.push(funcBuilder.getCorrectFunction())
+      // questions[i].graph.push(usedFunctions[i].functions.last().
+      //   createNextFunction(usedFunctions[i].functions, Config.defaultLength / 2));
 
     }
 
@@ -240,7 +115,8 @@ export class UnitFirst {
       } else {
 
         if (Utils.withChance(0.5)) { // Create brand new function with 0.5 chance
-          first = usedFunctions.getRandom().questions.last().getIncorrectFunction(undefined, _funcLength, availableAxises);
+          // first = usedFunctions.getRandom().questions.last().getIncorrectFunction(undefined, _funcLength, availableAxises);
+          first = funcBuilder.getIncorrectFunction();
           if (_chance)
             second = first.createNextFunction([first], Config.defaultLength / 2);
         } else { // Change second function of graph else
