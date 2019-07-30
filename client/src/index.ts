@@ -1,7 +1,7 @@
 let ctx: CanvasRenderingContext2D;
 
 window.onload = function() {
-  fetch("http://127.0.0.1:5000/physmin/us-central1/getTestDev")
+  fetch("http://127.0.0.1:5000/physmin/us-central1/getTestDevDebug")
     .then(resp => resp.json())
     .then(body => { resolve(body.tests[0]) })
 
@@ -110,11 +110,12 @@ function drawFunctions(canvas: any, graph: any, letter: string) {
   let y = 0,
     x = 0,
     point = 0,
-    step = 0;
+    step = 0,
+  count = 0;
   for (let func of graph) {
     step = func.params.len ? func.params.len / 10 : 0.3;
     y = calcFuncValue(func, 0) * scaleY;
-
+    ctx.fillText(count.toString(), x, y-30);
     ctx.moveTo(x, y);
     for (let i = 0; i < 10; i++) {
       point += step;
@@ -125,6 +126,7 @@ function drawFunctions(canvas: any, graph: any, letter: string) {
 
       ctx.stroke();
     }
+    count++;
     point = 0;
   }
 
