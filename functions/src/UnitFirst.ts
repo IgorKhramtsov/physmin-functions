@@ -44,7 +44,6 @@ export class UnitFirst {
         const questions = Array<any>(),
             correctIDs = Array<number>(),
             answers = Array<any>(),
-
             answerCount = Config.answerCount,
             questionCount = Config.G2S_questionCount;
 
@@ -53,7 +52,7 @@ export class UnitFirst {
 
         for (let i = 0; i < questionCount; ++i) {
             _chance = Utils.withChance(chance);
-            correctIDs.addRandomNumber(questionCount);
+            correctIDs.addRandomNumber(answerCount);
 
             funcBuilder.getQuestionFunction();
 
@@ -69,8 +68,9 @@ export class UnitFirst {
             if (_chance)
                 questions[i].graph.push(funcBuilder.getCorrectFunction())
         }
-        console.log(correctIDs);
 
+
+        // X -V +A  !== -V +A
         let first: any,
             second: any,
             complexFunction: Array<FunctionObj>,
@@ -82,9 +82,10 @@ export class UnitFirst {
             else funcBuilder.setLength(0);
 
             if (correctIDs.contains(i)) {
-                first = questions[i].graph[0];
-                if (questions[i].graph.length === 2)
-                    second = questions[i].graph[1];
+                let index = correctIDs.indexOf(i);
+                first = questions[index].graph[0];
+                if (questions[index].graph.length === 2)
+                    second = questions[index].graph[1];
             }
             else {
                 if (_chance) {
@@ -103,6 +104,8 @@ export class UnitFirst {
                     text = "Все время " + firstText;
                 else text = "Cперва " + firstText + ", затем " + secondText;
             }
+
+            console.log(JSON.stringify(first));
 
             answers[i] = {
                 text: text,

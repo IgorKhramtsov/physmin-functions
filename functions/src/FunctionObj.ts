@@ -237,7 +237,7 @@ export class FunctionObj {
 
             else if (x != 0 && v == 0 && a == 0) {
                 text += this.getKeyByValue(Config.movement, 0);
-                text += this.getKeyByValue(Config.position, Math.sign(x));
+                text += ' ' + this.getKeyByValue(Config.position, Math.sign(x));
             }
 
             else {

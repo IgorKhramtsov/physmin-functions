@@ -1,5 +1,6 @@
 let ctx: CanvasRenderingContext2D;
 
+
 window.onload = function () {
     fetch("http://127.0.0.1:5000/physmin/us-central1/getTestDevDebug")
         .then(resp => resp.json())
@@ -33,10 +34,22 @@ function resolve(test: any) {
     if (test.type === "graph2state") {
         console.log(test);
         graph = test.question[0].graph;
+
+        let correctIDs = Array<number>();
+        for(let func of test.question){
+            for(let id of func.correctIDs)
+                correctIDs.push(id)
+        }
+        let incorrectIDs = Array<number>();
+        for(let i =0;i<6;++i){
+            if(correctIDs.indexOf(i) === -1){
+                incorrectIDs.push(i);
+            }
+        }
         letter = graph[0].funcType;
         canvas1!.style.display = "none";
         drawFunctions(canvas, graph, letter);
-        drawTextAnswers(list1, test.answers, test.question[0].correctIDs);
+        drawTextAnswers(list1, test.answers, test.question[0].correctIDs,incorrectIDs);
     }
     if (test.type === "graph2graph" || test.type === "graph2graph2") {
         graph = test.question.graph;
@@ -85,14 +98,18 @@ function calcFuncValue(func: any, t?: number) {
     }
 }
 
-function drawTextAnswers(list: any, answers: any, ids: any) {
+function drawTextAnswers(list: any, answers: any, ids: any, incorrectIDs:any) {
     let node;
-    console.log(ids);
     for (let func of answers) {
 
         node = document.createElement("li");
         if (func.id === ids[0] || func.id === ids[1]) {
             node.style.color = "#8bc34a";
+        }
+        else{
+            if(func.id === incorrectIDs[0] || func.id === incorrectIDs[1]){
+                node.style.color = "#FF0000";
+            }
         }
         node.innerHTML += "id: " + func.id;
         node.innerHTML += ", text: " + func.text;
