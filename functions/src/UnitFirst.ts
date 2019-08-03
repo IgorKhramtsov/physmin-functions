@@ -66,7 +66,7 @@ export class UnitFirst {
             };
 
             if (_chance)
-                questions[i].graph.push(funcBuilder.getCorrectFunction())
+                questions[i].graph.push(funcBuilder.getCorrectFunction()) // CreateNext
         }
 
 
@@ -77,6 +77,7 @@ export class UnitFirst {
             text = "";
         for (let i = 0; i < answerCount; ++i) {
             _chance = Utils.withChance(chance);
+            second = undefined
 
             if (_chance) funcBuilder.setLength(Config.defaultLength / 2);
             else funcBuilder.setLength(0);
@@ -86,23 +87,24 @@ export class UnitFirst {
                 first = questions[index].graph[0];
                 if (questions[index].graph.length === 2)
                     second = questions[index].graph[1];
-            }
-            else {
+            } else {
                 if (_chance) {
                     complexFunction = funcBuilder.getComplexFunction([Config.defaultLength / 2, Config.defaultLength / 2]);
                     first = complexFunction[0];
                     second = complexFunction[1];
-                } else
+                } else {
                     first = funcBuilder.getIncorrectFunction();
+                }
             }
 
-            text = first.getTextDescription(true);
             if (second) {
                 let firstText = first.getTextDescription(false),
                     secondText = second.getTextDescription(false);
                 if (firstText === secondText)
                     text = "Все время " + firstText;
                 else text = "Cперва " + firstText + ", затем " + secondText;
+            } else {
+                text = first.getTextDescription(true);
             }
 
             console.log(JSON.stringify(first));
@@ -115,8 +117,8 @@ export class UnitFirst {
 
         for (let i = 0; i < questions.length; ++i)
             for (let j = 0; j < answers.length; ++j)
-                if (answers[j].id !== questions[i].correctIDs[0])
-                    if (answers[j].text === answers[questions[i].correctIDs[0]].text)
+                if (answers[j].text === answers[questions[i].correctIDs[0]].text)
+                    if (!questions[i].correctIDs.contains(answers[j].id))
                         questions[i].correctIDs.push(j);
 
         return {
