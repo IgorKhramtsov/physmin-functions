@@ -13,7 +13,7 @@ export class UnitFirst {
         // Since createNextFunction is not used in this test
         // function can go above limits (ex. x: -9, x: 12.8)
         // So snap must be enables all the time
-        functionBuilder.enableSnap();
+        // functionBuilder.enableSnap();
         let question = {
             graph: [functionBuilder.getQuestionFunction()],
             correctIDs: Array<Number>()
@@ -30,10 +30,10 @@ export class UnitFirst {
                 answers.push({
                     graph: [functionBuilder.getIncorrectFunction()],
                     id: i
-                })
+                });
 
         return {
-            type: correctAnswersCount === 1 ? "graph2graph" : "graph2graph2",
+            type: correctAnswersCount === 1 ? 'graph2graph' : "graph2graph2",
             test_id: test_id,
             question: question,
             answers: answers.shuffle()
@@ -42,12 +42,11 @@ export class UnitFirst {
 
     static getG2Stest(test_id: number, chance: number) {
         const questions = Array<any>(),
+            correctIDs = Array<number>(),
             answers = Array<any>(),
 
             answerCount = Config.answerCount,
-            questionCount = Config.G2S_questionCount,
-
-            correctIDs = Array<number>();
+            questionCount = Config.G2S_questionCount;
 
         let _chance: boolean,
             funcBuilder = new FunctionBuilder();
@@ -58,8 +57,7 @@ export class UnitFirst {
 
             funcBuilder.getQuestionFunction();
 
-            if (_chance)
-                funcBuilder.setLength(Config.defaultLength / 2)
+            if (_chance) funcBuilder.setLength(Config.defaultLength / 2);
             else funcBuilder.setLength(0);
 
             questions[i] = {
@@ -71,6 +69,7 @@ export class UnitFirst {
             if (_chance)
                 questions[i].graph.push(funcBuilder.getCorrectFunction())
         }
+        console.log(correctIDs);
 
         let first: any,
             second: any,
@@ -79,8 +78,7 @@ export class UnitFirst {
         for (let i = 0; i < answerCount; ++i) {
             _chance = Utils.withChance(chance);
 
-            if (_chance)
-                funcBuilder.setLength(Config.defaultLength / 2)
+            if (_chance) funcBuilder.setLength(Config.defaultLength / 2);
             else funcBuilder.setLength(0);
 
             if (correctIDs.contains(i)) {
@@ -111,6 +109,7 @@ export class UnitFirst {
                 id: i
             };
         }
+
         for (let i = 0; i < questions.length; ++i)
             for (let j = 0; j < answers.length; ++j)
                 if (answers[j].id !== questions[i].correctIDs[0])
@@ -118,7 +117,7 @@ export class UnitFirst {
                         questions[i].correctIDs.push(j);
 
         return {
-            type: 'grapg2state',
+            type: 'graph2state',
             test_id: test_id,
             title: "",
             question: questions,

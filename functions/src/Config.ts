@@ -15,8 +15,7 @@ export let Config = {
     V: "v",
     A: "a",
 
-    // upperLimit: 5,
-    upperLimit: 6,
+    upperLimit: 5,
     defaultLength: 12,
 
     minLength: 2,

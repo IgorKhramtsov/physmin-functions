@@ -226,57 +226,68 @@ export class FunctionObj {
             v = params.v,
             a = params.a;
 
-        // Returns desctiption of function behavior by its parameters
+        // Returns description of function behavior by its parameters
         // --------------------------------------------------------------------
         if (x !== undefined && v !== undefined && a !== undefined) {
 
-            if (x == 0 && v == 0 && a == 0)
-                text += this.getKeyByValue(Config.movement, 0) + ' ' +
-                    this.getKeyByValue(Config.position, 0);
+            if (x == 0 && v == 0 && a == 0) {
+                text += this.getKeyByValue(Config.movement, 0);
+                text += ' ' + this.getKeyByValue(Config.position, 0);
+            }
 
-            else if (x != 0 && v == 0 && a == 0)
-                text += this.getKeyByValue(Config.movement, 0) + ' ' +
-                    this.getKeyByValue(Config.position, Math.sign(x));
+            else if (x != 0 && v == 0 && a == 0) {
+                text += this.getKeyByValue(Config.movement, 0);
+                text += this.getKeyByValue(Config.position, Math.sign(x));
+            }
 
             else {
-                text += this.getKeyByValue(Config.movement, 1)
-                if (v && v != 0) {
+                text += this.getKeyByValue(Config.movement, 1);
+                if (v != 0) {
                     text += ' ' + this.getKeyByValue(Config.directions, Math.sign(v));
-                    if (a && a != 0)
+                    if (a != 0)
                         text += ', ' + this.getKeyByValue(Config.how, Math.sign(a));
                 }
-                else if (a) {
-                    text += ' ' + this.getKeyByValue(Config.how, Math.sign(a));
-                }
+                else text += ' ' + this.getKeyByValue(Config.how, Math.sign(a));
             }
 
         }
         // --------------------------------------------------------------------
         else if (v !== undefined && a !== undefined) {
 
-            if (v == 0 && a == 0)
-                text += this.getKeyByValue(Config.movement, 0);
-
-            else {
-                text += this.getKeyByValue(Config.movement, 1)
-                if (v && v != 0) {
+            if (v != 0)
+                if (a != 0) {
+                    text += this.getKeyByValue(Config.movement, 1);
                     text += ' ' + this.getKeyByValue(Config.directions, Math.sign(v));
-                    if (a && a != 0)
-                        text += ', ' + this.getKeyByValue(Config.how, Math.sign(a));
+                    text += ', ' + this.getKeyByValue(Config.how, Math.sign(a));
                 }
-                else if (a)
-                    text += ' ' + this.getKeyByValue(Config.how, Math.sign(a));
+                else
+                    text += this.getKeyByValue(Config.movement, 0);
+
+
+            else if (a != 0) {
+                text += this.getKeyByValue(Config.movement, 1);
+                text += ' ' + this.getKeyByValue(Config.how, Math.sign(a));
             }
+            else
+                text += this.getKeyByValue(Config.movement, 0);
+            //
+            //     // text += this.getKeyByValue(Config.movement, 1);
+            //     if (v != 0) {
+            //         // text += ' ' + this.getKeyByValue(Config.directions, Math.sign(v));
+            //         if (a !== undefined && a != 0)
+            //             text += ', ' + this.getKeyByValue(Config.how, Math.sign(a));
+            //     }
+            //     else if (a)
+            //         text += ' ' + this.getKeyByValue(Config.how, Math.sign(a));
+            // }
         }
         // --------------------------------------------------------------------
         else if (a !== undefined) {
-            if (a == 0)
-                text += this.getKeyByValue(Config.movement, 0);
-            else
-                text += this.getKeyByValue(Config.how, Math.sign(a));
+            text += this.getKeyByValue(Config.movement, 0);
+            text += ' ' + this.getKeyByValue(Config.position, Math.sign(a));
         }
-        // --------------------------------------------------------------------
-        else throw new Error('Incorrect func type.')
+
+        else throw new Error('Incorrect func type.');
 
         if (flag) {
             if (text[0] === ' ')
@@ -402,6 +413,32 @@ export class FunctionObj {
         return 0;
     }
 
+    isConvex(start: number = 0, end: number = this.params.len) {
+        let params = this.params,
+            value_start: number,
+            value_end: number,
+            value_extremum: number,
+            coord: number;
+
+        value_start = this.calculateFunctionValue(start);
+        value_end = this.calculateFunctionValue(end);
+
+        switch (this.funcType) {
+            case 'x':
+                if (params.a === 0)
+                    return Math.abs(value_start) > Config.upperLimit || Math.abs(value_end) > Config.upperLimit;
+                else
+                    coord = -params.v / params.a;
+                value_extremum = this.calculateFunctionValue(coord);
+                return Math.abs(value_start) > Config.upperLimit || Math.abs(value_end) > Config.upperLimit ||
+                    Math.abs(value_extremum) > Config.upperLimit;
+
+            case 'v':
+                return Math.abs(value_start) > Config.upperLimit || Math.abs(value_end) > Config.upperLimit;
+        }
+        return false;
+    }
+
     static calcFuncValueFromRange(start: number, end: number, functions: Array<FunctionObj>): number {
         // Returns area below function on coordinate plane
         let result = 0;
@@ -410,7 +447,6 @@ export class FunctionObj {
         return result;
     }
 
-    
 
     // -----------------------------------------------------------------------------
     // Holy shet for RELATION SIGNS

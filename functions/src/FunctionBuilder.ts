@@ -103,6 +103,10 @@ export class FunctionBuilder {
                     return this.createQuestionFunction();
 
         question.func.params.len = this.functionLength;
+
+        if(question.func.isConvex())
+            return this.createQuestionFunction();
+
         if (this.isSnapping)
             question.func = question.func.snapToGrid();
         return question;
@@ -123,8 +127,11 @@ export class FunctionBuilder {
             newParams = question.func.copyParams(),
             correctFunction = new FunctionObj(pickedAxis, newParams).makeCorrectParams().clearParams();
 
-        question.axises.deleteItem(pickedAxis);
         correctFunction.params.len = this.functionLength;
+        if(correctFunction.isConvex())
+            return this.createCorrectFunction();
+
+        question.axises.deleteItem(pickedAxis);
 
         return this.isSnapping ? correctFunction.snapToGrid() : correctFunction;
     }
@@ -139,20 +146,26 @@ export class FunctionBuilder {
             incorrectFunction = new FunctionObj(pickedAxis, newParams).makeIncorrectParams().clearParams();
 
         // TODO: Need to check is this func incorrect to every question function
-        if (this.usedIncorrectFuncs)
+
+        if (this.usedIncorrectFuncs.length !== 0)
             for (const func of this.usedIncorrectFuncs)
                 if (incorrectFunction.equalTo(func))
                     return this.createIncorrectFunction();
 
+        if(this.usedCorrectFuncs.length !== 0)
+            for(const func of this.usedCorrectFuncs)
+                if(incorrectFunction.equalTo(func))
+                    return this.createIncorrectFunction();
+
         incorrectFunction.params.len = this.functionLength;
+        if(incorrectFunction.isConvex())
+            return this.createIncorrectFunction();
+
         return this.isSnapping ? incorrectFunction.snapToGrid() : incorrectFunction;
     }
 
     private createComplexFunction(functionsLengths: Array<number>) {
 
-        // if (functionsLengths.length < Config.bounds.questionCount[0] || functionsLengths.length > Config.bounds.questionCount[1])
-        //     throw Error('Amount of functions lengths must be between ' + Config.bounds.questionCount[0] + ' and ' + Config.bounds.questionCount[1])
-        // else {
 
         let count = 0;
         for (const length of functionsLengths) {
@@ -163,7 +176,6 @@ export class FunctionBuilder {
 
         if (count > Config.defaultLength)
             throw Error('The sum of functions lengths values must be less than ' + Config.defaultLength);
-        // }
 
         let complexFunction = Array<FunctionObj>();
         this.getQuestionFunction();
@@ -195,8 +207,8 @@ export class FunctionBuilder {
         // nextFunc.params[funcType] = Math.round(prevFunc.calculateFunctionValue());
         nextFunc.params[funcType] = prevFunc.calculateFunctionValue();
 
-        if ((nextFunc.params[funcType] >= (Config.upperLimit - 1)) ||
-            (nextFunc.calculateFunctionValue() >= (Config.upperLimit - 1))) {
+        if ((nextFunc.params[funcType] >= Config.upperLimit ) ||
+            (nextFunc.calculateFunctionValue() >= Config.upperLimit)) {
 
             let params = nextFunc.params,
                 first = params.x ? "x" : "v",
