@@ -33,6 +33,21 @@ export class FunctionObj {
                 if ((Math.sign(this.params.a) === Math.sign(obj.params.a)))
                     return true;
             }
+        } else {
+            // XVA VA
+            //VA A
+            let left: FunctionObj,
+                right: FunctionObj;
+            if (this.params.length > obj.params.length) {
+                left = new FunctionObj(obj.funcType, this.copyParams()).clearParams();
+                right = new FunctionObj(obj.funcType, obj.copyParams());
+                return left.equalTo(right);
+            } else if (this.params.length < obj.params.length) {
+                left = new FunctionObj(this.funcType, this.copyParams());
+                right = new FunctionObj(this.funcType, obj.copyParams()).clearParams();
+                return left.equalTo(right);
+            } else return false;
+
         }
         return false;
     }
@@ -108,6 +123,7 @@ export class FunctionObj {
             }
             else if (a !== 0) a = -a;
         }
+        if (Math.abs(a) < 0.1) a = 0;
         this.params = {"x": x, "v": v, "a": a};
         return this;
     }
@@ -215,11 +231,11 @@ export class FunctionObj {
     getKeyByValue(object: any, value: any): String {
         // Returns text by value or sign
         let _key = Object.keys(object).find(key => object[key] === value)
-        if (_key) return _key
+        if (_key) return _key;
         else throw Error("Key is not found!");
     }
 
-    getTextDescription(flag: boolean): String {
+    getTextDescription(isComplex: boolean): String {
         let params = this.params,
             text = "",
             x = params.x,
@@ -228,6 +244,7 @@ export class FunctionObj {
 
         // Returns description of function behavior by its parameters
         // --------------------------------------------------------------------
+        // Somehow squeeze XVA, and VA, because there are two identical code blocs
         if (x !== undefined && v !== undefined && a !== undefined) {
 
             if (x == 0 && v == 0 && a == 0) {
@@ -241,45 +258,59 @@ export class FunctionObj {
             }
 
             else {
-                text += this.getKeyByValue(Config.movement, 1);
-                if (v != 0) {
-                    text += ' ' + this.getKeyByValue(Config.directions, Math.sign(v));
-                    if (a != 0)
+                //IDENTICAL BLOCK #1
+                if (v != 0)
+                    if (a != 0) {
+                        text += this.getKeyByValue(Config.movement, 1);
+                        text += ' ' + this.getKeyByValue(Config.directions, Math.sign(v));
                         text += ', ' + this.getKeyByValue(Config.how, Math.sign(a));
+                    }
+                    else {
+                        text += this.getKeyByValue(Config.movement, 0);
+                        text += ' ' + this.getKeyByValue(Config.position, Math.sign(v));
+                    }
+                else if (a != 0) {
+                    text += this.getKeyByValue(Config.movement, 1);
+                    text += ' ' + this.getKeyByValue(Config.how, Math.sign(a));
                 }
-                else text += ' ' + this.getKeyByValue(Config.how, Math.sign(a));
+                else {
+                    text += this.getKeyByValue(Config.movement, 0);
+                    text += ' ' + this.getKeyByValue(Config.position, 0);
+                }
             }
 
         }
+
+        // if ((x !== undefined && v !== undefined && a !== undefined) && (x == 0 && v == 0 && a == 0)) {
+        //     text += this.getKeyByValue(Config.movement, 0);
+        //     text += ' ' + this.getKeyByValue(Config.position, 0);
+        // }
+        //
+        // else if (((x !== undefined && v !== undefined && a !== undefined))&&(x != 0 && v == 0 && a == 0)) {
+        //     text += this.getKeyByValue(Config.movement, 0);
+        //     text += ' ' + this.getKeyByValue(Config.position, Math.sign(x));
+        // }
         // --------------------------------------------------------------------
         else if (v !== undefined && a !== undefined) {
-
+            //IDENTICAL BLOCK #2
             if (v != 0)
                 if (a != 0) {
                     text += this.getKeyByValue(Config.movement, 1);
                     text += ' ' + this.getKeyByValue(Config.directions, Math.sign(v));
                     text += ', ' + this.getKeyByValue(Config.how, Math.sign(a));
                 }
-                else
+                else {
                     text += this.getKeyByValue(Config.movement, 0);
-
-
+                    text += ' ' + this.getKeyByValue(Config.position, Math.sign(v));
+                }
             else if (a != 0) {
                 text += this.getKeyByValue(Config.movement, 1);
                 text += ' ' + this.getKeyByValue(Config.how, Math.sign(a));
             }
-            else
+            else {
                 text += this.getKeyByValue(Config.movement, 0);
-            //
-            //     // text += this.getKeyByValue(Config.movement, 1);
-            //     if (v != 0) {
-            //         // text += ' ' + this.getKeyByValue(Config.directions, Math.sign(v));
-            //         if (a !== undefined && a != 0)
-            //             text += ', ' + this.getKeyByValue(Config.how, Math.sign(a));
-            //     }
-            //     else if (a)
-            //         text += ' ' + this.getKeyByValue(Config.how, Math.sign(a));
-            // }
+                text += ' ' + this.getKeyByValue(Config.position, 0);
+            }
         }
         // --------------------------------------------------------------------
         else if (a !== undefined) {
@@ -289,7 +320,7 @@ export class FunctionObj {
 
         else throw new Error('Incorrect func type.');
 
-        if (flag) {
+        if (isComplex) {
             if (text[0] === ' ')
                 text = text.substr(1);
             text = text.charAt(0).toUpperCase() + text.slice(1);

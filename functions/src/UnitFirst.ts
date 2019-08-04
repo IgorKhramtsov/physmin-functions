@@ -10,10 +10,6 @@ export class UnitFirst {
             answers = Array<any>(),
             functionBuilder = new FunctionBuilder();
 
-        // Since createNextFunction is not used in this test
-        // function can go above limits (ex. x: -9, x: 12.8)
-        // So snap must be enables all the time
-        // functionBuilder.enableSnap();
         let question = {
             graph: [functionBuilder.getQuestionFunction()],
             correctIDs: Array<Number>()
@@ -70,14 +66,15 @@ export class UnitFirst {
         }
 
 
-        // X -V +A  !== -V +A
+
+        // 5 correct IDS
         let first: any,
             second: any,
             complexFunction: Array<FunctionObj>,
             text = "";
         for (let i = 0; i < answerCount; ++i) {
             _chance = Utils.withChance(chance);
-            second = undefined
+            second = undefined;
 
             if (_chance) funcBuilder.setLength(Config.defaultLength / 2);
             else funcBuilder.setLength(0);
@@ -148,7 +145,6 @@ export class UnitFirst {
         functionsLengths.push(Config.defaultLength - cumsum);
 
         let complexFunction = funcBuilder.getComplexFunction(functionsLengths);
-        // const questionsCopy: Array<FunctionObj> = complexFunction.copy(),
         const answersCount = isSimple ? 3 : 6;
 
         let firstIndexes: any,
