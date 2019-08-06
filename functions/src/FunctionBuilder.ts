@@ -154,7 +154,7 @@ export class FunctionBuilder {
 
         if(this.usedCorrectFuncs.length !== 0)
             for(const func of this.usedCorrectFuncs)
-                if(incorrectFunction.equalTo(func))
+                if(incorrectFunction.equalByText(func))
                     return this.createIncorrectFunction();
 
         incorrectFunction.params.len = this.functionLength;
@@ -165,7 +165,6 @@ export class FunctionBuilder {
     }
 
     private createComplexFunction(functionsLengths: Array<number>) {
-
 
         let count = 0;
         for (const length of functionsLengths) {

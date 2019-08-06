@@ -42,7 +42,7 @@ describe("Function generators", () => {
     it("Correct function should have right types", () => {
         let question: any,
             correct_array: any,
-            funcBuilder:any;
+            funcBuilder: any;
         for (let i = 0; i < 100; i++) {
             funcBuilder = new FunctionBuilder();
             funcBuilder.setAvailableAxieses(['x']);
@@ -88,7 +88,7 @@ describe("Function generators", () => {
     it("Incorrect functions should not be Correct", () => {
         let question: any,
             incorrect_array: any,
-            funcBuilder:any;
+            funcBuilder: any;
         for (let i = 0; i < 100; ++i) {
             funcBuilder = new FunctionBuilder();
             funcBuilder.setAvailableAxieses(['x']);
@@ -105,12 +105,12 @@ describe("Function generators", () => {
         }
         // ----------------------------------------------------------------------------------
     });
-    it.only('X -V +A  !== -V +A', () =>{
+    it('X -V +A  !== -V +A', () => {
         // XVA VA
         // VA A
-       let funcBuilder: any,
-       correctFunc: FunctionObj,
-       question: FunctionObj;
+        let funcBuilder: any,
+            correctFunc: FunctionObj,
+            question: FunctionObj;
         for (let i = 0; i < 100; ++i) {
             funcBuilder = new FunctionBuilder();
             funcBuilder.setAvailableAxieses(['x']);
@@ -127,10 +127,10 @@ describe("Function generators", () => {
             chai.expect(question.equalTo(correctFunc)).to.be.true;
         }
     });
-    it('makeIncorrectParams shoud reterun incorrect params', () => {
+    it('makeIncorrectParams should return incorrect params', () => {
         let question: any,
             incorrect_array: any,
-            funcBuilder:any;
+            funcBuilder: any;
         for (let i = 0; i < 100; ++i) {
             funcBuilder = new FunctionBuilder();
             question = funcBuilder.getQuestionFunction();
@@ -145,7 +145,7 @@ describe("Function generators", () => {
     it('makeCorrectParams should return correct params.', () => {
         let question: any,
             correct_array: any,
-            funcBuilder:any;
+            funcBuilder: any;
         for (let i = 0; i < 100; ++i) {
             funcBuilder = new FunctionBuilder();
             question = funcBuilder.getQuestionFunction();
@@ -159,7 +159,7 @@ describe("Function generators", () => {
     // ----------------------------------------------------------------------------------
     it("Generated functions should not going out of bounds", () => {
         let question: any,
-            funcBuilder:any,
+            funcBuilder: any,
             func: FunctionObj;
         for (let i = 0; i < 100; i++) {
             funcBuilder = new FunctionBuilder();
@@ -177,16 +177,23 @@ describe("Function generators", () => {
         }
     });
     // ----------------------------------------------------------------------------------
+    it.only('Generate params should not return all zeros', () => {
+        let func: any;
+        for (let i = 0; i < 100; i++) {
+            func = new FunctionObj().generateParams();
+            chai.expect(func.params).to.not.include({x: 0, v: 0, a: 0});
+        }
+    })
 });
 
 describe('Minor functions', () => {
     // ----------------------------------------------------------------------------------
     it('createNextFunction should not throw any exceptions.', () => {
         let question: any,
-        funcBuilder:any;
+            funcBuilder: any;
         for (let i = 0; i < 100; ++i) {
-            funcBuilder =  new FunctionBuilder();
-            funcBuilder.setLength(Config.defaultLength/2);
+            funcBuilder = new FunctionBuilder();
+            funcBuilder.setLength(Config.defaultLength / 2);
             funcBuilder.getQuestionFunction();
             question = funcBuilder.getCorrectFunction();
             chai.expect(() => question.createNextFunction(undefined, Config.defaultLength / 2)).to.not.throw(Error);
@@ -233,11 +240,11 @@ describe('Minor functions', () => {
     // })
     // ----------------------------------------------------------------------------------
     it('snapToGrid should not throw any exceptions.', () => {
-        let funcBuilder:any;
+        let funcBuilder: any;
         for (let i = 0; i < 100; i++) {
             funcBuilder = new FunctionBuilder();
-            funcBuilder.setLength(Config.defaultLength/2);
-            chai.expect(() =>  funcBuilder.getCorrectFunction).to.not.throw(Error);
+            funcBuilder.setLength(Config.defaultLength / 2);
+            chai.expect(() => funcBuilder.getCorrectFunction).to.not.throw(Error);
         }
     });
     // ----------------------------------------------------------------------------------
@@ -376,9 +383,6 @@ describe('Tests correctness, COMPOSITION', () => {
                     if (!test_2_unique.contains(id))
                         test_2_unique.push(id);
             }
-            console.log(test_1_unique);
-            console.log(test_2_unique);
-            console.log('-------------');
             chai.expect(test_1_unique.length).to.be.equal(4);
             chai.expect(test_2_unique.length).to.be.equal(4);
         }
@@ -388,7 +392,7 @@ describe('Tests correctness, COMPOSITION', () => {
 
 describe('Tests correctness, FUNCTION LENGTH', () => {
     // ----------------------------------------------------------------------------------
-    it('getG2Gtest question and anwers functions should have correct length', () => {
+    it('getG2Gtest question and answers functions should have correct length', () => {
         let test: any;
         for (let i = 0; i < 100; ++i) {
             test = tests.getG2Gtest_OneAnswerGraph(i);

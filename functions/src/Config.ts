@@ -3,11 +3,9 @@ export let Config = {
         'x', 'v', 'a'
     ],
     bounds: {
-        x: [-4, 4], // x
-        v: [-1, 1], // v
-        a: [-0.5,0.5], // a
-        // t: [3, 6],
-        // questionCount: [3,5],
+        x: [0.1, 4],
+        v: [0.1, 1],
+        a: [0.1,0.5],
         questionCount: [3,4],
     } as any,
 

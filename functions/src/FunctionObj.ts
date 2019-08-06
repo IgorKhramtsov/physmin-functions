@@ -13,6 +13,10 @@ export class FunctionObj {
     // -----------------------------------------------------------------------------
     // Utils
     // -----------------------------------------------------------------------------
+    equalByText(obj: FunctionObj):boolean{
+        return this.getTextDescription(false) === obj.getTextDescription(false)
+    }
+
     equalTo(obj: FunctionObj): boolean {
         if (obj === undefined) return false;
 
@@ -33,22 +37,28 @@ export class FunctionObj {
                 if ((Math.sign(this.params.a) === Math.sign(obj.params.a)))
                     return true;
             }
-        } else {
+        }
             // XVA VA
             //VA A
-            let left: FunctionObj,
-                right: FunctionObj;
-            if (this.params.length > obj.params.length) {
-                left = new FunctionObj(obj.funcType, this.copyParams()).clearParams();
-                right = new FunctionObj(obj.funcType, obj.copyParams());
-                return left.equalTo(right);
-            } else if (this.params.length < obj.params.length) {
-                left = new FunctionObj(this.funcType, this.copyParams());
-                right = new FunctionObj(this.funcType, obj.copyParams()).clearParams();
-                return left.equalTo(right);
-            } else return false;
+            // let left: FunctionObj,
+            //     right: FunctionObj,
+            //     this_params_length = Object.keys(this.params).length,
+            //     obj_params_length = Object.keys(obj.params).length;
+            //
+            // if (this_params_length > obj_params_length) {
+            //     if (this.params[this.funcType] === 0) {
+            //         left = new FunctionObj(obj.funcType, this.copyParams()).clearParams();
+            //         right = new FunctionObj(obj.funcType, obj.copyParams());
+            //         return left.equalTo(right);
+            //     }
+            // } else if (this_params_length < obj_params_length) {
+            //     if (this.params[this.funcType] === 0) {
+            //         left = new FunctionObj(this.funcType, this.copyParams());
+            //         right = new FunctionObj(this.funcType, obj.copyParams()).clearParams();
+            //         return left.equalTo(right);
+            //     }
+            // } else return false;
 
-        }
         return false;
     }
 
@@ -110,11 +120,13 @@ export class FunctionObj {
 
     generateParams() {
         let x, v, a = 0;
-        x = Utils.getRandomFromBound(Config.X);
-        v = Utils.getRandomFromBound(Config.V);
+        x = Utils.getRandomOrZeroFromBound(Config.X);
+        v = Utils.getRandomOrZeroFromBound(Config.V);
         if (Utils.withChance(0.7))
-            a = Utils.getRandomNonZeroFromBound(Config.A);
+            a = Utils.getRandomOrZeroFromBound(Config.A);
 
+        console.log(x,v,a);
+        console.log('----');
         if (x === 0 && v === 0 && a === 0)
             this.generateParams();
         if (Math.sign(v) === Math.sign(a)) {
@@ -123,7 +135,7 @@ export class FunctionObj {
             }
             else if (a !== 0) a = -a;
         }
-        if (Math.abs(a) < 0.1) a = 0;
+
         this.params = {"x": x, "v": v, "a": a};
         return this;
     }

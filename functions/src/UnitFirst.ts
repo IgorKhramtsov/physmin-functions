@@ -47,24 +47,26 @@ export class UnitFirst {
             funcBuilder = new FunctionBuilder();
 
         for (let i = 0; i < questionCount; ++i) {
-            _chance = Utils.withChance(chance);
             correctIDs.addRandomNumber(answerCount);
-
             funcBuilder.getQuestionFunction();
-
-            if (_chance) funcBuilder.setLength(Config.defaultLength / 2);
-            else funcBuilder.setLength(0);
 
             questions[i] = {
                 id: i,
-                graph: [funcBuilder.getCorrectFunction()],
+                graph: [],
                 correctIDs: [correctIDs.last()],
             };
 
-            if (_chance)
-                questions[i].graph.push(funcBuilder.getCorrectFunction()) // CreateNext
+            _chance = Utils.withChance(chance);
+            if (_chance) {
+                let functionLengths = [Config.defaultLength / 2, Config.defaultLength / 2],
+                    complexFunc = funcBuilder.getComplexFunction(functionLengths);
+                questions[i].graph.push(complexFunc[0]);
+                questions[i].graph.push(complexFunc[1]);
+            } else {
+                funcBuilder.setLength(0);
+                questions[i].graph.push(funcBuilder.getCorrectFunction());
+            }
         }
-
 
 
         // 5 correct IDS
@@ -104,8 +106,7 @@ export class UnitFirst {
                 text = first.getTextDescription(true);
             }
 
-            console.log(JSON.stringify(first));
-
+            // console.log(JSON.stringify(first));
             answers[i] = {
                 text: text,
                 id: i
@@ -115,8 +116,9 @@ export class UnitFirst {
         for (let i = 0; i < questions.length; ++i)
             for (let j = 0; j < answers.length; ++j)
                 if (answers[j].text === answers[questions[i].correctIDs[0]].text)
-                    if (!questions[i].correctIDs.contains(answers[j].id))
+                    if (correctIDs.contains(answers[j].id) && !questions[i].correctIDs.contains(answers[j].id))
                         questions[i].correctIDs.push(j);
+
 
         return {
             type: 'graph2state',
