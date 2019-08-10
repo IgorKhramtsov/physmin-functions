@@ -29,7 +29,7 @@ describe("Test generators", () => {
         for (let i = 0; i < 100; i++) {
             chai.expect(() => tests.getSGtest_SimpleAnswers(0)).to.not.throw(Error);
         }
-    })
+    });
     it('Sign to Graph(complex answers) shoud not throw any exceptions.', () => {
         for (let i = 0; i < 100; i++) {
             chai.expect(() => tests.getSGtest_ComplexAnswers(0)).to.not.throw(Error);
@@ -39,19 +39,29 @@ describe("Test generators", () => {
 
 describe("Function generators", () => {
     // ----------------------------------------------------------------------------------
+    it('createQuestionFunctions should not throw any exceptions', () => {
+        let funcBuilder: any;
+        for (let i = 0; i < 100; ++i) {
+            funcBuilder = new FunctionBuilder();
+            chai.expect(() => funcBuilder.getQuestionFunction()).to.not.throw(Error);
+        }
+    });
+    // ----------------------------------------------------------------------------------
     it("Correct function should have right types", () => {
-        let question: any,
-            correct_array: any,
+        let correct_array: any,
             funcBuilder: any;
         for (let i = 0; i < 100; i++) {
             funcBuilder = new FunctionBuilder();
-            funcBuilder.setAvailableAxieses(['x']);
+            funcBuilder.setLength(0);
+            funcBuilder.setAvailableAxises(['x']);
             funcBuilder.getQuestionFunction();
             correct_array = Array<FunctionObj>();
 
-            funcBuilder.setAvailableAxieses(['x', 'v']);
+            funcBuilder.setLength(0);
+            funcBuilder.setAvailableAxises(['v']);
             correct_array.push(funcBuilder.getCorrectFunction());
-            funcBuilder.setAvailableAxieses(['x', 'v', 'a']);
+            funcBuilder.setLength(0);
+            funcBuilder.setAvailableAxises(['a']);
             correct_array.push(funcBuilder.getCorrectFunction());
 
             chai.expect(correct_array[0].funcType).to.be.equal("v");
@@ -59,129 +69,73 @@ describe("Function generators", () => {
         }
     });
     // ----------------------------------------------------------------------------------
-    // it.only("Correct functions should be Correct", () => {
-    //   let question: any,
-    //     correct_array: any;
-    //   for (let i = 0; i < 100; i++) {
-    //     question = new FunctionObj().makeQuestionFunction(undefined, undefined, ["x"]);
-    //     correct_array = Array<FunctionObj>();
-    //
-    //     correct_array.push(question.getCorrectFunction(correct_array, undefined, ["x", "v"]));
-    //     correct_array.push(question.getCorrectFunction(correct_array, undefined, ["x", "v", "a"]));
-    //
-    //     // question { x: 1, v: 0.3333333333333333, a: 0, len: 12 }
-    //     //  correctFunctionToCompare {v: 0, a: 0, len: 12, x: 1 }
-    //     // v from 0.33 was rounded to 0 by snapToGrid
-    //     // Math.sign(0.33) = 1, Math.sign(0) = 0
-    //     let correctFunctionToCompare = new FunctionObj(question.funcType, correct_array[0].copyParams());
-    //     correctFunctionToCompare.params.x = question.params.x;
-    //     console.log(question.params, correctFunctionToCompare.params)
-    //     chai.expect(correctFunctionToCompare.equalTo(question)).to.be.true;
-    //
-    //     correctFunctionToCompare = new FunctionObj(question.funcType, correct_array[1].copyParams());
-    //     correctFunctionToCompare.params.x = question.params.x;
-    //     correctFunctionToCompare.params.v = question.params.v;
-    //     chai.expect(correctFunctionToCompare.equalTo(question)).to.be.true;
-    //   }
-    // });
+    it("Correct functions should be Correct", () => {
+        let funcBuilder: any,
+            question: any,
+            correct_array: any;
+        for (let i = 0; i < 100; i++) {
+            funcBuilder = new FunctionBuilder();
+            funcBuilder.setAvailableAxises(['x']);
+            question = funcBuilder.getQuestionFunction();
+
+            correct_array = Array<FunctionObj>();
+
+            funcBuilder.setAvailableAxises(['x', 'v']);
+            correct_array.push(funcBuilder.getCorrectFunction());
+            funcBuilder.setAvailableAxises(['x', 'v', 'a']);
+            correct_array.push(funcBuilder.getCorrectFunction());
+
+
+            let correctFunctionToCompare = new FunctionObj(question.funcType, correct_array[0].copyParams());
+            correctFunctionToCompare.params.x = question.params.x;
+            chai.expect(correctFunctionToCompare.equalBySignTo(question)).to.be.true;
+
+            correctFunctionToCompare = new FunctionObj(question.funcType, correct_array[1].copyParams());
+            correctFunctionToCompare.params.x = question.params.x;
+            correctFunctionToCompare.params.v = question.params.v;
+            chai.expect(correctFunctionToCompare.equalBySignTo(question)).to.be.true;
+        }
+    });
     // ----------------------------------------------------------------------------------
     it("Incorrect functions should not be Correct", () => {
         let question: any,
-            incorrect_array: any,
-            funcBuilder: any;
+            funcBuilder = new FunctionBuilder(),
+            incorrectFunc;
         for (let i = 0; i < 100; ++i) {
-            funcBuilder = new FunctionBuilder();
-            funcBuilder.setAvailableAxieses(['x']);
+            funcBuilder.reset();
             question = funcBuilder.getQuestionFunction();
-            incorrect_array = Array<FunctionObj>();
-            for (let k = 0; k < 6; k++) {
-                incorrect_array.push(funcBuilder.getIncorrectFunction());
-                let incorrectFunctionToCompare = new FunctionObj(question.funcType, incorrect_array[k].copyParams());
-                incorrectFunctionToCompare.params.x = question.params.x;
 
-                if (incorrect_array[k].funcType == "a") incorrectFunctionToCompare.params.v = question.params.v;
-                chai.expect(incorrectFunctionToCompare.equalTo(question)).to.be.false;
-            }
-        }
-        // ----------------------------------------------------------------------------------
-    });
-    it('X -V +A  !== -V +A', () => {
-        // XVA VA
-        // VA A
-        let funcBuilder: any,
-            correctFunc: FunctionObj,
-            question: FunctionObj;
-        for (let i = 0; i < 100; ++i) {
-            funcBuilder = new FunctionBuilder();
-            funcBuilder.setAvailableAxieses(['x']);
-            question = funcBuilder.getQuestionFunction();
-            funcBuilder.setAvailableAxieses(['v']);
-            correctFunc = funcBuilder.getCorrectFunction();
-            chai.expect(question.equalTo(correctFunc)).to.be.true;
-
-            funcBuilder = new FunctionBuilder();
-            funcBuilder.setAvailableAxieses(['v']);
-            question = funcBuilder.getQuestionFunction();
-            funcBuilder.setAvailableAxieses(['a']);
-            correctFunc = funcBuilder.getCorrectFunction();
-            chai.expect(question.equalTo(correctFunc)).to.be.true;
-        }
-    });
-    it('makeIncorrectParams should return incorrect params', () => {
-        let question: any,
-            incorrect_array: any,
-            funcBuilder: any;
-        for (let i = 0; i < 100; ++i) {
-            funcBuilder = new FunctionBuilder();
-            question = funcBuilder.getQuestionFunction();
-            incorrect_array = Array<FunctionObj>();
-            for (let j = 0; j < 5; ++j) {
-                incorrect_array.push(funcBuilder.getIncorrectFunction());
-                chai.expect(incorrect_array.last().equalTo(question)).to.be.false;
-            }
-        }
-    });
-    // ----------------------------------------------------------------------------------
-    it('makeCorrectParams should return correct params.', () => {
-        let question: any,
-            correct_array: any,
-            funcBuilder: any;
-        for (let i = 0; i < 100; ++i) {
-            funcBuilder = new FunctionBuilder();
-            question = funcBuilder.getQuestionFunction();
-            correct_array = Array<FunctionObj>();
-            for (let j = 0; j < 2; ++j) {
-                correct_array.push(funcBuilder.getIncorrectFunction());
-                chai.expect(correct_array.last().equalTo(question)).to.be.false;
+            for (let k = 0; k < 2; k++) {
+                incorrectFunc = funcBuilder.getIncorrectFunction();
+                chai.expect(incorrectFunc.equalByValueTo(question)).to.be.false;
             }
         }
     });
     // ----------------------------------------------------------------------------------
     it("Generated functions should not going out of bounds", () => {
         let question: any,
-            funcBuilder: any,
+            funcBuilder = new FunctionBuilder(),
             func: FunctionObj;
         for (let i = 0; i < 100; i++) {
-            funcBuilder = new FunctionBuilder();
-            funcBuilder.setAvailableAxieses(['x']);
+            funcBuilder.reset();
+            funcBuilder.setAvailableAxises(['x']);
             question = funcBuilder.getQuestionFunction();
+
             func = funcBuilder.getCorrectFunction();
             for (const param of Object.keys(func.params).deleteItem("len"))
                 chai.expect(Math.abs(func.params[param])).to.be.lessThan(Config.upperLimit)
-            // chai.expect(func.params[param]).to.be.at.least(Config.bounds[param][0]).and.at.most(Config.bounds[param][1]);
 
             func = funcBuilder.getIncorrectFunction();
             for (const param of Object.keys(func.params).deleteItem("len"))
                 chai.expect(Math.abs(func.params[param])).to.be.lessThan(Config.upperLimit)
-            // chai.expect(func.params[param]).to.be.at.least(Config.bounds[param][0]).and.at.most(Config.bounds[param][1]);
         }
     });
     // ----------------------------------------------------------------------------------
-    it.only('Generate params should not return all zeros', () => {
+    it('Generate params should not return all zeros', () => {
         let func: any;
         for (let i = 0; i < 100; i++) {
             func = new FunctionObj().generateParams();
-            chai.expect(func.params).to.not.include({x: 0, v: 0, a: 0});
+            chai.expect(func.params).to.be.not.equal({x: 0, v: 0, a: 0});
         }
     })
 });
@@ -189,25 +143,10 @@ describe("Function generators", () => {
 describe('Minor functions', () => {
     // ----------------------------------------------------------------------------------
     it('createNextFunction should not throw any exceptions.', () => {
-        let question: any,
-            funcBuilder: any;
+        let funcBuilder: any;
         for (let i = 0; i < 100; ++i) {
             funcBuilder = new FunctionBuilder();
-            funcBuilder.setLength(Config.defaultLength / 2);
-            funcBuilder.getQuestionFunction();
-            question = funcBuilder.getCorrectFunction();
-            chai.expect(() => question.createNextFunction(undefined, Config.defaultLength / 2)).to.not.throw(Error);
-        }
-    });
-    // ----------------------------------------------------------------------------------
-    it('generateParams should generate correct parameters.', () => {
-        let func: any;
-        for (let i = 0; i < 100; ++i) {
-            func = new FunctionObj().generateParams();
-            for (let param in func.params) {
-                chai.expect(func.params[param]).to.be.greaterThan(Config.bounds[param][0]);
-                chai.expect(func.params[param]).to.be.lessThan(Config.bounds[param][1]);
-            }
+            chai.expect(() => funcBuilder.getComplexFunction([Config.defaultLength / 2, Config.defaultLength / 2])).to.not.throw(Error);
         }
     });
     // ----------------------------------------------------------------------------------
@@ -218,26 +157,9 @@ describe('Minor functions', () => {
             funcBuilder = new FunctionBuilder();
             funcBuilder.getQuestionFunction();
             func = funcBuilder.getCorrectFunction();
-            console.log(JSON.stringify(func));
             chai.expect(() => func.getTextDescription(false)).to.not.throw(Error);
         }
     });
-    // ----------------------------------------------------------------------------------
-    // it.only('createNextFunction params shoudl not contain -0', () => {
-    //   let question: any,
-    //     nextFunc: any;
-    //   for (let i = 0; i < 100; i++) {
-    //     question = new FunctionObj().
-    //       makeQuestionFunction(undefined, Config.defaultLength / 2).
-    //       getCorrectFunction(undefined, Config.defaultLength / 2);
-    //
-    //     nextFunc = question.createNextFunction(undefined, Config.defaultLength / 2);
-    //     for (let param in nextFunc.params) {
-    //       // console.log(nextFunc.params[param])
-    //       chai.expect(nextFunc.params[param]).to.be.not.equal(-0);
-    //     }
-    //   }
-    // })
     // ----------------------------------------------------------------------------------
     it('snapToGrid should not throw any exceptions.', () => {
         let funcBuilder: any;
@@ -415,7 +337,7 @@ describe('Tests correctness, FUNCTION LENGTH', () => {
         }
     });
     // ----------------------------------------------------------------------------------
-    it('getSGtest question and anwers functions should have correct length', () => {
+    it('getSGtest question and answers functions should have correct length', () => {
         let test_1: any, test_2: any, cumLength_1 = 0, cumLength_2 = 0;
         for (let i = 0; i < 100; ++i) {
             test_1 = tests.getSGtest_SimpleAnswers(i);

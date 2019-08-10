@@ -13,11 +13,11 @@ export class FunctionObj {
     // -----------------------------------------------------------------------------
     // Utils
     // -----------------------------------------------------------------------------
-    equalByText(obj: FunctionObj):boolean{
+    equalByTextTo(obj: FunctionObj): boolean {
         return this.getTextDescription(false) === obj.getTextDescription(false)
     }
 
-    equalTo(obj: FunctionObj): boolean {
+    equalBySignTo(obj: FunctionObj): boolean {
         if (obj === undefined) return false;
 
         if (this.funcType === obj.funcType) {
@@ -38,33 +38,24 @@ export class FunctionObj {
                     return true;
             }
         }
-            // XVA VA
-            //VA A
-            // let left: FunctionObj,
-            //     right: FunctionObj,
-            //     this_params_length = Object.keys(this.params).length,
-            //     obj_params_length = Object.keys(obj.params).length;
-            //
-            // if (this_params_length > obj_params_length) {
-            //     if (this.params[this.funcType] === 0) {
-            //         left = new FunctionObj(obj.funcType, this.copyParams()).clearParams();
-            //         right = new FunctionObj(obj.funcType, obj.copyParams());
-            //         return left.equalTo(right);
-            //     }
-            // } else if (this_params_length < obj_params_length) {
-            //     if (this.params[this.funcType] === 0) {
-            //         left = new FunctionObj(this.funcType, this.copyParams());
-            //         right = new FunctionObj(this.funcType, obj.copyParams()).clearParams();
-            //         return left.equalTo(right);
-            //     }
-            // } else return false;
+        return false;
+    }
+
+    equalByValueTo(obj: FunctionObj): boolean{
+        if (obj === undefined) return false;
+
+        if (this.funcType === obj.funcType)
+            if (this.params.x === obj.params.x &&
+                    this.params.v === obj.params.v &&
+                    this.params.a === obj.params.a)
+                    return true;
 
         return false;
     }
 
-    equalToByDirection(obj: FunctionObj): boolean {
+    equalByDirectionTo(obj: FunctionObj): boolean {
         if (obj === undefined || obj.params === undefined) {
-            // console.log("equalToByDirection: obj undefined: ", obj)
+            // console.log("equalByDirectionTo: obj undefined: ", obj)
             // FIXME: Somehow we get an array with one FO [FunctionObj]
             return false;
         }
@@ -104,7 +95,7 @@ export class FunctionObj {
     makeFreeVariables(): FunctionObj {
         const paramsKeys = Object.keys(this.params),
             params = this.params;
-        // Imputes necessary paramaters for that type of function
+        // Imputes necessary parameters for that type of function
         if (this.funcType === "x") {
             if (!paramsKeys.contains("x"))
                 params.x = Utils.getRandomNonZeroFromBound(Config.X);
@@ -125,8 +116,6 @@ export class FunctionObj {
         if (Utils.withChance(0.7))
             a = Utils.getRandomOrZeroFromBound(Config.A);
 
-        console.log(x,v,a);
-        console.log('----');
         if (x === 0 && v === 0 && a === 0)
             this.generateParams();
         if (Math.sign(v) === Math.sign(a)) {
@@ -155,7 +144,7 @@ export class FunctionObj {
     //
     //   if (usedFuncs)
     //     for (const func of usedFuncs)
-    //       if (this.equalToByDirection(func))
+    //       if (this.equalByDirectionTo(func))
     //         return this.makeQuestionFunction(usedFuncs, funcLength, availableAxises);
     //
     //   this.params.len = funcLength;
@@ -185,7 +174,7 @@ export class FunctionObj {
     //
     //   // if (usedFunc)
     //   //   for (const func of usedFunc) {
-    //   //     if (newFunc.equalToByDirection(func))
+    //   //     if (newFunc.equalByDirectionTo(func))
     //   //       return this.getCorrectFunction(usedFunc, funcLength, _availableAxises);
     //   //   }
     //
@@ -207,7 +196,7 @@ export class FunctionObj {
     //   const incorrectFunction = new FunctionObj(pickedAxis, newParams).makeIncorrectParams().clearParams();
     //   if (usedFunc)
     //     for (const func of usedFunc)
-    //       if (incorrectFunction.equalTo(func))
+    //       if (incorrectFunction.equalBySignTo(func))
     //         return this.getIncorrectFunction(usedFunc, funcLength, _availableAxises);
     //
     //   incorrectFunction.params.len = funcLength;
@@ -416,9 +405,9 @@ export class FunctionObj {
     //
     //   if (usedFunctions) {
     //     for (const func of usedFunctions)
-    //       if (nextFunc.equalToByDirection(func))
+    //       if (nextFunc.equalByDirectionTo(func))
     //         return this.createNextFunction(usedFunctions, len, ++recursive_count);
-    //     // if (nextFunc.equalToByDirection(usedFunctions.last())) {
+    //     // if (nextFunc.equalByDirectionTo(usedFunctions.last())) {
     //     //   return this.createNextFunction(usedFunctions, len, ++recursive_count);
     //     // }
     //   }
@@ -431,7 +420,7 @@ export class FunctionObj {
     // -----------------------------------------------------------------------------
     calculateFunctionValue(len?: number): number {
         const params = this.params,
-            t = len ? len : params.len;
+            t = len !== undefined ? len : params.len;
 
         switch (this.funcType) {
             case "x":
@@ -463,6 +452,7 @@ export class FunctionObj {
             value_extremum: number,
             coord: number;
 
+
         value_start = this.calculateFunctionValue(start);
         value_end = this.calculateFunctionValue(end);
 
@@ -470,12 +460,12 @@ export class FunctionObj {
             case 'x':
                 if (params.a === 0)
                     return Math.abs(value_start) > Config.upperLimit || Math.abs(value_end) > Config.upperLimit;
-                else
+                else {
                     coord = -params.v / params.a;
-                value_extremum = this.calculateFunctionValue(coord);
-                return Math.abs(value_start) > Config.upperLimit || Math.abs(value_end) > Config.upperLimit ||
-                    Math.abs(value_extremum) > Config.upperLimit;
-
+                    value_extremum = this.calculateFunctionValue(coord);
+                    return Math.abs(value_start) > Config.upperLimit || Math.abs(value_end) > Config.upperLimit ||
+                        Math.abs(value_extremum) > Config.upperLimit;
+                }
             case 'v':
                 return Math.abs(value_start) > Config.upperLimit || Math.abs(value_end) > Config.upperLimit;
         }
@@ -550,3 +540,4 @@ export class FunctionObj {
         return index[0].toString() + index[1].toString();
     }
 }
+

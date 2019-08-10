@@ -15,6 +15,7 @@ export class UnitFirst {
             correctIDs: Array<Number>()
         };
 
+        functionBuilder.disableUseAvailableAxises();
         for (let i = 0; i < correctAnswersCount; ++i)
             answers.push({
                 graph: [functionBuilder.getCorrectFunction()],
@@ -36,6 +37,7 @@ export class UnitFirst {
         };
     }
 
+    // IncorrectAnswer = Question + IncorrectFunction - option in future
     static getG2Stest(test_id: number, chance: number) {
         const questions = Array<any>(),
             correctIDs = Array<number>(),
@@ -46,9 +48,9 @@ export class UnitFirst {
         let _chance: boolean,
             funcBuilder = new FunctionBuilder();
 
+        funcBuilder.disableUseAvailableAxises();
         for (let i = 0; i < questionCount; ++i) {
             correctIDs.addRandomNumber(answerCount);
-            funcBuilder.getQuestionFunction();
 
             questions[i] = {
                 id: i,
@@ -63,13 +65,12 @@ export class UnitFirst {
                 questions[i].graph.push(complexFunc[0]);
                 questions[i].graph.push(complexFunc[1]);
             } else {
-                funcBuilder.setLength(0);
+                funcBuilder.getQuestionFunction();
                 questions[i].graph.push(funcBuilder.getCorrectFunction());
             }
         }
 
 
-        // 5 correct IDS
         let first: any,
             second: any,
             complexFunction: Array<FunctionObj>,
@@ -91,9 +92,8 @@ export class UnitFirst {
                     complexFunction = funcBuilder.getComplexFunction([Config.defaultLength / 2, Config.defaultLength / 2]);
                     first = complexFunction[0];
                     second = complexFunction[1];
-                } else {
+                } else
                     first = funcBuilder.getIncorrectFunction();
-                }
             }
 
             if (second) {
@@ -106,7 +106,6 @@ export class UnitFirst {
                 text = first.getTextDescription(true);
             }
 
-            // console.log(JSON.stringify(first));
             answers[i] = {
                 text: text,
                 id: i
@@ -137,7 +136,7 @@ export class UnitFirst {
             functionsLengths = Array<number>();
 
         let funcBuilder = new FunctionBuilder();
-        funcBuilder.setAvailableAxieses(Config.axisIndexes.copy().deleteItem("a"));
+        funcBuilder.setAvailableAxises(Config.axisIndexes.copy().deleteItem("a"));
 
         let cumsum = 0;
         for (let i = 0; i < questionCount - 1; i++) {
