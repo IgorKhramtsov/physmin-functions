@@ -41,27 +41,22 @@ export class FunctionObj {
         return false;
     }
 
-    equalByValueTo(obj: FunctionObj): boolean{
+    equalByValueTo(obj: FunctionObj): boolean {
         if (obj === undefined) return false;
 
         if (this.funcType === obj.funcType)
             if (this.params.x === obj.params.x &&
-                    this.params.v === obj.params.v &&
-                    this.params.a === obj.params.a)
-                    return true;
+                this.params.v === obj.params.v &&
+                this.params.a === obj.params.a)
+                return true;
 
         return false;
     }
 
     equalByDirectionTo(obj: FunctionObj): boolean {
-        if (obj === undefined || obj.params === undefined) {
-            // console.log("equalByDirectionTo: obj undefined: ", obj)
-            // FIXME: Somehow we get an array with one FO [FunctionObj]
-            return false;
-        }
         // Functions have equal directions when their derivatives have equal sign
-        let this_dir,
-            nextFunc_dir;
+        let this_dir: number,
+            nextFunc_dir: number;
         switch (obj.funcType) {
             case "x":
                 this_dir = this.params.v + this.params.a * this.params.len;
@@ -95,6 +90,7 @@ export class FunctionObj {
     makeFreeVariables(): FunctionObj {
         const paramsKeys = Object.keys(this.params),
             params = this.params;
+
         // Imputes necessary parameters for that type of function
         if (this.funcType === "x") {
             if (!paramsKeys.contains("x"))
@@ -136,73 +132,6 @@ export class FunctionObj {
     // -----------------------------------------------------------------------------
     // Creating FUNCTIONS
     // -----------------------------------------------------------------------------
-    // makeQuestionFunction(usedFuncs?: Array<FunctionObj>, funcLength: number = Config.defaultLength,
-    //   availableAxises: Array<string> = Config.axisIndexes): FunctionObj {
-    //
-    //   this.funcType = availableAxises.getRandom();
-    //   this.generateParams().clearParams();
-    //
-    //   if (usedFuncs)
-    //     for (const func of usedFuncs)
-    //       if (this.equalByDirectionTo(func))
-    //         return this.makeQuestionFunction(usedFuncs, funcLength, availableAxises);
-    //
-    //   this.params.len = funcLength;
-    //   return this.snapToGrid();
-    // }
-
-    // getCorrectFunction(usedFunc?: Array<FunctionObj>, funcLength: number = Config.defaultLength,
-    //   availableAxises: Array<any> = Config.axisIndexes): FunctionObj {
-    //   // Filter available function types
-    //
-    //
-    //   const _availableAxises = availableAxises.copy().deleteItem(this.funcType);
-    //
-    //   if (usedFunc)
-    //     for (const func of usedFunc)
-    //       if (_availableAxises.legnth !== 0)
-    //         _availableAxises.deleteItem(func.funcType);
-    //       else throw Error('There are none of available axises.')
-    //
-    //   let pickedAxis = _availableAxises.getRandom(),
-    //     newParams = this.copyParams();
-    //
-    //   if (pickedAxis === undefined)
-    //     throw new Error("Cannot pick axis. Looks like available axises list is empty.");
-    //
-    //   const newFunc = new FunctionObj(pickedAxis, newParams).makeCorrectParams().clearParams().snapToGrid();
-    //
-    //   // if (usedFunc)
-    //   //   for (const func of usedFunc) {
-    //   //     if (newFunc.equalByDirectionTo(func))
-    //   //       return this.getCorrectFunction(usedFunc, funcLength, _availableAxises);
-    //   //   }
-    //
-    //   newFunc.params.len = funcLength;
-    //   return newFunc;
-    // }
-
-    // getIncorrectFunction(usedFunc?: Array<FunctionObj>, funcLength: number = Config.defaultLength,
-    //   availableAxises: Array<any> = Config.axisIndexes): FunctionObj {
-    //
-    //   // Filter available function types
-    //   const _availableAxises = availableAxises.copy().deleteItem(this.funcType),
-    //     pickedAxis = _availableAxises.getRandom(),
-    //     newParams = this.copyParams();
-    //
-    //   if (pickedAxis === undefined)
-    //     throw new Error("Cannot pick axis. Looks like available axises list is empty.");
-    //
-    //   const incorrectFunction = new FunctionObj(pickedAxis, newParams).makeIncorrectParams().clearParams();
-    //   if (usedFunc)
-    //     for (const func of usedFunc)
-    //       if (incorrectFunction.equalBySignTo(func))
-    //         return this.getIncorrectFunction(usedFunc, funcLength, _availableAxises);
-    //
-    //   incorrectFunction.params.len = funcLength;
-    //   return incorrectFunction.snapToGrid();
-    // }
-
     makeCorrectParams(): FunctionObj {
         return this.makeFreeVariables();
     }
@@ -229,14 +158,14 @@ export class FunctionObj {
     // -----------------------------------------------------------------------------
     // Wrangling with TEXT
     // -----------------------------------------------------------------------------
-    getKeyByValue(object: any, value: any): String {
+    getKeyByValue(object: any, value: any): string {
         // Returns text by value or sign
-        let _key = Object.keys(object).find(key => object[key] === value)
+        let _key = Object.keys(object).find(key => object[key] === value);
         if (_key) return _key;
         else throw Error("Key is not found!");
     }
 
-    getTextDescription(isComplex: boolean): String {
+    getTextDescription(isComplex: boolean): string {
         let params = this.params,
             text = "",
             x = params.x,
@@ -244,8 +173,6 @@ export class FunctionObj {
             a = params.a;
 
         // Returns description of function behavior by its parameters
-        // --------------------------------------------------------------------
-        // Somehow squeeze XVA, and VA, because there are two identical code blocs
         if (x !== undefined && v !== undefined && a !== undefined) {
 
             if (x == 0 && v == 0 && a == 0) {
@@ -260,17 +187,17 @@ export class FunctionObj {
 
             else {
                 //IDENTICAL BLOCK #1
-                if (v != 0)
-                    if (a != 0) {
+                if (v !== 0)
+                    if (a !== 0) {
                         text += this.getKeyByValue(Config.movement, 1);
                         text += ' ' + this.getKeyByValue(Config.directions, Math.sign(v));
                         text += ', ' + this.getKeyByValue(Config.how, Math.sign(a));
                     }
                     else {
-                        text += this.getKeyByValue(Config.movement, 0);
-                        text += ' ' + this.getKeyByValue(Config.position, Math.sign(v));
+                        text += this.getKeyByValue(Config.movement, 1);
+                        text += ' ' + this.getKeyByValue(Config.how, 0);
                     }
-                else if (a != 0) {
+                else if (a !== 0) {
                     text += this.getKeyByValue(Config.movement, 1);
                     text += ' ' + this.getKeyByValue(Config.how, Math.sign(a));
                 }
@@ -281,30 +208,19 @@ export class FunctionObj {
             }
 
         }
-
-        // if ((x !== undefined && v !== undefined && a !== undefined) && (x == 0 && v == 0 && a == 0)) {
-        //     text += this.getKeyByValue(Config.movement, 0);
-        //     text += ' ' + this.getKeyByValue(Config.position, 0);
-        // }
-        //
-        // else if (((x !== undefined && v !== undefined && a !== undefined))&&(x != 0 && v == 0 && a == 0)) {
-        //     text += this.getKeyByValue(Config.movement, 0);
-        //     text += ' ' + this.getKeyByValue(Config.position, Math.sign(x));
-        // }
-        // --------------------------------------------------------------------
         else if (v !== undefined && a !== undefined) {
             //IDENTICAL BLOCK #2
-            if (v != 0)
-                if (a != 0) {
+            if (v !== 0)
+                if (a !== 0) {
                     text += this.getKeyByValue(Config.movement, 1);
                     text += ' ' + this.getKeyByValue(Config.directions, Math.sign(v));
                     text += ', ' + this.getKeyByValue(Config.how, Math.sign(a));
                 }
                 else {
-                    text += this.getKeyByValue(Config.movement, 0);
-                    text += ' ' + this.getKeyByValue(Config.position, Math.sign(v));
+                    text += this.getKeyByValue(Config.movement, 1);
+                    text += ' ' + this.getKeyByValue(Config.how, 0);
                 }
-            else if (a != 0) {
+            else if (a !== 0) {
                 text += this.getKeyByValue(Config.movement, 1);
                 text += ' ' + this.getKeyByValue(Config.how, Math.sign(a));
             }
@@ -315,33 +231,33 @@ export class FunctionObj {
         }
         // --------------------------------------------------------------------
         else if (a !== undefined) {
-            text += this.getKeyByValue(Config.movement, 0);
-            text += ' ' + this.getKeyByValue(Config.position, Math.sign(a));
+            if (a !== 0) {
+                text += this.getKeyByValue(Config.movement, 1);
+                text += ' ' + this.getKeyByValue(Config.how, Math.sign(a));
+            } else {
+                text += this.getKeyByValue(Config.movement, 0);
+                text += ' ' + this.getKeyByValue(Config.position, 0);
+            }
         }
-
         else throw new Error('Incorrect func type.');
 
         if (isComplex) {
-            if (text[0] === ' ')
-                text = text.substr(1);
+            if (text[0] === ' ') text = text.substr(1);
             text = text.charAt(0).toUpperCase() + text.slice(1);
         }
         return text;
     }
 
-    // -----------------------------------------------------------------------------
-    // For complex FUNCTIONS
-    // -----------------------------------------------------------------------------
-    snapToGrid() {
+    //--------------------------------------------------------------------------------------------------
+    // Control function behavior
+    //--------------------------------------------------------------------------------------------------
+    limitValues() {
         const funcType = this.funcType,
             params = this.params,
             len = this.params.len;
+        let value = this.calcFunctionValue(),
+            result = 0;
 
-        // if (funcType == 'x' || funcType == 'v')
-        //   params[funcType] = Math.round(params[funcType]);
-
-        const value = Math.round(this.calculateFunctionValue());
-        let result = 0;
         if (value != 0)
             result = Math.min(Math.abs(value), Config.upperLimit) * Math.sign(value);
 
@@ -372,69 +288,45 @@ export class FunctionObj {
                     params.a = (result - params.v) / len;
                 break;
         }
+
         return this;
     }
 
-    // createNextFunction(usedFunctions?: Array<FunctionObj>, _len?: number, recursive_count?: number): FunctionObj {
-    //   const funcType = this.funcType,
-    //     nextFunc = new FunctionObj(funcType).generateParams().clearParams();
-    //
-    //   if (!recursive_count) recursive_count = 1;
-    //   else if (recursive_count === 30) throw new Error('To much recursive calls.')
-    //
-    //   const len = _len ? _len : Config.defaultLength / 2;
-    //   nextFunc.params.len = len;
-    //
-    //   this.snapToGrid();
-    //   if (!this.params.len) throw new Error("this.params.len is undefined");
-    //   nextFunc.params[funcType] = Math.round(this.calculateFunctionValue());
-    //
-    //
-    //   if (nextFunc.params[funcType] >= (Config.upperLimit - 1)) {
-    //     let params = nextFunc.params,
-    //       first = params.x ? "x" : "v",
-    //       second = params.v ? "v" : "a",
-    //       third = params.a ? "a" : undefined;
-    //       // FIXME:       V always on side of X
-    //     if (nextFunc.params[second] !== 0)
-    //       nextFunc.params[second] = -Math.sign(nextFunc.params[first]) * Math.abs(nextFunc.params[second]);
-    //     if (third && nextFunc.params[third] !== 0)
-    //      // FIXME:                 Math.sign(nextFunc.params[SECOND?????????]) to be opposite of V???
-    //       nextFunc.params[third] = Math.sign(nextFunc.params[first]) * Math.abs(nextFunc.params[third]);
-    //   }
-    //
-    //   if (usedFunctions) {
-    //     for (const func of usedFunctions)
-    //       if (nextFunc.equalByDirectionTo(func))
-    //         return this.createNextFunction(usedFunctions, len, ++recursive_count);
-    //     // if (nextFunc.equalByDirectionTo(usedFunctions.last())) {
-    //     //   return this.createNextFunction(usedFunctions, len, ++recursive_count);
-    //     // }
-    //   }
-    //
-    //   return nextFunc;
-    // }
+    snapToGrid(): FunctionObj {
+        const funcType = this.funcType,
+            params = this.params;
+
+        if (funcType == 'x' || funcType == 'v')
+            params[funcType] = Math.round(params[funcType]);
+
+        return this;
+    }
 
     // -----------------------------------------------------------------------------
-    // Computing
+    // Computing values
     // -----------------------------------------------------------------------------
-    calculateFunctionValue(len?: number): number {
+    calcFunctionValue(len?: number): number {
         const params = this.params,
             t = len !== undefined ? len : params.len;
+        let value: number;
 
         switch (this.funcType) {
             case "x":
-                return params.x + params.v * t + (params.a * t * t) / 2;
+                value = params.x + params.v * t + (params.a * t * t) / 2;
+                return Math.round(value * 100) / 100;
             case "v":
-                return params.v + params.a * t;
+                value = params.v + params.a * t;
+                return Math.round(value * 100) / 100;
             case "a":
-                return params.a;
+                value = params.a;
+                return Math.round(value * 100) / 100;
         }
-        throw Error('Incorrect type of function.')
+        throw Error('Incorrect type of function.');
     }
 
     calcIntegral(): number {
         const params = this.params;
+
         switch (this.funcType) {
             case "x":
                 return params.x * params.len + (params.v * params.len * params.len) / 2 +
@@ -452,9 +344,8 @@ export class FunctionObj {
             value_extremum: number,
             coord: number;
 
-
-        value_start = this.calculateFunctionValue(start);
-        value_end = this.calculateFunctionValue(end);
+        value_start = this.calcFunctionValue(start);
+        value_end = this.calcFunctionValue(end);
 
         switch (this.funcType) {
             case 'x':
@@ -462,21 +353,23 @@ export class FunctionObj {
                     return Math.abs(value_start) > Config.upperLimit || Math.abs(value_end) > Config.upperLimit;
                 else {
                     coord = -params.v / params.a;
-                    value_extremum = this.calculateFunctionValue(coord);
+                    value_extremum = this.calcFunctionValue(coord);
                     return Math.abs(value_start) > Config.upperLimit || Math.abs(value_end) > Config.upperLimit ||
                         Math.abs(value_extremum) > Config.upperLimit;
                 }
             case 'v':
                 return Math.abs(value_start) > Config.upperLimit || Math.abs(value_end) > Config.upperLimit;
         }
+
         return false;
     }
 
     static calcFuncValueFromRange(start: number, end: number, functions: Array<FunctionObj>): number {
-        // Returns area below function on coordinate plane
         let result = 0;
+
         for (let i = start; i < end + 1; i++)
             result += functions[i].calcIntegral();
+
         return result;
     }
 
@@ -486,21 +379,22 @@ export class FunctionObj {
     // -----------------------------------------------------------------------------
     static getIndexes(questionCount: number, answersCount: number): Array<Array<Array<number>>> {
         let indexes = Array<Array<Array<number>>>();
+
         // Returns unique couple of indices (read - points) on coordinate plane
-        for (let i = 0; i < answersCount; i++) {
+        for (let i = 0; i < answersCount; i++)
             indexes.push(FunctionObj.createNextCoupleIndexes(questionCount, indexes));
-        }
+
         return indexes;
     }
 
     static createNextCoupleIndexes(questionCount: number, usedCoupleIndexes: Array<Array<Array<number>>>, recursive_count?: number): Array<Array<number>> {
         if (!recursive_count) recursive_count = 1;
-        else if (recursive_count === 30) throw new Error('To much recursive calls.')
+        else if (recursive_count === 30) throw new Error('To much recursive calls.');
 
         const leftCoupleIndexes = FunctionObj.createNextIndex(questionCount),
             rightCoupleIndexes = FunctionObj.createNextIndex(questionCount, [leftCoupleIndexes]);
-
         let nextCoupleIndexes = [leftCoupleIndexes, rightCoupleIndexes];
+
 
         // Sorts indices of couple
         if (leftCoupleIndexes[0] > rightCoupleIndexes[0])
@@ -509,25 +403,28 @@ export class FunctionObj {
             if (leftCoupleIndexes[1] > rightCoupleIndexes[1])
                 nextCoupleIndexes = [rightCoupleIndexes, leftCoupleIndexes];
 
-        if (usedCoupleIndexes)
-            for (const coupleIndexes of usedCoupleIndexes)
-                if (FunctionObj.indexToString(nextCoupleIndexes[0]) === FunctionObj.indexToString(coupleIndexes[0]) &&
-                    FunctionObj.indexToString(nextCoupleIndexes[1]) === FunctionObj.indexToString(coupleIndexes[1])) {
-                    return FunctionObj.createNextCoupleIndexes(questionCount, usedCoupleIndexes, ++recursive_count);
-                }
+        for (const coupleIndexes of usedCoupleIndexes)
+            if (FunctionObj.indexToString(nextCoupleIndexes[0]) === FunctionObj.indexToString(coupleIndexes[0]) &&
+                FunctionObj.indexToString(nextCoupleIndexes[1]) === FunctionObj.indexToString(coupleIndexes[1]))
+                return FunctionObj.createNextCoupleIndexes(questionCount, usedCoupleIndexes, ++recursive_count);
+
         return nextCoupleIndexes;
     }
 
     static createNextIndex(questionCount: number, usedIndex?: Array<Array<number>>): Array<number> {
-        let leftIndex, rightIndex, count = 0;
+        let leftIndex,
+            rightIndex,
+            nextIndex: Array<number>,
+            iter_count = 0;
+
 
         rightIndex = questionCount.getRandom();
-
-        for (count = 0; count < 30 && (leftIndex === rightIndex || leftIndex === undefined); count++)
+        for (iter_count = 0; iter_count < 30 && (leftIndex === rightIndex || leftIndex === undefined); ++iter_count)
             leftIndex = questionCount.getRandom();
-        if (leftIndex === rightIndex || leftIndex === undefined) throw new Error('To many cicle iterations.');
 
-        const nextIndex = [leftIndex, rightIndex].sort();
+        if (leftIndex === rightIndex || leftIndex === undefined) throw new Error('To many cycle iterations.');
+
+        nextIndex = [leftIndex, rightIndex].sort();
         if (usedIndex)
             for (const index of usedIndex)
                 if (index[0] === nextIndex[0] && index[1] === nextIndex[1])

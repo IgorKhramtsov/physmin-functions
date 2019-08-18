@@ -1,7 +1,12 @@
 export let Config = {
-    axisIndexes: [
+    Axes: [
         'x', 'v', 'a'
     ],
+
+    X: "x",
+    V: "v",
+    A: "a",
+
     bounds: {
         x: [0.1, 4],
         v: [0.1, 1],
@@ -9,18 +14,15 @@ export let Config = {
         questionCount: [3,4],
     } as any,
 
-    X: "x",
-    V: "v",
-    A: "a",
 
     upperLimit: 5,
+    lowerLimit: 2,
     defaultLength: 12,
 
-    minLength: 2,
 
     answerCount: 6,
-
     G2S_questionCount: 4,
+
 
     directions:{
       'вперед': 1,

@@ -6,31 +6,32 @@ import {FunctionBuilder} from './FunctionBuilder'
 export class UnitFirst {
 
     static getG2Gtest(test_id: number, correctAnswersCount: number) {
-        const count = Config.answerCount,
+        const testType = correctAnswersCount === 1 ? 'graph2graph' : "graph2graph2",
+            count = Config.answerCount,
             answers = Array<any>(),
-            functionBuilder = new FunctionBuilder();
+            builder = new FunctionBuilder();
 
         let question = {
-            graph: [functionBuilder.getQuestionFunction()],
+            graph: [builder.getQuestionFunction()],
             correctIDs: Array<Number>()
         };
 
-        functionBuilder.disableUseAvailableAxises();
+        builder.disableAllowedAxesUsage();
         for (let i = 0; i < correctAnswersCount; ++i)
             answers.push({
-                graph: [functionBuilder.getCorrectFunction()],
+                graph: [builder.getCorrectFunction()],
                 id: question.correctIDs.addRandomNumber(count)
             })
 
         for (let i = 0; i < count; ++i)
             if (!question.correctIDs.contains(i))
                 answers.push({
-                    graph: [functionBuilder.getIncorrectFunction()],
+                    graph: [builder.getIncorrectFunction()],
                     id: i
                 });
 
         return {
-            type: correctAnswersCount === 1 ? 'graph2graph' : "graph2graph2",
+            type: testType,
             test_id: test_id,
             question: question,
             answers: answers.shuffle()
@@ -39,16 +40,26 @@ export class UnitFirst {
 
     // IncorrectAnswer = Question + IncorrectFunction - option in future
     static getG2Stest(test_id: number, chance: number) {
-        const questions = Array<any>(),
+        const testType: string = 'graph2state',
+            questions = Array<any>(),
             correctIDs = Array<number>(),
             answers = Array<any>(),
             answerCount = Config.answerCount,
             questionCount = Config.G2S_questionCount;
 
         let _chance: boolean,
-            funcBuilder = new FunctionBuilder();
+            builder = new FunctionBuilder(),
 
-        funcBuilder.disableUseAvailableAxises();
+            first: any,
+            second: any,
+            complexFunction: Array<FunctionObj>,
+
+            index: number,
+            firstText: string,
+            secondText: string,
+            text = "";
+
+
         for (let i = 0; i < questionCount; ++i) {
             correctIDs.addRandomNumber(answerCount);
 
@@ -60,51 +71,47 @@ export class UnitFirst {
 
             _chance = Utils.withChance(chance);
             if (_chance) {
+                builder.setAllowedAxes(Config.Axes.copy().deleteItem('a'));
                 let functionLengths = [Config.defaultLength / 2, Config.defaultLength / 2],
-                    complexFunc = funcBuilder.getComplexFunction(functionLengths);
+                    complexFunc = builder.getComplexFunction(functionLengths);
                 questions[i].graph.push(complexFunc[0]);
                 questions[i].graph.push(complexFunc[1]);
             } else {
-                funcBuilder.getQuestionFunction();
-                questions[i].graph.push(funcBuilder.getCorrectFunction());
+                builder.disableAllowedAxesUsage();
+                builder.getQuestionFunction();
+                questions[i].graph.push(builder.getCorrectFunction());
             }
         }
 
-
-        let first: any,
-            second: any,
-            complexFunction: Array<FunctionObj>,
-            text = "";
         for (let i = 0; i < answerCount; ++i) {
             _chance = Utils.withChance(chance);
             second = undefined;
 
-            if (_chance) funcBuilder.setLength(Config.defaultLength / 2);
-            else funcBuilder.setLength(0);
+            if (_chance) builder.setLength(Config.defaultLength / 2);
+            else builder.setLength(0);
 
             if (correctIDs.contains(i)) {
-                let index = correctIDs.indexOf(i);
+                index = correctIDs.indexOf(i);
                 first = questions[index].graph[0];
                 if (questions[index].graph.length === 2)
                     second = questions[index].graph[1];
             } else {
                 if (_chance) {
-                    complexFunction = funcBuilder.getComplexFunction([Config.defaultLength / 2, Config.defaultLength / 2]);
+                    complexFunction = builder.getComplexFunction([Config.defaultLength / 2, Config.defaultLength / 2]);
                     first = complexFunction[0];
                     second = complexFunction[1];
                 } else
-                    first = funcBuilder.getIncorrectFunction();
+                    first = builder.getIncorrectFunction();
             }
 
             if (second) {
-                let firstText = first.getTextDescription(false),
-                    secondText = second.getTextDescription(false);
+                firstText = first.getTextDescription(false);
+                secondText = second.getTextDescription(false);
                 if (firstText === secondText)
                     text = "Все время " + firstText;
                 else text = "Cперва " + firstText + ", затем " + secondText;
-            } else {
+            } else
                 text = first.getTextDescription(true);
-            }
 
             answers[i] = {
                 text: text,
@@ -118,9 +125,8 @@ export class UnitFirst {
                     if (correctIDs.contains(answers[j].id) && !questions[i].correctIDs.contains(answers[j].id))
                         questions[i].correctIDs.push(j);
 
-
         return {
-            type: 'graph2state',
+            type: testType,
             test_id: test_id,
             title: "",
             question: questions,
@@ -133,54 +139,66 @@ export class UnitFirst {
             answers = Array<any>(),
             questionCount = Math.round(Utils.getRandomFromBound("questionCount")),
             questionInterval = Math.round(Config.defaultLength / questionCount),
-            functionsLengths = Array<number>();
+            functionsLengths = Array<number>(),
+            answersCount: number = isSimple ? 3 : 6;
 
-        let funcBuilder = new FunctionBuilder();
-        funcBuilder.setAvailableAxises(Config.axisIndexes.copy().deleteItem("a"));
+        let builder = new FunctionBuilder(),
+            complexFunction: Array<FunctionObj>,
+            cumsum= 0,
 
-        let cumsum = 0;
+            firstIndexes: any,
+            secondIndexes: any,
+            indexes: any,
+            letter = "S",
+
+            leftValue: number,
+            rightValue: number,
+            leftCouple: any,
+            rightCouple: any,
+            rightFunction: FunctionObj,
+            leftFunction: FunctionObj,
+            countS = 0,
+            countDX= 0,
+            globalCount = 0;
+
+
+        builder.setAllowedAxes(Config.Axes.copy().deleteItem("a"));
         for (let i = 0; i < questionCount - 1; i++) {
             cumsum += questionInterval;
             functionsLengths.push(questionInterval);
         }
         functionsLengths.push(Config.defaultLength - cumsum);
+        complexFunction = builder.getComplexFunction(functionsLengths);
 
-        let complexFunction = funcBuilder.getComplexFunction(functionsLengths);
-        const answersCount = isSimple ? 3 : 6;
-
-        let firstIndexes: any,
-            secondIndexes: any,
-            indexes: any,
-            letter = "S";
         if (!isSimple) {
             firstIndexes = FunctionObj.getIndexes(questionCount, answersCount / 2);
             secondIndexes = FunctionObj.getIndexes(questionCount, answersCount / 2);
-        } else firstIndexes = FunctionObj.getIndexes(questionCount, answersCount);
+        } else
+            firstIndexes = FunctionObj.getIndexes(questionCount, answersCount);
 
-        let leftValue, rightValue,
-            leftCouple, rightCouple,
-            rightFunction, leftFunction,
-            countS = 0, countDX = 0, count = 0;
+
         for (let i = 0; i < answersCount; ++i) {
             if (!isSimple) {
                 letter = countS < (answersCount / 2) ? "S" : "Δ" + complexFunction[0].funcType;
                 if (letter === "S") {
                     indexes = firstIndexes;
-                    count = countS;
+                    globalCount = countS;
                 } else {
                     indexes = secondIndexes;
-                    count = countDX;
+                    globalCount = countDX;
                 }
-            } else indexes = firstIndexes;
+            } else
+                indexes = firstIndexes;
 
             leftCouple = {
-                left: indexes[count][0][0],
-                right: indexes[count][0][1],
+                left: indexes[globalCount][0][0],
+                right: indexes[globalCount][0][1],
             };
             rightCouple = {
-                left: indexes[count][1][0],
-                right: indexes[count][1][1],
+                left: indexes[globalCount][1][0],
+                right: indexes[globalCount][1][1],
             };
+
             if (!isSimple && letter !== null) {
                 if (letter == "S") {
                     leftValue = FunctionObj.calcFuncValueFromRange(leftCouple.left, leftCouple.right, complexFunction);
@@ -189,29 +207,29 @@ export class UnitFirst {
                     leftFunction = complexFunction[leftCouple.right];
                     rightFunction = complexFunction[rightCouple.right];
 
-                    leftValue = leftFunction.calculateFunctionValue();
-                    rightValue = rightFunction.calculateFunctionValue();
+                    leftValue = leftFunction.calcFunctionValue();
+                    rightValue = rightFunction.calcFunctionValue();
                 }
             } else {
                 leftFunction = complexFunction[leftCouple.right];
                 rightFunction = complexFunction[rightCouple.right];
 
-                leftValue = leftFunction.calculateFunctionValue();
-                rightValue = rightFunction.calculateFunctionValue();
+                leftValue = leftFunction.calcFunctionValue();
+                rightValue = rightFunction.calcFunctionValue();
             }
 
             answers[i] = {
                 id: i,
                 letter: isSimple ? complexFunction[0].funcType : letter,
-                leftIndex: [indexes[count][0][0], (parseInt(indexes[count][0][1]) + 1)],
-                rightIndex: [indexes[count][1][0], (parseInt(indexes[count][1][1]) + 1)],
+                leftIndexes: [indexes[globalCount][0][0], (parseInt(indexes[globalCount][0][1]) + 1)],
+                rightIndexes: [indexes[globalCount][1][0], (parseInt(indexes[globalCount][1][1]) + 1)],
                 correctSign: Math.sign(leftValue - rightValue),
             };
 
             if (!isSimple)
                 if (letter === "S") countS++;
                 else countDX++;
-            else count++;
+            else globalCount++;
         }
 
         return {
@@ -222,6 +240,7 @@ export class UnitFirst {
             answers: answers,
         };
     }
+
 
     static getG2Gtest_OneAnswerGraph(test_id: number) {
         return UnitFirst.getG2Gtest(test_id, 1);
