@@ -4,6 +4,12 @@ import {Config} from "../src/Config";
 import {UnitFirst as tests} from "../src/UnitFirst"
 import {FunctionBuilder} from "../src/FunctionBuilder";
 
+function checkCorrectFunc(questionFunc: FunctionObj, correctFunc: FunctionObj) {
+    const forCompare = new FunctionObj(questionFunc.funcType, correctFunc.copyParams()).clearParams();
+    return questionFunc.equalByValueTo(forCompare)
+}
+
+
 describe("Test generators", () => {
     it("Graph to Graph(1 answer) should not throws any exceptions", () => {
         for (let i = 0; i < 200; i++)
@@ -39,8 +45,15 @@ describe("Test generators", () => {
 });
 
 describe("Function generators", () => {
-    it('Incorrect functions must not be equal to Questions and Correct functions', () => {
-        let builder= new FunctionBuilder(),
+    it('getQuestionFunction. Should not throw any exceptions', () => {
+        let funcBuilder: any = new FunctionBuilder();
+        for (let i = 0; i < 100; ++i) {
+            funcBuilder.reset();
+            chai.expect(() => funcBuilder.getQuestionFunction()).to.not.throw(Error);
+        }
+    });
+    it('getIncorrectFunction. Functions must not be equal to Questions and Correct functions', () => {
+        let builder = new FunctionBuilder(),
             correctFuncArray: Array<FunctionObj>,
             incorrectFuncArray: Array<FunctionObj>,
             questionFuncArray: Array<FunctionObj>,
@@ -49,7 +62,7 @@ describe("Function generators", () => {
             builder.reset();
             correctFuncArray = [];
             questionFuncArray = [];
-            incorrectFuncArray=[];
+            incorrectFuncArray = [];
 
             builder.disableAllowedAxesUsage();
             for (let j = 0; j < 4; ++j) {
@@ -69,27 +82,7 @@ describe("Function generators", () => {
             }
         }
     });
-    it('createQuestionFunctions should not throw any exceptions', () => {
-        let funcBuilder: any = new FunctionBuilder();
-        for (let i = 0; i < 100; ++i) {
-            funcBuilder.reset();
-            chai.expect(() => funcBuilder.getQuestionFunction()).to.not.throw(Error);
-        }
-    });
-    it('complexFunction. Functions should connect', ()=>{
-        let funcBuilder: FunctionBuilder = new FunctionBuilder(),
-        complexFunction: Array<FunctionObj>,
-        prevEnd: number,
-        nextStart: number;
-        for (let i = 0; i < 100; ++i) {
-            funcBuilder.reset();
-            complexFunction = funcBuilder.getComplexFunction([Config.defaultLength/2,Config.defaultLength/2]);
-            prevEnd = complexFunction[0].calcFunctionValue();
-            nextStart = complexFunction[1].params[complexFunction[1].funcType];
-            chai.expect(prevEnd).to.be.equal(nextStart);
-        }
-    });
-    it("Correct function should have right types", () => {
+    it("getCorrectFunction. Correct funcType", () => {
         let correct_array: any,
             funcBuilder: any;
         for (let i = 0; i < 100; i++) {
@@ -108,20 +101,36 @@ describe("Function generators", () => {
             chai.expect(correct_array[1].funcType).to.be.equal("a");
         }
     });
-    it('Last function of complexFunction must not cross limit lines', ()=>{
+
+    it('Complex Function. Functions should connect', () => {
         let funcBuilder: FunctionBuilder = new FunctionBuilder(),
-        lastFunc: FunctionObj,
-        length: number = Config.defaultLength /2;
-        for(let i=0;i<100;++i){
+            complexFunction: Array<FunctionObj>,
+            funcLength = Config.defaultLength / 2,
+            prevEnd: number,
+            nextStart: number;
+        for (let i = 0; i < 100; ++i) {
             funcBuilder.reset();
-            lastFunc = funcBuilder.getComplexFunction([length,length]).last();
-            chai.expect(Math.abs(lastFunc.calcFunctionValue(length))).to.be.at.most(Config.upperLimit);
+            complexFunction = funcBuilder.getComplexFunction([funcLength, funcLength]);
+            prevEnd = complexFunction[0].calcFunctionValue();
+            nextStart = complexFunction[1].params[complexFunction[1].funcType];
+            chai.expect(prevEnd).to.be.equal(nextStart);
+        }
+    });
+    it('Complex Function. Last function must not cross limit lines', () => {
+        let funcBuilder: FunctionBuilder = new FunctionBuilder(),
+            lastFunc: FunctionObj,
+            funcLength: number = Config.defaultLength / 2;
+        for (let i = 0; i < 100; ++i) {
+            funcBuilder.reset();
+            lastFunc = funcBuilder.getComplexFunction([funcLength, funcLength]).last();
+            chai.expect(Math.abs(lastFunc.calcFunctionValue(funcLength))).to.be.at.most(Config.upperLimit);
         }
     });
 
-    it("Correct functions should be Correct", () => {
+    it("getCorrectFunction. Generated functions should be Correct", () => {
         let funcBuilder: any,
             question: any,
+            correctFunctionToCompare: FunctionObj,
             correct_array: any;
         for (let i = 0; i < 100; i++) {
             funcBuilder = new FunctionBuilder();
@@ -130,17 +139,14 @@ describe("Function generators", () => {
 
             correct_array = Array<FunctionObj>();
 
-
             funcBuilder.setAllowedAxes(['x', 'v']);
             correct_array.push(funcBuilder.getCorrectFunction());
             funcBuilder.setAllowedAxes(['x', 'v', 'a']);
             correct_array.push(funcBuilder.getCorrectFunction());
 
-
-            let correctFunctionToCompare = new FunctionObj(question.funcType, correct_array[0].copyParams());
+            correctFunctionToCompare = new FunctionObj(question.funcType, correct_array[0].copyParams());
             correctFunctionToCompare.params.x = question.params.x;
             chai.expect(correctFunctionToCompare.equalBySignTo(question)).to.be.true;
-
 
             correctFunctionToCompare = new FunctionObj(question.funcType, correct_array[1].copyParams());
             correctFunctionToCompare.params.x = question.params.x;
@@ -148,7 +154,7 @@ describe("Function generators", () => {
             chai.expect(correctFunctionToCompare.equalBySignTo(question)).to.be.true;
         }
     });
-    it("Generated functions should not going out of bounds", () => {
+    it("getCorrectFunction, getIncorrectFunction. Generated functions should not going out of bounds", () => {
         let question: any,
             funcBuilder = new FunctionBuilder(),
             func: FunctionObj;
@@ -166,10 +172,10 @@ describe("Function generators", () => {
                 chai.expect(Math.abs(func.params[param])).to.be.lessThan(Config.upperLimit)
         }
     });
-    // ----------------------------------------------------------------------------------
-    it('Generate params should not return all zeros', () => {
+
+    it('generateParams. Generated params should not be all zeros', () => {
         let func: any;
-        for (let i = 0; i < 100; i++) {
+        for (let i = 0; i < 100; ++i) {
             func = new FunctionObj().generateParams();
             chai.expect(func.params).to.be.not.equal({x: 0, v: 0, a: 0});
         }
@@ -177,11 +183,12 @@ describe("Function generators", () => {
 });
 
 describe('Minor functions', () => {
-    it('createNextFunction should not throw any exceptions.', () => {
-        let funcBuilder: any;
+    it('createNextFunction. Should not throw any exceptions.', () => {
+        let funcBuilder: any,
+        funcLength = Config.defaultLength / 2;
         for (let i = 0; i < 100; ++i) {
             funcBuilder = new FunctionBuilder();
-            chai.expect(() => funcBuilder.getComplexFunction([Config.defaultLength / 2, Config.defaultLength / 2])).to.not.throw(Error);
+            chai.expect(() => funcBuilder.getComplexFunction([funcLength, funcLength])).to.not.throw(Error);
         }
     });
     it('getTextDescription should not throw any exceptions.', () => {
@@ -220,14 +227,24 @@ describe('Minor functions', () => {
 });
 
 describe('Tests correctness, COMPOSITION', () => {
-    it('getG2Gtest_OneAnswerGraph. 1 question, 1 correct answer, 3 incorrect answers', () => {
-        let test: any;
+    it.only('getG2Gtest_OneAnswerGraph. 1 question, 1 correct answer, 3 incorrect answers', () => {
+        let test: any,
+            expectedCorrectFuncCount = 1,
+            questionCount = 1,
+            correctIDsCount = 1,
+            realCorrectFuncCount = 0,
+            answersCount = Config.answerCount;
         for (let i = 0; i < 10; i++) {
             test = tests.getG2Gtest_OneAnswerGraph(0);
-            chai.expect(test.question.graph.length).to.be.equal(1);
-            chai.expect(test.question.correctIDs.length).to.be.equal(1);
-            chai.expect(test.answers.length).to.be.equal(6);
+            chai.expect(test.question.graph.length).to.be.equal(questionCount);
+            chai.expect(test.question.correctIDs.length).to.be.equal(correctIDsCount);
+            chai.expect(test.answers.length).to.be.equal(answersCount);
 
+            realCorrectFuncCount = 0;
+            for (let answer of test.answers)
+                if (checkCorrectFunc(test.question.graph[0], answer.graph[0]))
+                    realCorrectFuncCount++;
+            chai.expect(realCorrectFuncCount).to.be.equal(expectedCorrectFuncCount);
         }
     });
     it('getG2Gtest_TwoAnswerGraph. 1 question, 2 correct answer, 2 incorrect answers', () => {
@@ -251,7 +268,7 @@ describe('Tests correctness, COMPOSITION', () => {
             }
 
             chai.expect(test.answers.length).to.be.equal(6);
-            for (let j = 0; j < 4; j++) {
+            for (let j = 0; j < 6; j++) {
                 chai.expect(test.answers[j].text).to.not.be.null;
                 chai.expect(test.answers[j].id).to.not.be.null;
             }

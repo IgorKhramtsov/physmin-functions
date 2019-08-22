@@ -231,13 +231,8 @@ export class FunctionObj {
         }
         // --------------------------------------------------------------------
         else if (a !== undefined) {
-            if (a !== 0) {
                 text += this.getKeyByValue(Config.movement, 1);
                 text += ' ' + this.getKeyByValue(Config.how, Math.sign(a));
-            } else {
-                text += this.getKeyByValue(Config.movement, 0);
-                text += ' ' + this.getKeyByValue(Config.position, 0);
-            }
         }
         else throw new Error('Incorrect func type.');
 
