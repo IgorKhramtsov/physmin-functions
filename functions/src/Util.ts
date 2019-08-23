@@ -99,7 +99,7 @@ export class Utils {
             threshold = 0.1
         } else if (axis == 'x') {
             threshold = 0.4
-        } else throw new Error('Incorrect axis.')
+        } else throw new Error('Incorrect axis.');
 
         if (Math.abs(value) <= threshold)
             value = 0;

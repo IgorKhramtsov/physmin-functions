@@ -7,6 +7,7 @@ export class FunctionBuilder {
     private usedIncorrectFuncs = Array<FunctionObj>();
 
     private doSnap = false;
+    private doLimit = true;
     private functionLength =  Config.defaultLength;
     private allowedAxes= Config.Axes;
     private useAllowedAxes= true;
@@ -61,6 +62,13 @@ export class FunctionBuilder {
         this.doSnap = false;
     }
 
+    enableLimit(){
+        this.doLimit = true;
+    }
+
+    disableLimit(){
+        this.doLimit = false;
+    }
 
     getQuestionFunction(): FunctionObj {
         let questionObject = this.createQuestionObject();
@@ -145,7 +153,8 @@ export class FunctionBuilder {
         if (this.useAllowedAxes === false) questionObj.axises.deleteItem(pickedAxis);
 
         if (this.doSnap) correctFunc.snapToGrid().limitValues();
-        else correctFunc.limitValues();
+        else if(this.doLimit)
+                correctFunc.limitValues();
 
         return correctFunc;
     }

@@ -11,7 +11,7 @@ export let Config = {
         x: [0.1, 4],
         v: [0.1, 1],
         a: [0.1,0.5],
-        questionCount: [3,4],
+        sign2graph_questionCount: [3,4],
     } as any,
 
 
@@ -19,10 +19,14 @@ export let Config = {
     lowerLimit: 2,
     defaultLength: 12,
 
+    graph2graph_questionCount: 1,
+    graph2graph_answersCount: 6,
 
-    answerCount: 6,
-    G2S_questionCount: 4,
+    graph2state_questionCount: 4,
+    graph2state_answersCount: 4,
 
+    sign2graph_simple_answersCount: 3,
+    sign2graph_complex_answersCount: 6,
 
     directions:{
       'вперед': 1,

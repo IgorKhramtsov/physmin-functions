@@ -7,7 +7,7 @@ export class UnitFirst {
 
     static getG2Gtest(test_id: number, correctAnswersCount: number) {
         const testType = correctAnswersCount === 1 ? 'graph2graph' : "graph2graph2",
-            count = Config.answerCount,
+            answersCount = Config.graph2graph_answersCount,
             answers = Array<any>(),
             builder = new FunctionBuilder();
 
@@ -20,10 +20,10 @@ export class UnitFirst {
         for (let i = 0; i < correctAnswersCount; ++i)
             answers.push({
                 graph: [builder.getCorrectFunction()],
-                id: question.correctIDs.addRandomNumber(count)
+                id: question.correctIDs.addRandomNumber(answersCount)
             })
 
-        for (let i = 0; i < count; ++i)
+        for (let i = 0; i < answersCount; ++i)
             if (!question.correctIDs.contains(i))
                 answers.push({
                     graph: [builder.getIncorrectFunction()],
@@ -38,21 +38,19 @@ export class UnitFirst {
         };
     }
 
-    // IncorrectAnswer = Question + IncorrectFunction - option in future
     static getG2Stest(test_id: number, chance: number) {
         const testType: string = 'graph2state',
             questions = Array<any>(),
             correctIDs = Array<number>(),
             answers = Array<any>(),
-            answerCount = Config.answerCount,
-            questionCount = Config.G2S_questionCount;
+            questionCount = Config.graph2state_questionCount,
+            answerCount = Config.graph2state_answersCount;
 
         let _chance: boolean,
             builder = new FunctionBuilder(),
 
             first: any,
             second: any,
-            complexFunction: Array<FunctionObj>,
 
             index: number,
             firstText: string,
@@ -90,19 +88,10 @@ export class UnitFirst {
             if (_chance) builder.setLength(Config.defaultLength / 2);
             else builder.setLength(0);
 
-            if (correctIDs.contains(i)) {
-                index = correctIDs.indexOf(i);
-                first = questions[index].graph[0];
-                if (questions[index].graph.length === 2)
-                    second = questions[index].graph[1];
-            } else {
-                if (_chance) {
-                    complexFunction = builder.getComplexFunction([Config.defaultLength / 2, Config.defaultLength / 2]);
-                    first = complexFunction[0];
-                    second = complexFunction[1];
-                } else
-                    first = builder.getIncorrectFunction();
-            }
+            index = correctIDs.indexOf(i);
+            first = questions[index].graph[0];
+            if (questions[index].graph.length === 2)
+                second = questions[index].graph[1];
 
             if (second) {
                 firstText = first.getTextDescription(false);
@@ -130,14 +119,14 @@ export class UnitFirst {
             test_id: test_id,
             title: "",
             question: questions,
-            answers: answers
+            answers: answers.shuffle()
         };
     }
 
     static getSGtest(test_id: number, isSimple: boolean) {
         const testType = "relationSings",
             answers = Array<any>(),
-            questionCount = Math.round(Utils.getRandomFromBound("questionCount")),
+            questionCount = Math.round(Utils.getRandomFromBound("sign2graph_questionCount")),
             questionInterval = Math.round(Config.defaultLength / questionCount),
             functionsLengths = Array<number>(),
             answersCount: number = isSimple ? 3 : 6;
@@ -237,7 +226,7 @@ export class UnitFirst {
             test_id: test_id,
             title: "",
             question: [{graph: complexFunction}],
-            answers: answers,
+            answers: answers.shuffle(),
         };
     }
 
