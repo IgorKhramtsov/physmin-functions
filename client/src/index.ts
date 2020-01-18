@@ -66,6 +66,7 @@ function resolve(test: any) {
 
 function outputFunc(graph: any, answers: any, list: any, isSG = false) {
     let node;
+    console.log(answers);
     for (let func of graph) {
         node = document.createElement("li");
         if (func.params.x !== undefined) node.innerHTML += "x: " + func.params.x;
@@ -76,9 +77,19 @@ function outputFunc(graph: any, answers: any, list: any, isSG = false) {
         if (list) list.appendChild(node);
     }
     if (isSG) {
+        let string = " ";
         for (let answer of answers) {
             node = document.createElement("li");
-            node.innerHTML += answer.letter + "[" + answer.leftIndex + "] " + answer.correctSign + " " + answer.letter + "[" + answer.rightIndex + "]";
+            node.innerHTML += answer.letter + "[" + answer.leftIndexes[0] + ", " + answer.leftIndexes[1] + "]";
+
+            if(answer.correctSign == 0)
+                string = " = ";
+            else if(answer.correctSign == -1)
+                string = " < ";
+            else string = " > ";
+
+            node.innerHTML += string;
+            node.innerHTML  += answer.letter + "[" + answer.rightIndexes[0] + ", " + answer.rightIndexes[1] + "]";
             if (list) list.appendChild(node);
         }
     }

@@ -105,7 +105,7 @@ export class FunctionObj {
         return this;
     }
 
-    generateParams() {
+    generateParams(): FunctionObj {
         let x, v, a = 0;
         x = Utils.getRandomOrZeroFromBound(Config.X);
         v = Utils.getRandomOrZeroFromBound(Config.V);
@@ -113,7 +113,9 @@ export class FunctionObj {
             a = Utils.getRandomOrZeroFromBound(Config.A);
 
         if (x === 0 && v === 0 && a === 0)
-            this.generateParams();
+            return this.generateParams();
+
+
         if (Math.sign(v) === Math.sign(a)) {
             if (Utils.withChance(0.5)) {
                 if (v !== 0) v = -v;
@@ -170,19 +172,21 @@ export class FunctionObj {
             text = "",
             x = params.x,
             v = params.v,
-            a = params.a;
+            a = params.a,
+            space = ' ',
+            comma = ', ';
 
         // Returns description of function behavior by its parameters
         if (x !== undefined && v !== undefined && a !== undefined) {
 
             if (x == 0 && v == 0 && a == 0) {
                 text += this.getKeyByValue(Config.movement, 0);
-                text += ' ' + this.getKeyByValue(Config.position, 0);
+                text += space + this.getKeyByValue(Config.position, 0);
             }
 
             else if (x != 0 && v == 0 && a == 0) {
                 text += this.getKeyByValue(Config.movement, 0);
-                text += ' ' + this.getKeyByValue(Config.position, Math.sign(x));
+                text += space + this.getKeyByValue(Config.position, Math.sign(x));
             }
 
             else {
@@ -190,20 +194,21 @@ export class FunctionObj {
                 if (v !== 0)
                     if (a !== 0) {
                         text += this.getKeyByValue(Config.movement, 1);
-                        text += ' ' + this.getKeyByValue(Config.directions, Math.sign(v));
-                        text += ', ' + this.getKeyByValue(Config.how, Math.sign(a));
+                        text += space + this.getKeyByValue(Config.directions, Math.sign(v));
+                        text += comma + this.getKeyByValue(Config.how, Math.sign(a));
                     }
                     else {
                         text += this.getKeyByValue(Config.movement, 1);
-                        text += ' ' + this.getKeyByValue(Config.how, 0);
+                        text += space + this.getKeyByValue(Config.how, 0);
                     }
                 else if (a !== 0) {
                     text += this.getKeyByValue(Config.movement, 1);
-                    text += ' ' + this.getKeyByValue(Config.how, Math.sign(a));
+                    text += space + this.getKeyByValue(Config.directions, 0);
+                    text += space + this.getKeyByValue(Config.how, Math.sign(a));
                 }
                 else {
                     text += this.getKeyByValue(Config.movement, 0);
-                    text += ' ' + this.getKeyByValue(Config.position, 0);
+                    text += space + this.getKeyByValue(Config.position, 0);
                 }
             }
 
@@ -213,28 +218,26 @@ export class FunctionObj {
             if (v !== 0)
                 if (a !== 0) {
                     text += this.getKeyByValue(Config.movement, 1);
-                    text += ' ' + this.getKeyByValue(Config.directions, Math.sign(v));
-                    text += ', ' + this.getKeyByValue(Config.how, Math.sign(a));
+                    text += space + this.getKeyByValue(Config.directions, Math.sign(v));
+                    text += comma + this.getKeyByValue(Config.how, Math.sign(a));
                 }
                 else {
                     text += this.getKeyByValue(Config.movement, 1);
-                    text += ' ' + this.getKeyByValue(Config.how, 0);
+                    text += space + this.getKeyByValue(Config.how, 0);
                 }
             else if (a !== 0) {
                 text += this.getKeyByValue(Config.movement, 1);
-                text += ' ' + this.getKeyByValue(Config.how, Math.sign(a));
+                text += space + this.getKeyByValue(Config.directions, 0);
+                text += space + this.getKeyByValue(Config.how, Math.sign(a));
             }
-            else {
-                text += this.getKeyByValue(Config.movement, 0);
-                text += ' ' + this.getKeyByValue(Config.position, 0);
-            }
+            else text += this.getKeyByValue(Config.movement, 0);
         }
         // --------------------------------------------------------------------
         else if (a !== undefined) {
                 text += this.getKeyByValue(Config.movement, 1);
-                text += ' ' + this.getKeyByValue(Config.how, Math.sign(a));
+                text += space + this.getKeyByValue(Config.how, Math.sign(a));
         }
-        else throw new Error('Incorrect func type.');
+        else throw new Error('Incorrect function type.');
 
         if (isComplex) {
             if (text[0] === ' ') text = text.substr(1);
@@ -245,8 +248,10 @@ export class FunctionObj {
 
     //--------------------------------------------------------------------------------------------------
     // Control function behavior
+    // Finds parameters which leads function to grid,
+    // affect only end of function
     //--------------------------------------------------------------------------------------------------
-    limitValues() {
+    snapEnd() {
         const funcType = this.funcType,
             params = this.params,
             len = this.params.len;
@@ -254,7 +259,8 @@ export class FunctionObj {
             result = 0;
 
         if (value != 0)
-            result = Math.min(Math.abs(value), Config.upperLimit) * Math.sign(value);
+            result = Math.round(Math.min(Math.abs(value), Config.upperLimit)) * Math.sign(value);
+
 
         switch (funcType) {
             case "x":
@@ -287,7 +293,7 @@ export class FunctionObj {
         return this;
     }
 
-    snapToGrid(): FunctionObj {
+    snapBegin(): FunctionObj {
         const funcType = this.funcType,
             params = this.params;
 

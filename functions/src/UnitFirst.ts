@@ -57,7 +57,7 @@ export class UnitFirst {
             secondText: string,
             text = "";
 
-
+        builder.enableSnap();
         for (let i = 0; i < questionCount; ++i) {
             correctIDs.addRandomNumber(answerCount);
 
@@ -81,6 +81,7 @@ export class UnitFirst {
             }
         }
 
+        builder.disableDuplicateText();
         for (let i = 0; i < answerCount; ++i) {
             _chance = Utils.withChance(chance);
             second = undefined;
@@ -108,11 +109,11 @@ export class UnitFirst {
             };
         }
 
-        for (let i = 0; i < questions.length; ++i)
-            for (let j = 0; j < answers.length; ++j)
-                if (answers[j].text === answers[questions[i].correctIDs[0]].text)
-                    if (correctIDs.contains(answers[j].id) && !questions[i].correctIDs.contains(answers[j].id))
-                        questions[i].correctIDs.push(j);
+        // for (let i = 0; i < questions.length; ++i)
+        //     for (let j = 0; j < answers.length; ++j)
+        //         if (answers[j].text === answers[questions[i].correctIDs[0]].text)
+        //             if (correctIDs.contains(answers[j].id) && !questions[i].correctIDs.contains(answers[j].id))
+        //                 questions[i].correctIDs.push(j);
 
         return {
             type: testType,
@@ -151,6 +152,7 @@ export class UnitFirst {
             globalCount = 0;
 
 
+        builder.enableSnap();
         builder.setAllowedAxes(Config.Axes.copy().deleteItem("a"));
         for (let i = 0; i < questionCount - 1; i++) {
             cumsum += questionInterval;
@@ -210,10 +212,12 @@ export class UnitFirst {
             answers[i] = {
                 id: i,
                 letter: isSimple ? complexFunction[0].funcType : letter,
-                leftIndexes: [indexes[globalCount][0][0], (parseInt(indexes[globalCount][0][1]) + 1)],
-                rightIndexes: [indexes[globalCount][1][0], (parseInt(indexes[globalCount][1][1]) + 1)],
+                leftIndexes: [parseInt(indexes[globalCount][0][0]), (parseInt(indexes[globalCount][0][1]) + 1)],
+                rightIndexes: [parseInt(indexes[globalCount][1][0]), (parseInt(indexes[globalCount][1][1]) + 1)],
                 correctSign: Math.sign(leftValue - rightValue),
             };
+            console.log(indexes[globalCount][0]);
+            console.log(indexes[globalCount][0][0]);
 
             if (!isSimple)
                 if (letter === "S") countS++;

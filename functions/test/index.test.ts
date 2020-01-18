@@ -5,14 +5,40 @@ import {UnitFirst as tests} from "../src/UnitFirst"
 import {FunctionBuilder} from "../src/FunctionBuilder";
 
 function checkCorrectFunc(questionFunc: FunctionObj, correctFunc: FunctionObj) {
-    const forCompare = new FunctionObj(questionFunc.funcType, correctFunc.copyParams()),
-        funcType = forCompare.funcType;
-    forCompare.params[funcType] = questionFunc.params[funcType];
-    console.log(JSON.stringify(questionFunc));
-    console.log(JSON.stringify(forCompare));
-    console.log(questionFunc.equalByValueTo(forCompare));
-    console.log('-----------');
-    return questionFunc.equalByValueTo(forCompare)
+    let forCompare: FunctionObj,
+        correctFuncType = correctFunc.funcType;
+    switch (questionFunc.funcType) {
+        case 'x':
+            if (correctFuncType === 'v') {
+                forCompare = new FunctionObj(questionFunc.funcType, correctFunc.copyParams());
+                forCompare.params.x = questionFunc.params.x;
+                return forCompare.equalByValueTo(questionFunc);
+            } else if (correctFuncType === 'a') {
+                forCompare = new FunctionObj(questionFunc.funcType, correctFunc.copyParams());
+                forCompare.params.x = questionFunc.params.x;
+                forCompare.params.v = questionFunc.params.v;
+                return forCompare.equalByValueTo(questionFunc);
+            }
+            break;
+        case 'v':
+            if (correctFuncType === 'x') {
+                forCompare = new FunctionObj(questionFunc.funcType, correctFunc.copyParams()).clearParams();
+                return forCompare.equalByValueTo(questionFunc);
+            } else if (correctFuncType === 'a') {
+                forCompare = new FunctionObj(questionFunc.funcType, correctFunc.copyParams());
+                forCompare.params.v = questionFunc.params.v;
+                return forCompare.equalByValueTo(questionFunc);
+            }
+            break;
+
+        case 'a':
+            if (correctFuncType === 'x' || correctFuncType === 'v') {
+                forCompare = new FunctionObj(questionFunc.funcType, correctFunc.copyParams()).clearParams();
+                return forCompare.equalByValueTo(questionFunc);
+            }
+            break;
+    }
+    return false;
 }
 
 describe("Test generators", () => {
@@ -134,11 +160,12 @@ describe("Function generators", () => {
             chai.expect(correctFunctionToCompare.equalBySignTo(question)).to.be.true;
         }
     });
+
     it("FunctionBuilder. Generated functions should not going out of bounds", () => {
         let builder = new FunctionBuilder(),
             func: FunctionObj;
         for (let i = 0; i < 100; ++i) {
-            for (let axis in ['x', 'v', 'a']) {
+            for (let axis of ['x', 'v', 'a']) {
                 builder.reset();
                 builder.setAllowedAxes([axis]);
 
@@ -157,7 +184,7 @@ describe("Function generators", () => {
         }
     });
 
-    it.only('Complex Function. Functions should connect', () => {
+    it('Complex Function. Functions should connect', () => {
         let builder: FunctionBuilder = new FunctionBuilder(),
             complexFunction: Array<FunctionObj>,
             funcLength = Config.defaultLength / 2,
@@ -165,9 +192,8 @@ describe("Function generators", () => {
             nextStart: number;
         for (let i = 0; i < 100; ++i) {
             builder.reset();
+
             complexFunction = builder.getComplexFunction([funcLength, funcLength]);
-            console.log(JSON.stringify(complexFunction));
-            console.log('------------');
             prevEnd = complexFunction[0].calcFunctionValue();
             nextStart = complexFunction[1].params[complexFunction[1].funcType];
             chai.expect(prevEnd).to.be.equal(nextStart);
@@ -183,6 +209,104 @@ describe("Function generators", () => {
             chai.expect(Math.abs(lastFunc.calcFunctionValue(funcLength))).to.be.at.most(Config.upperLimit);
         }
     });
+});
+
+describe('Function Builder. Function correctness', () => {
+    it('getG2Gtest.', () => {
+        let builder = new FunctionBuilder(),
+            questionFunc: FunctionObj,
+            correctFuncArray: Array<FunctionObj>,
+            incorrectFuncArray: Array<FunctionObj>,
+            incorrectFunc: FunctionObj,
+            correctAnswersCountArray = [1, 2],
+            incorrectAnswersCount = Config.graph2graph_answersCount;
+        for (let i = 0; i < 100; ++i) {
+            for (let correctAnswersCount of correctAnswersCountArray) {
+                builder.reset();
+                correctFuncArray = Array<FunctionObj>();
+                incorrectFuncArray = Array<FunctionObj>();
+
+                builder.disableLimit();
+                builder.disableAllowedAxesUsage();
+                questionFunc = builder.getQuestionFunction();
+                for (let j = 0; j < correctAnswersCount; ++j) {
+                    correctFuncArray.push(builder.getCorrectFunction());
+                    chai.expect(checkCorrectFunc(questionFunc, correctFuncArray.last())).to.be.true;
+                }
+                for (let j = 0; j < incorrectAnswersCount - correctAnswersCount; ++j) {
+                    incorrectFunc = builder.getIncorrectFunction();
+
+                    chai.expect(questionFunc.equalByValueTo(incorrectFunc)).to.be.false;
+                    for (let func of incorrectFuncArray)
+                        chai.expect(incorrectFunc.equalBySignTo(func)).to.be.false;
+                    for (let func of correctFuncArray)
+                        chai.expect(incorrectFunc.equalByTextTo(func)).to.be.false;
+
+
+                    incorrectFuncArray.push(incorrectFunc);
+                }
+            }
+        }
+    });
+
+    it.only('getG2Stest.', () => {
+        let builder = new FunctionBuilder(),
+            questionFuncArray: Array<FunctionObj>,
+            correctFuncArray: Array<FunctionObj>,
+            questionCount = Config.graph2state_questionCount,
+            correctAnswersCount: number,
+            suspectCorrectAnwers: Array<FunctionObj>;
+        for (let i = 0; i < 100; ++i) {
+            builder.reset();
+            builder.disableLimit();
+            builder.disableAllowedAxesUsage();
+            builder.disableDuplicateText();
+            questionFuncArray = Array<FunctionObj>();
+            correctFuncArray = Array<FunctionObj>();
+
+
+            for (let j = 0; j < questionCount; ++j) {
+                questionFuncArray.push(builder.getQuestionFunction());
+                correctFuncArray.push(builder.getCorrectFunction())
+            }
+
+
+            for (let questionFunc of questionFuncArray) {
+                correctAnswersCount = 0;
+                console.log(JSON.stringify(questionFunc));
+                suspectCorrectAnwers = [];
+
+                for (let correctFunc of correctFuncArray)
+                    if (checkCorrectFunc(questionFunc, correctFunc)) {
+                        console.log(JSON.stringify(correctFunc), correctFunc.getTextDescription(false));
+                        suspectCorrectAnwers.push(correctFunc);
+                        correctAnswersCount++;
+                    }
+
+                let suspect: FunctionObj;
+                let suspectCount=0;
+                for (let i = 0; i < suspectCorrectAnwers.length; ++i) {
+                    suspect = suspectCorrectAnwers[i];
+                    for (let j = 0; j < suspectCorrectAnwers.length; ++j) {
+                        if(i != j){
+                            if(suspect.equalByTextTo(suspectCorrectAnwers[j])){
+                                suspectCount++;
+                            }
+                        }
+                    }
+                }
+
+                suspectCount /=2;
+                console.log(suspectCount);
+                console.log('----------');
+                //chai.expect(correctAnswersCount).to.be.equal(1);
+                chai.expect(suspectCount).to.be.equal(0);
+            }
+        }
+    });
+    it('getSGtest', () => {
+
+    })
 });
 
 describe('Minor functions', () => {
@@ -204,7 +328,7 @@ describe('Minor functions', () => {
             chai.expect(() => func.getTextDescription(false)).to.not.throw(Error);
         }
     });
-    it('limitValues. Should not throw any exceptions.', () => {
+    it('snapEnd. Should not throw any exceptions.', () => {
         let builder: any;
         for (let i = 0; i < 100; i++) {
             builder = new FunctionBuilder();
@@ -228,10 +352,12 @@ describe('Minor functions', () => {
         }
     });
     it('generateParams. Generated params should not be all zeros', () => {
-        let func: any;
+        let func: any,
+            isAllZeros: boolean;
         for (let i = 0; i < 100; ++i) {
             func = new FunctionObj().generateParams();
-            chai.expect(func.params).to.be.not.equal({x: 0, v: 0, a: 0});
+            isAllZeros = func.params.x === 0 && func.params.v === 0 && func.params.a === 0;
+            chai.expect(isAllZeros).to.be.false;
         }
     })
 });

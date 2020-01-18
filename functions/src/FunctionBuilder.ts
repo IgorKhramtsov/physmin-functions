@@ -3,14 +3,15 @@ import {Config} from "./Config";
 
 export class FunctionBuilder {
     private usedQuestionObjects = Array<any>();
-    private usedCorrectFuncs= Array<FunctionObj>();
+    private usedCorrectFuncs = Array<FunctionObj>();
     private usedIncorrectFuncs = Array<FunctionObj>();
 
     private doSnap = false;
     private doLimit = true;
-    private functionLength =  Config.defaultLength;
-    private allowedAxes= Config.Axes;
-    private useAllowedAxes= true;
+    private functionLength = Config.defaultLength;
+    private allowedAxes = Config.Axes;
+    private useAllowedAxes = true;
+    private allowDuplicateText = true;
 
 
     reset() {
@@ -22,6 +23,7 @@ export class FunctionBuilder {
         this.functionLength = Config.defaultLength;
         this.allowedAxes = Config.Axes;
         this.useAllowedAxes = true;
+        this.allowDuplicateText = true;
     }
 
     setLength(length: number) {
@@ -62,13 +64,22 @@ export class FunctionBuilder {
         this.doSnap = false;
     }
 
-    enableLimit(){
+    enableLimit() {
         this.doLimit = true;
     }
 
-    disableLimit(){
+    disableLimit() {
         this.doLimit = false;
     }
+
+    disableDuplicateText() {
+        this.allowDuplicateText = false;
+    }
+
+    enableDuplicateText() {
+        this.allowDuplicateText = true;
+    }
+
 
     getQuestionFunction(): FunctionObj {
         let questionObject = this.createQuestionObject();
@@ -100,7 +111,6 @@ export class FunctionBuilder {
         if (!recursive_count) recursive_count = 1;
         if (recursive_count > 100) throw Error('Too much recursive calls');
 
-
         let questionObj = {
             func: new FunctionObj(this.allowedAxes.getRandom()).generateParams().clearParams(),
             axises: {}
@@ -115,9 +125,7 @@ export class FunctionBuilder {
         if (questionObj.func.isConvex() && recursive_count < 10)
             return this.createQuestionObject(++recursive_count);
 
-        if (this.doSnap) questionObj.func.snapToGrid().limitValues();
-        else questionObj.func.limitValues();
-
+        questionObj.func.snapBegin().snapEnd();
         return questionObj;
     }
 
@@ -142,8 +150,25 @@ export class FunctionBuilder {
         newParams = questionObj.func.copyParams();
         correctFunc = new FunctionObj(pickedAxis, newParams).makeCorrectParams().clearParams();
 
+        // if(this.allowDuplicateText == false){
+        //     let count = 0;
+        //     for(let usedQuestionObj of this.usedQuestionObjects){
+        //         // if(this.checkCorrectFunc(usedQuestionObj.func, correctFunc))
+        //         if((correctFunc))
+        //             count++;
+        //     }
+        //     console.log(count);
+        //     if(count > 1 && recursive_count < 10)
+        //         return this.createCorrectFunction(++recursive_count);
+        // }
+
+        // if(this.allowDuplicateText == false)
+        for (const usedCorrectFunc of this.usedCorrectFuncs)
+            if (correctFunc.equalByTextTo(usedCorrectFunc) && recursive_count < 20)
+                return this.createCorrectFunction(++recursive_count);
+
         for (const usedIncorrectFunc of this.usedIncorrectFuncs)
-            if (correctFunc.equalByTextTo(usedIncorrectFunc))
+            if (correctFunc.equalByTextTo(usedIncorrectFunc) && recursive_count < 20)
                 return this.createCorrectFunction(++recursive_count);
 
         correctFunc.params.len = this.functionLength;
@@ -152,11 +177,45 @@ export class FunctionBuilder {
 
         if (this.useAllowedAxes === false) questionObj.axises.deleteItem(pickedAxis);
 
-        if (this.doSnap) correctFunc.snapToGrid().limitValues();
-        else if(this.doLimit)
-                correctFunc.limitValues();
+        // snapEnd affects function what should not be affected
+        return correctFunc.snapEnd();
+    }
 
-        return correctFunc;
+    private checkCorrectFunc(questionFunc: FunctionObj, correctFunc: FunctionObj) {
+        let forCompare: FunctionObj,
+            correctFuncType = correctFunc.funcType;
+        switch (questionFunc.funcType) {
+            case 'x':
+                if (correctFuncType === 'v') {
+                    forCompare = new FunctionObj(questionFunc.funcType, correctFunc.copyParams());
+                    forCompare.params.x = questionFunc.params.x;
+                    return forCompare.equalByValueTo(questionFunc);
+                } else if (correctFuncType === 'a') {
+                    forCompare = new FunctionObj(questionFunc.funcType, correctFunc.copyParams());
+                    forCompare.params.x = questionFunc.params.x;
+                    forCompare.params.v = questionFunc.params.v;
+                    return forCompare.equalByValueTo(questionFunc);
+                }
+                break;
+            case 'v':
+                if (correctFuncType === 'x') {
+                    forCompare = new FunctionObj(questionFunc.funcType, correctFunc.copyParams()).clearParams();
+                    return forCompare.equalByValueTo(questionFunc);
+                } else if (correctFuncType === 'a') {
+                    forCompare = new FunctionObj(questionFunc.funcType, correctFunc.copyParams());
+                    forCompare.params.v = questionFunc.params.v;
+                    return forCompare.equalByValueTo(questionFunc);
+                }
+                break;
+
+            case 'a':
+                if (correctFuncType === 'x' || correctFuncType === 'v') {
+                    forCompare = new FunctionObj(questionFunc.funcType, correctFunc.copyParams()).clearParams();
+                    return forCompare.equalByValueTo(questionFunc);
+                }
+                break;
+        }
+        return false;
     }
 
     private createIncorrectFunction(recursive_count?: number): FunctionObj {
@@ -164,14 +223,14 @@ export class FunctionBuilder {
         if (recursive_count > 100) throw Error('Too much recursive calls');
 
 
-        const incorrectFunc: FunctionObj = new FunctionObj(this.allowedAxes.getRandom()).generateParams().clearParams();
+        const incorrectFunc = new FunctionObj(this.allowedAxes.getRandom()).generateParams().clearParams();
 
         for (const questionObj of this.usedQuestionObjects)
             if (incorrectFunc.equalByValueTo(questionObj.func))
                 return this.createIncorrectFunction(++recursive_count);
 
         for (const usedIncorrectFunc of this.usedIncorrectFuncs)
-            if (incorrectFunc.equalBySignTo(usedIncorrectFunc))
+            if (incorrectFunc.equalBySignTo(usedIncorrectFunc) || incorrectFunc.equalByTextTo(usedIncorrectFunc))
                 return this.createIncorrectFunction(++recursive_count);
 
         for (const usedCorrectFunc of this.usedCorrectFuncs)
@@ -182,10 +241,9 @@ export class FunctionBuilder {
         if (incorrectFunc.isConvex() && recursive_count < 10)
             return this.createIncorrectFunction(++recursive_count);
 
-        if (this.doSnap) incorrectFunc.snapToGrid().limitValues();
-        else incorrectFunc.limitValues();
 
-        return incorrectFunc;
+        // snapEnd affects function what should not be affected
+        return incorrectFunc.snapEnd();
     }
 
     private createComplexFunction(funcsLengths: Array<number>) {
@@ -202,9 +260,11 @@ export class FunctionBuilder {
 
 
         complexFunc = Array<FunctionObj>();
-
         this.setLength(funcsLengths[0]);
+
+        this.enableSnap();
         complexFunc.push(this.getQuestionFunction());
+        this.disableSnap();
 
         for (let i = 1; i < funcsLengths.length; ++i) {
             this.setLength(funcsLengths[i]);
@@ -221,32 +281,34 @@ export class FunctionBuilder {
         if (!prevFunc.params.len) throw new Error("this.params.len is undefined");
 
 
-        const funcType= prevFunc.funcType,
+        const funcType = prevFunc.funcType,
             nextFunc = new FunctionObj(funcType).generateParams().clearParams();
         let prevFuncValue: number;
         nextFunc.params.len = this.functionLength;
 
-        if (this.doSnap) prevFunc.snapToGrid().limitValues();
-        else prevFunc.limitValues();
+        // if (this.doSnap) prevFunc.snapBegin().snapEnd();
+        // else prevFunc.snapEnd();
 
         prevFuncValue = prevFunc.calcFunctionValue();
         nextFunc.params[funcType] = prevFuncValue;
+        nextFunc.snapEnd();
 
-        if (Math.abs(nextFunc.params[funcType]) > Config.upperLimit)
-            throw Error('nextFunc.params[funcType] greater than upperLimit');
+        // if (Math.abs(nextFunc.params[funcType]) > Config.upperLimit)
+        //     throw Error('nextFunc.params[funcType] greater than upperLimit');
 
-        if (nextFunc.calcFunctionValue() > Config.upperLimit) {
-            let params = nextFunc.params,
-                first = params.x ? "x" : "v",
-                second = params.v ? "v" : "a",
-                third = params.a ? "a" : undefined;
-            // FIXME:       V always on side of X
-            if (nextFunc.params[second] !== 0)
-                nextFunc.params[second] = -Math.sign(nextFunc.params[first]) * Math.abs(nextFunc.params[second]);
-            if (third && nextFunc.params[third] !== 0)
-            // FIXME:                 Math.sign(nextFunc.params[SECOND?????????]) to be opposite of V???
-                nextFunc.params[third] = Math.sign(nextFunc.params[first]) * Math.abs(nextFunc.params[third]);
-        }
+        // if (nextFunc.calcFunctionValue() > Config.upperLimit) {
+        //     let params = nextFunc.params,
+        //         first = params.x ? "x" : "v",
+        //         second = params.v ? "v" : "a",
+        //         third = params.a ? "a" : undefined;
+        //     // FIXME:       V always on side of X
+        //     if (nextFunc.params[second] !== 0)
+        //         nextFunc.params[second] = -Math.sign(nextFunc.params[first]) * Math.abs(nextFunc.params[second]);
+        //     if (third && nextFunc.params[third] !== 0)
+        //     // FIXME:                 Math.sign(nextFunc.params[SECOND?????????]) to be opposite of V???
+        //         nextFunc.params[third] = Math.sign(nextFunc.params[first]) * Math.abs(nextFunc.params[third]);
+        // }
+
 
         if (nextFunc.equalByDirectionTo(prevFunc))
             return this.createNextFunction(prevFunc, ++recursive_count);
