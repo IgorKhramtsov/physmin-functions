@@ -1,8 +1,8 @@
 import chai = require('chai');
-import {FunctionObj} from "../src/FunctionObj";
+import {FunctionObj} from "../src/Function/FunctionObj";
 import {Config} from "../src/Config";
 import {UnitFirst as tests} from "../src/UnitFirst"
-import {FunctionBuilder} from "../src/FunctionBuilder";
+import {FunctionBuilder} from "../src/Function/FunctionBuilder";
 
 function checkCorrectFunc(questionFunc: FunctionObj, correctFunc: FunctionObj) {
     let forCompare: FunctionObj,

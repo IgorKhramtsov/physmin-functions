@@ -31,7 +31,7 @@ function resolve(test: any) {
         drawFunctions(canvas, graph, letter);
         // drawAnswers(canvas1, test.answers,test.question.correctIDs);
     }
-    if (test.type === "graph2state") {
+    if (test.type === "G2S") {
         console.log(test);
         graph = test.question[0].graph;
 
@@ -51,7 +51,7 @@ function resolve(test: any) {
         drawFunctions(canvas, graph, letter);
         drawTextAnswers(list1, test.answers, test.question[0].correctIDs,incorrectIDs);
     }
-    if (test.type === "graph2graph" || test.type === "graph2graph2") {
+    if (test.type === "G2G" || test.type === "graph2graph2") {
         graph = test.question.graph;
         letter = graph[0].funcType;
         drawFunctions(canvas, graph, letter);

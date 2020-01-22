@@ -1,5 +1,7 @@
 import {FunctionObj} from './FunctionObj'
-import {Config} from "./Config";
+import {Config} from "../Config";
+import {FunctionComparison} from "./FunctionComparisons";
+import {FunctionBehavior} from "./FunctionBehavior";
 
 export class FunctionBuilder {
     private usedQuestionObjects = Array<any>();
@@ -8,29 +10,32 @@ export class FunctionBuilder {
 
     private doSnap = false;
     private doLimit = true;
-    private functionLength = Config.defaultLength;
-    private allowedAxes = Config.Axes;
+    private functionLength = Config.Limits.defaultLength;
+    private allowedAxes = Config.Axes.Set;
     private useAllowedAxes = true;
     private allowDuplicateText = true;
 
 
+    //------------------------------------
+    // Builder properties
+    //------------------------------------
     reset() {
         this.usedQuestionObjects = Array<any>();
         this.usedCorrectFuncs = Array<FunctionObj>();
         this.usedIncorrectFuncs = Array<FunctionObj>();
 
         this.doSnap = false;
-        this.functionLength = Config.defaultLength;
-        this.allowedAxes = Config.Axes;
+        this.functionLength = Config.Limits.defaultLength;
+        this.allowedAxes = Config.Axes.Set;
         this.useAllowedAxes = true;
         this.allowDuplicateText = true;
     }
 
     setLength(length: number) {
-        if (length < 0 || length > Config.defaultLength)
-            throw Error('Parameter <functionLength> must be in [0,' + Config.defaultLength + '].');
+        if (length < 0 || length > Config.Limits.defaultLength)
+            throw Error('Parameter <functionLength> must be in [0,' + Config.Limits.defaultLength + '].');
         else if (length === 0)
-            this.functionLength = Config.defaultLength;
+            this.functionLength = Config.Limits.defaultLength;
         else
             this.functionLength = length;
 
@@ -53,24 +58,9 @@ export class FunctionBuilder {
     }
 
     resetAllowedAxes() {
-        this.allowedAxes = Config.Axes.copy();
+        this.allowedAxes = Config.Axes.Set.copy();
     }
 
-    enableSnap() {
-        this.doSnap = true;
-    }
-
-    disableSnap() {
-        this.doSnap = false;
-    }
-
-    enableLimit() {
-        this.doLimit = true;
-    }
-
-    disableLimit() {
-        this.doLimit = false;
-    }
 
     disableDuplicateText() {
         this.allowDuplicateText = false;
@@ -81,22 +71,25 @@ export class FunctionBuilder {
     }
 
 
+    //------------------------------------
+    // Methods that returns functions
+    //------------------------------------
     getQuestionFunction(): FunctionObj {
-        let questionObject = this.createQuestionObject();
+        const questionObject = this.createQuestionObject();
         this.usedQuestionObjects.push(questionObject);
 
         return questionObject.func;
     }
 
     getCorrectFunction(): FunctionObj {
-        let correctFunction = this.createCorrectFunction();
+        const correctFunction = this.createCorrectFunction();
         this.usedCorrectFuncs.push(correctFunction);
 
         return correctFunction;
     }
 
     getIncorrectFunction(): FunctionObj {
-        let incorrectFunction = this.createIncorrectFunction();
+        const incorrectFunction = this.createIncorrectFunction();
         this.usedIncorrectFuncs.push(incorrectFunction);
 
         return incorrectFunction;
@@ -107,25 +100,30 @@ export class FunctionBuilder {
     }
 
 
+    //------------------------------------
+    // Methods that creates functions
+    //------------------------------------
     private createQuestionObject(recursive_count?: number): any {
         if (!recursive_count) recursive_count = 1;
         if (recursive_count > 100) throw Error('Too much recursive calls');
 
-        let questionObj = {
+        const questionObj = {
             func: new FunctionObj(this.allowedAxes.getRandom()).generateParams().clearParams(),
             axises: {}
         };
-        questionObj.axises = Config.Axes.copy().deleteItem(questionObj.func.funcType);
+        questionObj.axises = Config.Axes.Set.copy().deleteItem(questionObj.func.funcType);
 
         for (const obj of this.usedQuestionObjects)
-            if (questionObj.func.equalBySignTo(obj.func) || questionObj.func.equalByTextTo(obj.func))
+            if (questionObj.func.comparisons.equalBySignTo(obj.func)
+                || questionObj.func.comparisons.equalByTextTo(obj.func))
                 return this.createQuestionObject(++recursive_count);
 
         questionObj.func.params.len = this.functionLength;
-        if (questionObj.func.isConvex() && recursive_count < 10)
+        if (questionObj.func.behavior.isConvex() && recursive_count < 10)
             return this.createQuestionObject(++recursive_count);
 
-        questionObj.func.snapBegin().snapEnd();
+
+        questionObj.func.behavior.snapBegin().snapEnd();
         return questionObj;
     }
 
@@ -135,8 +133,8 @@ export class FunctionBuilder {
         if (this.usedQuestionObjects.length === 0) throw Error("There are none of question function");
 
 
-        let questionObj = this.usedQuestionObjects.last(),
-            correctFunc: FunctionObj,
+        const questionObj = this.usedQuestionObjects.last();
+        let correctFunc: FunctionObj,
             pickedAxis: string,
             newParams: any;
 
@@ -164,54 +162,55 @@ export class FunctionBuilder {
 
         // if(this.allowDuplicateText == false)
         for (const usedCorrectFunc of this.usedCorrectFuncs)
-            if (correctFunc.equalByTextTo(usedCorrectFunc) && recursive_count < 20)
+            if (correctFunc.comparisons.equalByTextTo(usedCorrectFunc) && recursive_count < 20)
                 return this.createCorrectFunction(++recursive_count);
 
         for (const usedIncorrectFunc of this.usedIncorrectFuncs)
-            if (correctFunc.equalByTextTo(usedIncorrectFunc) && recursive_count < 20)
+            if (correctFunc.comparisons.equalByTextTo(usedIncorrectFunc) && recursive_count < 20)
                 return this.createCorrectFunction(++recursive_count);
 
         correctFunc.params.len = this.functionLength;
-        if (correctFunc.isConvex() && recursive_count < 10)
+        if (correctFunc.behavior.isConvex() && recursive_count < 10)
             return this.createCorrectFunction(++recursive_count);
 
         if (this.useAllowedAxes === false) questionObj.axises.deleteItem(pickedAxis);
 
         // snapEnd affects function what should not be affected
-        return correctFunc.snapEnd();
+        return correctFunc.behavior.snapEnd();
     }
 
     private checkCorrectFunc(questionFunc: FunctionObj, correctFunc: FunctionObj) {
-        let forCompare: FunctionObj,
-            correctFuncType = correctFunc.funcType;
+        let forCompare: FunctionObj;
+        const correctFuncType = correctFunc.funcType;
+
         switch (questionFunc.funcType) {
             case 'x':
                 if (correctFuncType === 'v') {
                     forCompare = new FunctionObj(questionFunc.funcType, correctFunc.copyParams());
                     forCompare.params.x = questionFunc.params.x;
-                    return forCompare.equalByValueTo(questionFunc);
+                    return forCompare.behavior.equalByValueTo(questionFunc);
                 } else if (correctFuncType === 'a') {
                     forCompare = new FunctionObj(questionFunc.funcType, correctFunc.copyParams());
                     forCompare.params.x = questionFunc.params.x;
                     forCompare.params.v = questionFunc.params.v;
-                    return forCompare.equalByValueTo(questionFunc);
+                    return forCompare.behavior.equalByValueTo(questionFunc);
                 }
                 break;
             case 'v':
                 if (correctFuncType === 'x') {
                     forCompare = new FunctionObj(questionFunc.funcType, correctFunc.copyParams()).clearParams();
-                    return forCompare.equalByValueTo(questionFunc);
+                    return forCompare.behavior.equalByValueTo(questionFunc);
                 } else if (correctFuncType === 'a') {
                     forCompare = new FunctionObj(questionFunc.funcType, correctFunc.copyParams());
                     forCompare.params.v = questionFunc.params.v;
-                    return forCompare.equalByValueTo(questionFunc);
+                    return forCompare.behavior.equalByValueTo(questionFunc);
                 }
                 break;
 
             case 'a':
                 if (correctFuncType === 'x' || correctFuncType === 'v') {
                     forCompare = new FunctionObj(questionFunc.funcType, correctFunc.copyParams()).clearParams();
-                    return forCompare.equalByValueTo(questionFunc);
+                    return forCompare.behavior.equalByValueTo(questionFunc);
                 }
                 break;
         }
@@ -226,45 +225,46 @@ export class FunctionBuilder {
         const incorrectFunc = new FunctionObj(this.allowedAxes.getRandom()).generateParams().clearParams();
 
         for (const questionObj of this.usedQuestionObjects)
-            if (incorrectFunc.equalByValueTo(questionObj.func))
+            if (incorrectFunc.comparisons.equalByValueTo(questionObj.func))
                 return this.createIncorrectFunction(++recursive_count);
 
         for (const usedIncorrectFunc of this.usedIncorrectFuncs)
-            if (incorrectFunc.equalBySignTo(usedIncorrectFunc) || incorrectFunc.equalByTextTo(usedIncorrectFunc))
+            if (incorrectFunc.comparisons.equalBySignTo(usedIncorrectFunc)
+                || incorrectFunc.comparisons.equalByTextTo(usedIncorrectFunc))
                 return this.createIncorrectFunction(++recursive_count);
 
         for (const usedCorrectFunc of this.usedCorrectFuncs)
-            if (incorrectFunc.equalByTextTo(usedCorrectFunc))
+            if (incorrectFunc.comparisons.equalByTextTo(usedCorrectFunc))
                 return this.createIncorrectFunction(++recursive_count);
 
         incorrectFunc.params.len = this.functionLength;
-        if (incorrectFunc.isConvex() && recursive_count < 10)
+        if (incorrectFunc.behavior.isConvex() && recursive_count < 10)
             return this.createIncorrectFunction(++recursive_count);
 
 
         // snapEnd affects function what should not be affected
-        return incorrectFunc.snapEnd();
+        return incorrectFunc.behavior.snapEnd();
     }
 
     private createComplexFunction(funcsLengths: Array<number>) {
-        let cumLength = 0,
-            complexFunc: Array<FunctionObj>;
+        const defaultLength = Config.Limits.defaultLength,
+            lowerLimit = Config.Limits.lowerLimit;
+        let complexFunc: Array<FunctionObj>,
+            cumLength = 0;
 
         for (const length of funcsLengths) {
-            if (length < Config.lowerLimit || length > Config.defaultLength)
-                throw Error('Length must be between ' + Config.lowerLimit + ' and ' + Config.defaultLength);
+            if (length < lowerLimit || length > length)
+                throw Error('Length must be between ' + lowerLimit + ' and ' + length);
             cumLength += length
         }
-        if (cumLength > Config.defaultLength)
-            throw Error('The sum of functions lengths values must be less than ' + Config.defaultLength);
+        if (cumLength > defaultLength)
+            throw Error('The sum of functions lengths values must be less than ' + defaultLength);
 
 
         complexFunc = Array<FunctionObj>();
         this.setLength(funcsLengths[0]);
 
-        this.enableSnap();
         complexFunc.push(this.getQuestionFunction());
-        this.disableSnap();
 
         for (let i = 1; i < funcsLengths.length; ++i) {
             this.setLength(funcsLengths[i]);
@@ -289,14 +289,14 @@ export class FunctionBuilder {
         // if (this.doSnap) prevFunc.snapBegin().snapEnd();
         // else prevFunc.snapEnd();
 
-        prevFuncValue = prevFunc.calcFunctionValue();
+        prevFuncValue = prevFunc.values.calcFunctionValue();
         nextFunc.params[funcType] = prevFuncValue;
-        nextFunc.snapEnd();
+        nextFunc.behavior.snapEnd();
 
         // if (Math.abs(nextFunc.params[funcType]) > Config.upperLimit)
         //     throw Error('nextFunc.params[funcType] greater than upperLimit');
 
-        // if (nextFunc.calcFunctionValue() > Config.upperLimit) {
+        // if (nextFunc.calcFinalValue() > Config.upperLimit) {
         //     let params = nextFunc.params,
         //         first = params.x ? "x" : "v",
         //         second = params.v ? "v" : "a",
@@ -310,7 +310,7 @@ export class FunctionBuilder {
         // }
 
 
-        if (nextFunc.equalByDirectionTo(prevFunc))
+        if (nextFunc.behavior.equalByDirectionTo(prevFunc))
             return this.createNextFunction(prevFunc, ++recursive_count);
 
         return nextFunc;

@@ -1,50 +1,68 @@
 export let Config = {
-    Axes: [
-        'x', 'v', 'a'
-    ],
 
-    X: "x",
-    V: "v",
-    A: "a",
+    Axes: {
+        Set: [
+            'x', 'v', 'a'
+        ],
 
-    bounds: {
+        X: "x",
+        V: "v",
+        A: "a",
+    },
+
+    Bounds: {
         x: [0.1, 4],
         v: [0.1, 1],
         a: [0.15, 0.5],
-        sign2graph_questionCount: [3, 4],
     } as any,
 
-
-    upperLimit: 5,
-    lowerLimit: 2,
-    defaultLength: 12,
-
-    graph2graph_questionCount: 1,
-    graph2graph_answersCount: 6,
-
-    graph2state_questionCount: 4,
-    graph2state_answersCount: 4,
-
-    sign2graph_simple_answersCount: 3,
-    sign2graph_complex_answersCount: 6,
-
-    directions: {
-        'вперед': 1,
-        'назад': -1,
-        'без начальной скорости': 0,
+    Limits: {
+        upperLimit: 5,
+        lowerLimit: 2,
+        defaultLength: 12,
     },
-    how: {
-        "равномерно ": 0,
-        "ускоряясь вперед": 1,
-        "ускоряясь назад": -1,
+
+    Tasks: {
+        G2G: {
+            questionCount: 1,
+            answersCount: 6
+        },
+        G2S: {
+            questionCount: 4,
+            answersCount: 4
+        },
+        S2G: {
+            questionCount: [3, 4],
+            simple: {
+                answersCount: 3
+            },
+            complex: {
+                answersCount: 6
+            }
+        }
     },
-    position: {
-        'выше нуля': 1,
-        'ниже нуля': -1,
-        'в нуле': 0,
-    },
-    movement: {
-        "покоится": 0,
-        "движется": 1,
+
+    TextDescription: {
+        directions: {
+            'вперед': 1,
+            'назад': -1,
+            'без начальной скорости': 0,
+        },
+        how: {
+            "равномерно ": 0,
+            "ускоряясь вперед": 1,
+            "ускоряясь назад": -1,
+        },
+        position: {
+            'выше нуля': 1,
+            'ниже нуля': -1,
+            'в нуле': 0,
+        },
+        movement: {
+            "покоится": 0,
+            "движется": 1,
+        }
     }
+
 };
+

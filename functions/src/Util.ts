@@ -48,13 +48,13 @@ Array.prototype.contains = function <T>(this: T[], item: T): any {
     return this.indexOf(item) !== -1
 };
 Array.prototype.addRandom = function <T>(this: T[], array: Array<T>) {
-    let index = this.length;
+    const index = this.length;
 
     do this[index] = array.getRandom();
     while (this.indexOf(this[index]) !== index);
 };
 Array.prototype.addRandomNumber = function <T>(this: number[], number: number) {
-    let index = this.length;
+    const index = this.length;
     do this[index] = number.getRandom();
     while (this.indexOf(this[index]) !== index);
 
@@ -73,7 +73,7 @@ Array.prototype.shuffle = function <T>(this: T[]): Array<T> {
 
 export class Utils {
     static getRandomFromBound(axis: string) {
-        let value = Utils.getRandomFromRange(Config.bounds[axis][0], Config.bounds[axis][1]);
+        let value = Utils.getRandomFromRange(Config.Bounds[axis][0], Config.Bounds[axis][1]);
         if (Math.abs(value) <= 0.3)
             value = 0;
         return value
@@ -84,20 +84,20 @@ export class Utils {
             return 0;
         else {
             const sign = Utils.withChance(0.5) ? 1 : -1,
-                value = Utils.getRandomFromRange(Config.bounds[axis][0], Config.bounds[axis][1]);
+                value = Utils.getRandomFromRange(Config.Bounds[axis][0], Config.Bounds[axis][1]);
             return sign * value;
         }
     }
 
     static getRandomNonZeroFromBound(axis: string): number {
-        let value = Utils.getRandomFromRange(Config.bounds[axis][0], Config.bounds[axis][1]);
+        let value = Utils.getRandomFromRange(Config.Bounds[axis][0], Config.Bounds[axis][1]);
 
         let threshold: number;
-        if (axis == 'a') {
+        if (axis === 'a') {
             threshold = 0.05
-        } else if (axis == 'v') {
+        } else if (axis === 'v') {
             threshold = 0.1
-        } else if (axis == 'x') {
+        } else if (axis === 'x') {
             threshold = 0.4
         } else throw new Error('Incorrect axis.');
 
