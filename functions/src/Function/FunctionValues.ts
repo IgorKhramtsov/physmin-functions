@@ -1,14 +1,18 @@
 import {FunctionObj} from "./FunctionObj";
 
-let FunctionValues = {
-    functionObj: FunctionObj,
+export class FunctionValues {
+    _functionObj: FunctionObj;
+
+    constructor(functionObject: FunctionObj ) {
+        this._functionObj = functionObject;
+    }
 
     // Returns final values of function (function values at end of its length)
-    calcFinalValue(this: any, len?: number): number {
-        const funcObj = this.functionObj,
-            params = funcObj.params,
-            t = len !== undefined ? len : params.len;
-        let value: number;
+    calcFinalValue(len?: number): number {
+        const   funcObj = this._functionObj,
+                params = funcObj.params,
+                t = len !== undefined ? len : params.len;
+        let     value: number;
 
         switch (funcObj.funcType) {
             case "x":
@@ -22,16 +26,16 @@ let FunctionValues = {
                 return Math.round(value * 100) / 100;
         }
         throw Error('Incorrect type of function.');
-    },
+    }
 
     // Returns the area under function curve
-    calcIntegral(this: any): number {
-        const funcObj = this.functionObj,
-            params = this.params,
-            X = params.x,
-            V = params.v,
-            A = params.a,
-            L = params.len;
+    calcIntegral(): number {
+        const   funcObj = this._functionObj,
+                params = funcObj.params,
+                X = params.x,
+                V = params.v,
+                A = params.a,
+                L = params.len;
 
         switch (funcObj.funcType) {
             case "x":
@@ -40,18 +44,15 @@ let FunctionValues = {
                 return V * L + (A * L * L) / 2;
         }
         return 0;
-    },
+    }
 
     // Returns the area under function curve on segment
-    calcIntegralOnSegment(this: any, start: number, end: number, functions: Array<FunctionObj>): number {
+    calcIntegralOnSegment(start: number, end: number, functions: Array<FunctionObj>): number {
         let result = 0;
 
         for (let i = start; i < end + 1; i++)
             result += functions[i].values.calcIntegral();
 
         return result;
-    },
+    }
 };
-
-export {FunctionValues}
-

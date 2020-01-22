@@ -2,23 +2,22 @@ import {Utils} from '../Util';
 import {Config} from "../Config";
 import {FunctionComparison} from "./FunctionComparisons";
 import {FunctionValues} from "./FunctionValues";
-import {FunctionBehavior} from "./FunctionBehavior";
-
+import {FunctionBehaviour} from "./FunctionBehaviour";
 
 export class FunctionObj {
     params: any;
     funcType: string;
 
-    behavior: any;
-    comparisons: any;
-    values: any;
+    behaviour: FunctionBehaviour;
+    comparisons: FunctionComparison;
+    values: FunctionValues;
 
     constructor(_funcType?: string, _params?: any) {
+        this.behaviour = new FunctionBehaviour(this);
+        this.comparisons = new FunctionComparison(this);
+        this.values = new FunctionValues(this);
         this.funcType = _funcType ? _funcType : "";
         this.params = _params ? _params : {};
-        this.behavior.functionObj = this;
-        this.comparisons.functionObj = this;
-        this.values.functionObj = this;
     }
 
 
@@ -195,7 +194,3 @@ export class FunctionObj {
     }
 
 }
-
-FunctionObj.prototype.behavior = FunctionBehavior;
-FunctionObj.prototype.comparisons = FunctionComparison;
-FunctionObj.prototype.values = FunctionValues;

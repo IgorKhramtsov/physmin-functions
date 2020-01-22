@@ -1,7 +1,6 @@
 import {FunctionObj} from './FunctionObj'
 import {Config} from "../Config";
 import {FunctionComparison} from "./FunctionComparisons";
-import {FunctionBehavior} from "./FunctionBehavior";
 
 export class FunctionBuilder {
     private usedQuestionObjects = Array<any>();
@@ -119,11 +118,11 @@ export class FunctionBuilder {
                 return this.createQuestionObject(++recursive_count);
 
         questionObj.func.params.len = this.functionLength;
-        if (questionObj.func.behavior.isConvex() && recursive_count < 10)
+        if (questionObj.func.behaviour.isConvex() && recursive_count < 10)
             return this.createQuestionObject(++recursive_count);
 
-
-        questionObj.func.behavior.snapBegin().snapEnd();
+        
+        questionObj.func.behaviour.snapBegin().snapEnd();
         return questionObj;
     }
 
@@ -170,13 +169,13 @@ export class FunctionBuilder {
                 return this.createCorrectFunction(++recursive_count);
 
         correctFunc.params.len = this.functionLength;
-        if (correctFunc.behavior.isConvex() && recursive_count < 10)
+        if (correctFunc.behaviour.isConvex() && recursive_count < 10)
             return this.createCorrectFunction(++recursive_count);
 
         if (this.useAllowedAxes === false) questionObj.axises.deleteItem(pickedAxis);
 
         // snapEnd affects function what should not be affected
-        return correctFunc.behavior.snapEnd();
+        return correctFunc.behaviour.snapEnd().getFuncObj();
     }
 
     private checkCorrectFunc(questionFunc: FunctionObj, correctFunc: FunctionObj) {
@@ -188,29 +187,29 @@ export class FunctionBuilder {
                 if (correctFuncType === 'v') {
                     forCompare = new FunctionObj(questionFunc.funcType, correctFunc.copyParams());
                     forCompare.params.x = questionFunc.params.x;
-                    return forCompare.behavior.equalByValueTo(questionFunc);
+                    return forCompare.comparisons.equalByValueTo(questionFunc);
                 } else if (correctFuncType === 'a') {
                     forCompare = new FunctionObj(questionFunc.funcType, correctFunc.copyParams());
                     forCompare.params.x = questionFunc.params.x;
                     forCompare.params.v = questionFunc.params.v;
-                    return forCompare.behavior.equalByValueTo(questionFunc);
+                    return forCompare.comparisons.equalByValueTo(questionFunc);
                 }
                 break;
             case 'v':
                 if (correctFuncType === 'x') {
                     forCompare = new FunctionObj(questionFunc.funcType, correctFunc.copyParams()).clearParams();
-                    return forCompare.behavior.equalByValueTo(questionFunc);
+                    return forCompare.comparisons.equalByValueTo(questionFunc);
                 } else if (correctFuncType === 'a') {
                     forCompare = new FunctionObj(questionFunc.funcType, correctFunc.copyParams());
                     forCompare.params.v = questionFunc.params.v;
-                    return forCompare.behavior.equalByValueTo(questionFunc);
+                    return forCompare.comparisons.equalByValueTo(questionFunc);
                 }
                 break;
 
             case 'a':
                 if (correctFuncType === 'x' || correctFuncType === 'v') {
                     forCompare = new FunctionObj(questionFunc.funcType, correctFunc.copyParams()).clearParams();
-                    return forCompare.behavior.equalByValueTo(questionFunc);
+                    return forCompare.comparisons.equalByValueTo(questionFunc);
                 }
                 break;
         }
@@ -238,12 +237,12 @@ export class FunctionBuilder {
                 return this.createIncorrectFunction(++recursive_count);
 
         incorrectFunc.params.len = this.functionLength;
-        if (incorrectFunc.behavior.isConvex() && recursive_count < 10)
+        if (incorrectFunc.behaviour.isConvex() && recursive_count < 10)
             return this.createIncorrectFunction(++recursive_count);
 
 
         // snapEnd affects function what should not be affected
-        return incorrectFunc.behavior.snapEnd();
+        return incorrectFunc.behaviour.snapEnd().getFuncObj();
     }
 
     private createComplexFunction(funcsLengths: Array<number>) {
@@ -291,7 +290,7 @@ export class FunctionBuilder {
 
         prevFuncValue = prevFunc.values.calcFunctionValue();
         nextFunc.params[funcType] = prevFuncValue;
-        nextFunc.behavior.snapEnd();
+        nextFunc.behaviour.snapEnd();
 
         // if (Math.abs(nextFunc.params[funcType]) > Config.upperLimit)
         //     throw Error('nextFunc.params[funcType] greater than upperLimit');
@@ -310,7 +309,7 @@ export class FunctionBuilder {
         // }
 
 
-        if (nextFunc.behavior.equalByDirectionTo(prevFunc))
+        if (nextFunc.comparisons.equalByDirectionTo(prevFunc))
             return this.createNextFunction(prevFunc, ++recursive_count);
 
         return nextFunc;

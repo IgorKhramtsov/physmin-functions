@@ -2,16 +2,21 @@ import {FunctionObj} from "./FunctionObj";
 import {Config} from "../Config";
 
 
-let FunctionComparison = {
-    functionObj: FunctionObj,
+export class FunctionComparison {
+    _functionObj: FunctionObj;
+    
+    
+    constructor(functionObject: FunctionObj ) {
+        this._functionObj = functionObject;
+    }
 
-    equalByTextTo(this: any, obj: FunctionObj): boolean {
-        const funcObj = this.functionObj;
-        return funcObj.getTextDescription(false) === obj.getTextDescription(false)
-    },
+    equalByTextTo(obj: FunctionObj): boolean {
+        return this._functionObj.getTextDescription(false) === obj.getTextDescription(false)
+    }
 
-    equalBySignTo(this: any, obj: FunctionObj): boolean {
-        const funcObj = this.functionObj;
+    equalBySignTo(obj: FunctionObj): boolean {
+        const funcObj = this._functionObj;
+
         if (funcObj === undefined || obj === undefined) return false;
 
         if (funcObj.funcType === obj.funcType) {
@@ -33,12 +38,12 @@ let FunctionComparison = {
             }
         }
         return false;
-    },
+    }
 
-    equalByValueTo(this: any, obj: FunctionObj): boolean {
+    equalByValueTo(obj: FunctionObj): boolean {
         if (obj === undefined) return false;
+        const funcObj = this._functionObj;
 
-        const funcObj = this.functionObj;
         if (funcObj.funcType === obj.funcType)
             if (funcObj.params.x === obj.params.x &&
                 funcObj.params.v === obj.params.v &&
@@ -46,13 +51,14 @@ let FunctionComparison = {
                 return true;
 
         return false;
-    },
+    }
 
-    equalByDirectionTo(this: any, obj: FunctionObj): boolean {
-        const funcObj = this.functionObj;
+    equalByDirectionTo(obj: FunctionObj): boolean {
         // Functions have equal directions when their derivatives have equal sign
-        let this_dir: number,
-            nextFunc_dir: number;
+        const   funcObj = this._functionObj;
+        let     this_dir: number,
+                nextFunc_dir: number;
+
         switch (obj.funcType) {
             case "x":
                 this_dir = funcObj.params.v + funcObj.params.a * funcObj.params.len;
@@ -65,7 +71,5 @@ let FunctionComparison = {
         }
 
         return false;
-    },
+    }
 };
-
-export {FunctionComparison}
