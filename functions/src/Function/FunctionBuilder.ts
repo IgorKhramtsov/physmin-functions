@@ -1,14 +1,11 @@
 import {FunctionObj} from './FunctionObj'
 import {Config} from "../Config";
-import {FunctionComparison} from "./FunctionComparisons";
 
 export class FunctionBuilder {
     private usedQuestionObjects = Array<any>();
     private usedCorrectFuncs = Array<FunctionObj>();
     private usedIncorrectFuncs = Array<FunctionObj>();
 
-    private doSnap = false;
-    private doLimit = true;
     private functionLength = Config.Limits.defaultLength;
     private allowedAxes = Config.Axes.Set;
     private useAllowedAxes = true;
@@ -23,7 +20,6 @@ export class FunctionBuilder {
         this.usedCorrectFuncs = Array<FunctionObj>();
         this.usedIncorrectFuncs = Array<FunctionObj>();
 
-        this.doSnap = false;
         this.functionLength = Config.Limits.defaultLength;
         this.allowedAxes = Config.Axes.Set;
         this.useAllowedAxes = true;
@@ -68,7 +64,6 @@ export class FunctionBuilder {
     enableDuplicateText() {
         this.allowDuplicateText = true;
     }
-
 
     //------------------------------------
     // Methods that returns functions
@@ -118,11 +113,11 @@ export class FunctionBuilder {
                 return this.createQuestionObject(++recursive_count);
 
         questionObj.func.params.len = this.functionLength;
+        questionObj.func.behaviour.snapBegin().snapEnd();
+
         if (questionObj.func.behaviour.isConvex() && recursive_count < 10)
             return this.createQuestionObject(++recursive_count);
 
-        
-        questionObj.func.behaviour.snapBegin().snapEnd();
         return questionObj;
     }
 
@@ -172,10 +167,99 @@ export class FunctionBuilder {
         if (correctFunc.behaviour.isConvex() && recursive_count < 10)
             return this.createCorrectFunction(++recursive_count);
 
-        if (this.useAllowedAxes === false) questionObj.axises.deleteItem(pickedAxis);
+
 
         // snapEnd affects function what should not be affected
-        return correctFunc.behaviour.snapEnd().getFuncObj();
+        correctFunc = correctFunc.behaviour.snapEnd().getFuncObj();
+
+        if (correctFunc.behaviour.isConvex() && recursive_count < 10)
+            return this.createCorrectFunction(++recursive_count);
+
+        if (this.useAllowedAxes === false) questionObj.axises.deleteItem(pickedAxis);
+        return correctFunc;
+    }
+
+
+    private createIncorrectFunction(recursive_count?: number): FunctionObj {
+        if (!recursive_count) recursive_count = 1;
+        if (recursive_count > 100) throw Error('Too much recursive calls');
+
+
+        let incorrectFunc = new FunctionObj(this.allowedAxes.getRandom()).generateParams().clearParams();
+
+        for (const questionObj of this.usedQuestionObjects)
+            if (incorrectFunc.comparisons.equalByValueTo(questionObj.func))
+                return this.createIncorrectFunction(++recursive_count);
+
+        for (const usedIncorrectFunc of this.usedIncorrectFuncs)
+            if (incorrectFunc.comparisons.equalBySignTo(usedIncorrectFunc)
+                || incorrectFunc.comparisons.equalByTextTo(usedIncorrectFunc))
+                return this.createIncorrectFunction(++recursive_count);
+
+        for (const usedCorrectFunc of this.usedCorrectFuncs)
+            if (incorrectFunc.comparisons.equalByTextTo(usedCorrectFunc))
+                return this.createIncorrectFunction(++recursive_count);
+
+        incorrectFunc.params.len = this.functionLength;
+
+
+        // snapEnd affects function what should not be affected
+        incorrectFunc = incorrectFunc.behaviour.snapEnd().getFuncObj();
+
+        if (incorrectFunc.behaviour.isConvex() && recursive_count < 10)
+            return this.createIncorrectFunction(++recursive_count);
+        return incorrectFunc;
+    }
+
+    private createComplexFunction(funcsLengths: Array<number>) {
+        const defaultLength = Config.Limits.defaultLength,
+            lowerLimit = Config.Limits.lowerLimit;
+        let complexFunc: Array<FunctionObj>,
+            cumLength = 0;
+
+        for (const length of funcsLengths) {
+            if (length < lowerLimit || length > length)
+                throw Error('Length must be between ' + lowerLimit + ' and ' + length);
+            cumLength += length
+        }
+        if (cumLength > defaultLength)
+            throw Error('The sum of functions lengths values must be less than ' + defaultLength);
+
+
+        complexFunc = Array<FunctionObj>();
+        this.setLength(funcsLengths[0]);
+        complexFunc.push(this.getQuestionFunction());
+
+        for (let i = 1; i < funcsLengths.length; ++i) {
+            this.setLength(funcsLengths[i]);
+            complexFunc.push(this.createNextFunction(complexFunc.last()))
+        }
+        this.createNextFunction(complexFunc.last());
+
+        return complexFunc;
+    }
+
+    private createNextFunction(prevFunc: FunctionObj, recursive_count?: number): FunctionObj {
+        if (!recursive_count) recursive_count = 1;
+        else if (recursive_count === 30) throw new Error('To much recursive calls.');
+        if (!prevFunc.params.len) throw new Error("this.params.len is undefined");
+
+
+        const funcType = prevFunc.funcType,
+            nextFunc = new FunctionObj(funcType).generateParams().clearParams();
+        let prevFuncValue: number;
+        nextFunc.params.len = this.functionLength;
+
+
+        prevFuncValue = prevFunc.values.calcFinalValue();
+        nextFunc.params[funcType] = prevFuncValue;
+        nextFunc.behaviour.snapEnd();
+
+
+        if (nextFunc.comparisons.equalByDirectionTo(prevFunc))
+            return this.createNextFunction(prevFunc, ++recursive_count);
+
+        return nextFunc;
     }
 
     private checkCorrectFunc(questionFunc: FunctionObj, correctFunc: FunctionObj) {
@@ -215,104 +299,4 @@ export class FunctionBuilder {
         }
         return false;
     }
-
-    private createIncorrectFunction(recursive_count?: number): FunctionObj {
-        if (!recursive_count) recursive_count = 1;
-        if (recursive_count > 100) throw Error('Too much recursive calls');
-
-
-        const incorrectFunc = new FunctionObj(this.allowedAxes.getRandom()).generateParams().clearParams();
-
-        for (const questionObj of this.usedQuestionObjects)
-            if (incorrectFunc.comparisons.equalByValueTo(questionObj.func))
-                return this.createIncorrectFunction(++recursive_count);
-
-        for (const usedIncorrectFunc of this.usedIncorrectFuncs)
-            if (incorrectFunc.comparisons.equalBySignTo(usedIncorrectFunc)
-                || incorrectFunc.comparisons.equalByTextTo(usedIncorrectFunc))
-                return this.createIncorrectFunction(++recursive_count);
-
-        for (const usedCorrectFunc of this.usedCorrectFuncs)
-            if (incorrectFunc.comparisons.equalByTextTo(usedCorrectFunc))
-                return this.createIncorrectFunction(++recursive_count);
-
-        incorrectFunc.params.len = this.functionLength;
-        if (incorrectFunc.behaviour.isConvex() && recursive_count < 10)
-            return this.createIncorrectFunction(++recursive_count);
-
-
-        // snapEnd affects function what should not be affected
-        return incorrectFunc.behaviour.snapEnd().getFuncObj();
-    }
-
-    private createComplexFunction(funcsLengths: Array<number>) {
-        const defaultLength = Config.Limits.defaultLength,
-            lowerLimit = Config.Limits.lowerLimit;
-        let complexFunc: Array<FunctionObj>,
-            cumLength = 0;
-
-        for (const length of funcsLengths) {
-            if (length < lowerLimit || length > length)
-                throw Error('Length must be between ' + lowerLimit + ' and ' + length);
-            cumLength += length
-        }
-        if (cumLength > defaultLength)
-            throw Error('The sum of functions lengths values must be less than ' + defaultLength);
-
-
-        complexFunc = Array<FunctionObj>();
-        this.setLength(funcsLengths[0]);
-
-        complexFunc.push(this.getQuestionFunction());
-
-        for (let i = 1; i < funcsLengths.length; ++i) {
-            this.setLength(funcsLengths[i]);
-            complexFunc.push(this.createNextFunction(complexFunc.last()))
-        }
-        this.createNextFunction(complexFunc.last());
-
-        return complexFunc;
-    }
-
-    private createNextFunction(prevFunc: FunctionObj, recursive_count?: number): FunctionObj {
-        if (!recursive_count) recursive_count = 1;
-        else if (recursive_count === 30) throw new Error('To much recursive calls.');
-        if (!prevFunc.params.len) throw new Error("this.params.len is undefined");
-
-
-        const funcType = prevFunc.funcType,
-            nextFunc = new FunctionObj(funcType).generateParams().clearParams();
-        let prevFuncValue: number;
-        nextFunc.params.len = this.functionLength;
-
-        // if (this.doSnap) prevFunc.snapBegin().snapEnd();
-        // else prevFunc.snapEnd();
-
-        prevFuncValue = prevFunc.values.calcFunctionValue();
-        nextFunc.params[funcType] = prevFuncValue;
-        nextFunc.behaviour.snapEnd();
-
-        // if (Math.abs(nextFunc.params[funcType]) > Config.upperLimit)
-        //     throw Error('nextFunc.params[funcType] greater than upperLimit');
-
-        // if (nextFunc.calcFinalValue() > Config.upperLimit) {
-        //     let params = nextFunc.params,
-        //         first = params.x ? "x" : "v",
-        //         second = params.v ? "v" : "a",
-        //         third = params.a ? "a" : undefined;
-        //     // FIXME:       V always on side of X
-        //     if (nextFunc.params[second] !== 0)
-        //         nextFunc.params[second] = -Math.sign(nextFunc.params[first]) * Math.abs(nextFunc.params[second]);
-        //     if (third && nextFunc.params[third] !== 0)
-        //     // FIXME:                 Math.sign(nextFunc.params[SECOND?????????]) to be opposite of V???
-        //         nextFunc.params[third] = Math.sign(nextFunc.params[first]) * Math.abs(nextFunc.params[third]);
-        // }
-
-
-        if (nextFunc.comparisons.equalByDirectionTo(prevFunc))
-            return this.createNextFunction(prevFunc, ++recursive_count);
-
-        return nextFunc;
-    }
-
 }

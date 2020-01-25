@@ -3,7 +3,7 @@ import {Config} from "../Config";
 
 
 export class FunctionComparison {
-    _functionObj: FunctionObj;
+    private _functionObj: FunctionObj;
     
     
     constructor(functionObject: FunctionObj ) {

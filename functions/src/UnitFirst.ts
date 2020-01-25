@@ -1,8 +1,3 @@
-import {FunctionObj} from './Function/FunctionObj'
-import {Config} from "./Config";
-import {Utils} from "./Util";
-import {FunctionBuilder} from './Function/FunctionBuilder'
-
 import {getSGtest} from "./Tasks/SG";
 import {getG2Gtest} from "./Tasks/G2G";
 import {getG2Stest} from "./Tasks/G2S";

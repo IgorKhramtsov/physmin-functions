@@ -10,7 +10,7 @@ export function getG2Stest(test_id: number, chance: number) {
         builder = new FunctionBuilder(),
 
         questionCount = Config.Tasks.G2S.questionCount,
-        answersCount = Config.Tasks.G2G.answersCount,
+        answersCount = Config.Tasks.G2S.answersCount,
         length = Config.Limits.defaultLength;
 
     let _chance: boolean,
@@ -36,12 +36,12 @@ export function getG2Stest(test_id: number, chance: number) {
             builder.setAllowedAxes(Config.Axes.Set.copy().deleteItem('a'));
             const functionLengths = [length / 2, length / 2],
                 complexFunc = builder.getComplexFunction(functionLengths);
-            questions[i].graph.push(complexFunc[0]);
-            questions[i].graph.push(complexFunc[1]);
+            questions[i].graph.push(complexFunc[0].getProcessed());
+            questions[i].graph.push(complexFunc[1].getProcessed());
         } else {
             builder.disableAllowedAxesUsage();
             builder.getQuestionFunction();
-            questions[i].graph.push(builder.getCorrectFunction());
+            questions[i].graph.push(builder.getCorrectFunction().getProcessed());
         }
     }
 

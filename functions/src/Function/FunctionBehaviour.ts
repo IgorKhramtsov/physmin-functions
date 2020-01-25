@@ -3,7 +3,7 @@ import {Config} from "../Config";
 
 export class FunctionBehaviour {
 
-    _functionObj: FunctionObj;
+    private _functionObj: FunctionObj;
 
     constructor(functionObject: FunctionObj ) {
         this._functionObj = functionObject;

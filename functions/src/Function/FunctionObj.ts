@@ -193,4 +193,10 @@ export class FunctionObj {
         return text;
     }
 
+    getProcessed(){
+        delete this.comparisons;
+        delete this.values;
+        delete this.behaviour;
+        return this
+    }
 }

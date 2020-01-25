@@ -1,7 +1,7 @@
 import {FunctionObj} from "./FunctionObj";
 
 export class FunctionValues {
-    _functionObj: FunctionObj;
+    private _functionObj: FunctionObj;
 
     constructor(functionObject: FunctionObj ) {
         this._functionObj = functionObject;

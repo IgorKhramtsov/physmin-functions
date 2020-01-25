@@ -16,8 +16,8 @@ exports.getTestDev = functions.region("europe-west1").https.onCall((data, contex
 function createTest(): any {
   const testBundle = { tests: Array<any>() };
 
-  testBundle.tests.push(UnitFirst.getG2Gtest_OneAnswerGraph(1));
-  // testBundle.tests.push(UnitFirst.getG2Gtest_TwoAnswerGraph(2));
+  // testBundle.tests.push(UnitFirst.getG2Gtest_OneAnswerGraph(1));
+  testBundle.tests.push(UnitFirst.getG2Gtest_TwoAnswerGraph(2));
 
   // testBundle.tests.push(UnitFirst.getG2Stest_SimpleFunctions(2));
   // testBundle.tests.push(UnitFirst.getG2Stest_ComplexFunctions(3));

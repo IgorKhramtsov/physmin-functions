@@ -7,23 +7,24 @@ export function getG2Gtest(test_id: number, correctAnswersCount: number) {
         builder = new FunctionBuilder(),
         answers = Array<any>(),
         question = {
-            graph: [builder.getQuestionFunction()],
+            graph: [builder.getQuestionFunction().getProcessed()],
             correctIDs: Array<Number>()
         };
 
     builder.disableAllowedAxesUsage();
     for (let i = 0; i < correctAnswersCount; ++i)
         answers.push({
-            graph: [builder.getCorrectFunction()],
+            graph: [builder.getCorrectFunction().getProcessed()],
             id: question.correctIDs.addRandomNumber(answersCount)
         })
 
     for (let i = 0; i < answersCount; ++i)
         if (!question.correctIDs.contains(i))
             answers.push({
-                graph: [builder.getIncorrectFunction()],
+                graph: [builder.getIncorrectFunction().getProcessed()],
                 id: i
             });
+
 
     return {
         type: testType,

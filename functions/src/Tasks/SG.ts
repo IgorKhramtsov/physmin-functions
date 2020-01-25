@@ -6,14 +6,14 @@ import {Utils} from "../Util";
 export function getSGtest(test_id: number, isSimple: boolean) {
     const testType = "relationSings",
         answers = Array<any>(),
-        questionCount = Math.round(Utils.getRandomFromRange(Config.Tasks.S2G.questionCount[0],Config.Tasks.S2G.questionCount[1])),
+        questionCount = Math.round(Utils.getRandomFromRange(Config.Tasks.S2G.questionCount[0], Config.Tasks.S2G.questionCount[1])),
         questionInterval = Math.round(Config.Limits.defaultLength / questionCount),
         functionsLengths = Array<number>(),
         answersCount: number = isSimple ? 3 : 6,
         builder = new FunctionBuilder();
 
     let complexFunction: Array<FunctionObj>,
-        cumsum= 0,
+        cumsum = 0,
 
         firstIndexes: any,
         secondIndexes: any,
@@ -27,7 +27,7 @@ export function getSGtest(test_id: number, isSimple: boolean) {
         rightFunction: FunctionObj,
         leftFunction: FunctionObj,
         countS = 0,
-        countDX= 0,
+        countDX = 0,
         globalCount = 0;
 
 
@@ -40,10 +40,10 @@ export function getSGtest(test_id: number, isSimple: boolean) {
     complexFunction = builder.getComplexFunction(functionsLengths);
 
     if (!isSimple) {
-        firstIndexes = getIndexes(questionCount, answersCount / 2);
-        secondIndexes = getIndexes(questionCount, answersCount / 2);
+        firstIndexes = Indexes.getIndexes(questionCount, answersCount / 2);
+        secondIndexes = Indexes.getIndexes(questionCount, answersCount / 2);
     } else
-        firstIndexes = getIndexes(questionCount, answersCount);
+        firstIndexes = Indexes.getIndexes(questionCount, answersCount);
 
 
     for (let i = 0; i < answersCount; ++i) {
@@ -76,15 +76,15 @@ export function getSGtest(test_id: number, isSimple: boolean) {
                 leftFunction = complexFunction[leftCouple.right];
                 rightFunction = complexFunction[rightCouple.right];
 
-                leftValue = leftFunction.values.calcFunctionValue();
-                rightValue = rightFunction.values.calcFunctionValue();
+                leftValue = leftFunction.values.calcFinalValue();
+                rightValue = rightFunction.values.calcFinalValue();
             }
         } else {
             leftFunction = complexFunction[leftCouple.right];
             rightFunction = complexFunction[rightCouple.right];
 
-            leftValue = leftFunction.values.calcFunctionValue();
-            rightValue = rightFunction.values.calcFunctionValue();
+            leftValue = leftFunction.values.calcFinalValue();
+            rightValue = rightFunction.values.calcFinalValue();
         }
 
         answers[i] = {
@@ -101,6 +101,9 @@ export function getSGtest(test_id: number, isSimple: boolean) {
         else globalCount++;
     }
 
+    for (let func of complexFunction)
+        func = func.getProcessed();
+
     return {
         type: testType,
         test_id: test_id,
@@ -110,63 +113,66 @@ export function getSGtest(test_id: number, isSimple: boolean) {
     };
 }
 
-
-function getIndexes(questionCount: number, answersCount: number): Array<Array<Array<number>>> {
-    const indexes = Array<Array<Array<number>>>();
+export let Indexes = {
+    getIndexes(questionCount: number, answersCount: number): Array<Array<Array<number>>> {
+        const indexes = Array<Array<Array<number>>>();
 
     // Returns unique couple of indices (read - points) on coordinate plane
-    for (let i = 0; i < answersCount; i++)
-        indexes.push(createNextCoupleIndexes(questionCount, indexes));
+        for (let i = 0; i < answersCount; i++)
+            indexes.push(this.createNextCoupleIndexes(questionCount, indexes));
 
-    return indexes;
-}
+        return indexes;
+    },
 
-function createNextCoupleIndexes(questionCount: number, usedCoupleIndexes: Array<Array<Array<number>>>, recursive_count?: number): Array<Array<number>> {
-    if (!recursive_count) recursive_count = 1;
-    else if (recursive_count === 30) throw new Error('To much recursive calls.');
+    createNextCoupleIndexes(questionCount: number, usedCoupleIndexes: Array<Array<Array<number>>>, recursive_count?: number): Array<Array<number>> {
+        if (!recursive_count) recursive_count = 1;
+        else if (recursive_count === 30) throw new Error('To much recursive calls.');
 
-    const leftCoupleIndexes = createNextIndex(questionCount),
-        rightCoupleIndexes = createNextIndex(questionCount, [leftCoupleIndexes]);
-    let nextCoupleIndexes = [leftCoupleIndexes, rightCoupleIndexes];
+        const leftCoupleIndexes = this.createNextIndex(questionCount),
+            rightCoupleIndexes = this.createNextIndex(questionCount, [leftCoupleIndexes]);
+        let nextCoupleIndexes = [leftCoupleIndexes, rightCoupleIndexes];
 
 
-    // Sorts indices of couple
-    if (leftCoupleIndexes[0] > rightCoupleIndexes[0])
-        nextCoupleIndexes = [rightCoupleIndexes, leftCoupleIndexes];
-    else if (leftCoupleIndexes[0] === rightCoupleIndexes[0])
-        if (leftCoupleIndexes[1] > rightCoupleIndexes[1])
+        // Sorts indices of couple
+        if (leftCoupleIndexes[0] > rightCoupleIndexes[0])
             nextCoupleIndexes = [rightCoupleIndexes, leftCoupleIndexes];
+        else if (leftCoupleIndexes[0] === rightCoupleIndexes[0])
+            if (leftCoupleIndexes[1] > rightCoupleIndexes[1])
+                nextCoupleIndexes = [rightCoupleIndexes, leftCoupleIndexes];
 
-    for (const coupleIndexes of usedCoupleIndexes)
-        if (indexToString(nextCoupleIndexes[0]) === indexToString(coupleIndexes[0]) &&
-            indexToString(nextCoupleIndexes[1]) === indexToString(coupleIndexes[1]))
-            return createNextCoupleIndexes(questionCount, usedCoupleIndexes, ++recursive_count);
+        for (const coupleIndexes of usedCoupleIndexes)
+            if (this.indexToString(nextCoupleIndexes[0]) === this.indexToString(coupleIndexes[0]) &&
+                this.indexToString(nextCoupleIndexes[1]) === this.indexToString(coupleIndexes[1]))
+                return this.createNextCoupleIndexes(questionCount, usedCoupleIndexes, ++recursive_count);
 
-    return nextCoupleIndexes;
-}
+        return nextCoupleIndexes;
+    },
 
-function createNextIndex(questionCount: number, usedIndex?: Array<Array<number>>): Array<number> {
-    let leftIndex,
-        rightIndex,
-        nextIndex: Array<number>,
-        iter_count = 0;
+    createNextIndex(questionCount: number, usedIndex?: Array<Array<number>>): Array<number> {
+        let leftIndex,
+            rightIndex,
+            nextIndex: Array<number>,
+            iter_count = 0;
 
 
-    rightIndex = questionCount.getRandom();
-    for (iter_count = 0; iter_count < 30 && (leftIndex === rightIndex || leftIndex === undefined); ++iter_count)
-        leftIndex = questionCount.getRandom();
+        rightIndex = questionCount.getRandom();
+        for (iter_count = 0; iter_count < 30 && (leftIndex === rightIndex || leftIndex === undefined); ++iter_count)
+            leftIndex = questionCount.getRandom();
 
-    if (leftIndex === rightIndex || leftIndex === undefined) throw new Error('To many cycle iterations.');
+        if (leftIndex === rightIndex || leftIndex === undefined) throw new Error('To many cycle iterations.');
 
-    nextIndex = [leftIndex, rightIndex].sort();
-    if (usedIndex)
-        for (const index of usedIndex)
-            if (index[0] === nextIndex[0] && index[1] === nextIndex[1])
-                return createNextIndex(questionCount, usedIndex);
+        nextIndex = [leftIndex, rightIndex].sort();
+        if (usedIndex)
+            for (const index of usedIndex)
+                if (index[0] === nextIndex[0] && index[1] === nextIndex[1])
+                    return this.createNextIndex(questionCount, usedIndex);
 
-    return nextIndex;
-}
+        return nextIndex;
+    },
 
-function indexToString(index: Array<number>): String {
-    return index[0].toString() + index[1].toString();
-}
+    indexToString(index: Array<number>): String {
+        return index[0].toString() + index[1].toString();
+    },
+};
+
+
