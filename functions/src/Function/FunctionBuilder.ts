@@ -227,6 +227,7 @@ export class FunctionBuilder {
 
 
         complexFunc = Array<FunctionObj>();
+        const restoreLen = this.functionLength;
         this.setLength(funcsLengths[0]);
         complexFunc.push(this.getQuestionFunction());
 
@@ -236,6 +237,7 @@ export class FunctionBuilder {
         }
         this.createNextFunction(complexFunc.last());
 
+        this.setLength(restoreLen);
         return complexFunc;
     }
 
