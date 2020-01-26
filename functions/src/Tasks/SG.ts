@@ -3,6 +3,69 @@ import {Config} from "../Config";
 import {FunctionBuilder} from "../Function/FunctionBuilder";
 import {Utils} from "../Util";
 
+
+export let Indexes = {
+    getIndexes(questionCount: number, answersCount: number): Array<Array<Array<number>>> {
+        const indexes = Array<Array<Array<number>>>();
+
+        // Returns unique couple of indices (read - points) on coordinate plane
+        for (let i = 0; i < answersCount; i++)
+            indexes.push(Indexes.createNextCoupleIndexes(questionCount, indexes));
+
+        return indexes;
+    },
+
+    createNextCoupleIndexes(questionCount: number, usedCoupleIndexes: Array<Array<Array<number>>>, recursive_count?: number): Array<Array<number>> {
+        if (!recursive_count) recursive_count = 1;
+        else if (recursive_count === 30) throw new Error('To much recursive calls.');
+
+        const leftCoupleIndexes = Indexes.createNextIndex(questionCount),
+            rightCoupleIndexes = Indexes.createNextIndex(questionCount, [leftCoupleIndexes]);
+        let nextCoupleIndexes = [leftCoupleIndexes, rightCoupleIndexes];
+
+
+        // Sorts indices of couple
+        if (leftCoupleIndexes[0] > rightCoupleIndexes[0])
+            nextCoupleIndexes = [rightCoupleIndexes, leftCoupleIndexes];
+        else if (leftCoupleIndexes[0] === rightCoupleIndexes[0])
+            if (leftCoupleIndexes[1] > rightCoupleIndexes[1])
+                nextCoupleIndexes = [rightCoupleIndexes, leftCoupleIndexes];
+
+        for (const coupleIndexes of usedCoupleIndexes)
+            if (Indexes.indexToString(nextCoupleIndexes[0]) === Indexes.indexToString(coupleIndexes[0]) &&
+                Indexes.indexToString(nextCoupleIndexes[1]) === Indexes.indexToString(coupleIndexes[1]))
+                return Indexes.createNextCoupleIndexes(questionCount, usedCoupleIndexes, ++recursive_count);
+
+        return nextCoupleIndexes;
+    },
+
+    createNextIndex(questionCount: number, usedIndex?: Array<Array<number>>): Array<number> {
+        let leftIndex,
+            rightIndex,
+            nextIndex: Array<number>,
+            iter_count = 0;
+
+
+        rightIndex = questionCount.getRandom();
+        for (iter_count = 0; iter_count < 30 && (leftIndex === rightIndex || leftIndex === undefined); ++iter_count)
+            leftIndex = questionCount.getRandom();
+
+        if (leftIndex === rightIndex || leftIndex === undefined) throw new Error('To many cycle iterations.');
+
+        nextIndex = [leftIndex, rightIndex].sort();
+        if (usedIndex)
+            for (const index of usedIndex)
+                if (index[0] === nextIndex[0] && index[1] === nextIndex[1])
+                    return Indexes.createNextIndex(questionCount, usedIndex);
+
+        return nextIndex;
+    },
+
+    indexToString(index: Array<number>): String {
+        return index[0].toString() + index[1].toString();
+    },
+};
+
 export function getSGtest(test_id: number, isSimple: boolean) {
     const testType = "relationSings",
         answers = Array<any>(),
@@ -112,67 +175,5 @@ export function getSGtest(test_id: number, isSimple: boolean) {
         answers: answers.shuffle(),
     };
 }
-
-export let Indexes = {
-    getIndexes(questionCount: number, answersCount: number): Array<Array<Array<number>>> {
-        const indexes = Array<Array<Array<number>>>();
-
-    // Returns unique couple of indices (read - points) on coordinate plane
-        for (let i = 0; i < answersCount; i++)
-            indexes.push(this.createNextCoupleIndexes(questionCount, indexes));
-
-        return indexes;
-    },
-
-    createNextCoupleIndexes(questionCount: number, usedCoupleIndexes: Array<Array<Array<number>>>, recursive_count?: number): Array<Array<number>> {
-        if (!recursive_count) recursive_count = 1;
-        else if (recursive_count === 30) throw new Error('To much recursive calls.');
-
-        const leftCoupleIndexes = this.createNextIndex(questionCount),
-            rightCoupleIndexes = this.createNextIndex(questionCount, [leftCoupleIndexes]);
-        let nextCoupleIndexes = [leftCoupleIndexes, rightCoupleIndexes];
-
-
-        // Sorts indices of couple
-        if (leftCoupleIndexes[0] > rightCoupleIndexes[0])
-            nextCoupleIndexes = [rightCoupleIndexes, leftCoupleIndexes];
-        else if (leftCoupleIndexes[0] === rightCoupleIndexes[0])
-            if (leftCoupleIndexes[1] > rightCoupleIndexes[1])
-                nextCoupleIndexes = [rightCoupleIndexes, leftCoupleIndexes];
-
-        for (const coupleIndexes of usedCoupleIndexes)
-            if (this.indexToString(nextCoupleIndexes[0]) === this.indexToString(coupleIndexes[0]) &&
-                this.indexToString(nextCoupleIndexes[1]) === this.indexToString(coupleIndexes[1]))
-                return this.createNextCoupleIndexes(questionCount, usedCoupleIndexes, ++recursive_count);
-
-        return nextCoupleIndexes;
-    },
-
-    createNextIndex(questionCount: number, usedIndex?: Array<Array<number>>): Array<number> {
-        let leftIndex,
-            rightIndex,
-            nextIndex: Array<number>,
-            iter_count = 0;
-
-
-        rightIndex = questionCount.getRandom();
-        for (iter_count = 0; iter_count < 30 && (leftIndex === rightIndex || leftIndex === undefined); ++iter_count)
-            leftIndex = questionCount.getRandom();
-
-        if (leftIndex === rightIndex || leftIndex === undefined) throw new Error('To many cycle iterations.');
-
-        nextIndex = [leftIndex, rightIndex].sort();
-        if (usedIndex)
-            for (const index of usedIndex)
-                if (index[0] === nextIndex[0] && index[1] === nextIndex[1])
-                    return this.createNextIndex(questionCount, usedIndex);
-
-        return nextIndex;
-    },
-
-    indexToString(index: Array<number>): String {
-        return index[0].toString() + index[1].toString();
-    },
-};
 
 

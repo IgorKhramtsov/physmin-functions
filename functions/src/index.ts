@@ -16,14 +16,14 @@ exports.getTestDev = functions.region("europe-west1").https.onCall((data, contex
 function createTest(): any {
   const testBundle = { tests: Array<any>() };
 
-  // testBundle.tests.push(UnitFirst.getG2Gtest_OneAnswerGraph(1));
+  testBundle.tests.push(UnitFirst.getG2Gtest_OneAnswerGraph(1));
   testBundle.tests.push(UnitFirst.getG2Gtest_TwoAnswerGraph(2));
 
-  // testBundle.tests.push(UnitFirst.getG2Stest_SimpleFunctions(2));
-  // testBundle.tests.push(UnitFirst.getG2Stest_ComplexFunctions(3));
-  // testBundle.tests.push(UnitFirst.getG2Stest_MixedFunctions(4, 0.5));
+  testBundle.tests.push(UnitFirst.getG2Stest_SimpleFunctions(2));
+  testBundle.tests.push(UnitFirst.getG2Stest_ComplexFunctions(3));
+  testBundle.tests.push(UnitFirst.getG2Stest_MixedFunctions(4, 0.5));
 
-  // testBundle.tests.push(UnitFirst.getSGtest_SimpleAnswers(6));
-  // testBundle.tests.push(UnitFirst.getSGtest_ComplexAnswers(7));
+  testBundle.tests.push(UnitFirst.getSGtest_SimpleAnswers(6));
+  testBundle.tests.push(UnitFirst.getSGtest_ComplexAnswers(7));
   return JSON.stringify(testBundle);
 }
