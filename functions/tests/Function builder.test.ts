@@ -44,7 +44,7 @@ function checkCorrectFunc(questionFunc: FunctionObj, correctFunc: FunctionObj) {
 
 
 
-describe('Function Builder. Function correctness', () => {
+describe('Function Builder. Correct function should be correct to question, incorrect incorrect accordingly', () => {
     it('getG2Gtest.', () => {
         let builder = new FunctionBuilder(),
             questionFunc: FunctionObj,
@@ -80,61 +80,59 @@ describe('Function Builder. Function correctness', () => {
         }
     });
 
-    // it('getG2Stest.', () => {
-    //     let builder = new FunctionBuilder(),
-    //         questionFuncArray: Array<FunctionObj>,
-    //         correctFuncArray: Array<FunctionObj>,
-    //         questionCount = Config.Tasks.G2S.questionCount,
-    //         correctAnswersCount: number,
-    //         suspectCorrectAnwers: Array<FunctionObj>;
-    //     for (let i = 0; i < 100; ++i) {
-    //         builder.reset();
-    //         builder.disableAllowedAxesUsage();
-    //         builder.disableDuplicateText();
-    //         questionFuncArray = Array<FunctionObj>();
-    //         correctFuncArray = Array<FunctionObj>();
-    //
-    //
-    //         for (let j = 0; j < questionCount; ++j) {
-    //             questionFuncArray.push(builder.getQuestionFunction());
-    //             correctFuncArray.push(builder.getCorrectFunction())
-    //         }
-    //
-    //
-    //         for (let questionFunc of questionFuncArray) {
-    //             correctAnswersCount = 0;
-    //             suspectCorrectAnwers = [];
-    //
-    //             for (let correctFunc of correctFuncArray)
-    //                 if (checkCorrectFunc(questionFunc, correctFunc)) {
-    //                     suspectCorrectAnwers.push(correctFunc);
-    //                     correctAnswersCount++;
-    //                 }
-    //
-    //             let suspect: FunctionObj;
-    //             let suspectCount=0;
-    //             for (let i = 0; i < suspectCorrectAnwers.length; ++i) {
-    //                 suspect = suspectCorrectAnwers[i];
-    //                 for (let j = 0; j < suspectCorrectAnwers.length; ++j) {
-    //                     if(i != j){
-    //                         if(suspect.comparisons.equalByTextTo(suspectCorrectAnwers[j])){
-    //                             suspectCount++;
-    //                         }
-    //                     }
-    //                 }
-    //             }
-    //
-    //             suspectCount /=2;
-    //             console.log(suspectCount);
-    //             console.log('----------');
-    //             //chai.expect(correctAnswersCount).to.be.equal(1);
-    //             chai.expect(suspectCount).to.be.equal(0);
-    //         }
-    //     }
-    // });
-    it('getSGtest', () => {
-
+    it('getG2Stest.', () => {
+        let builder = new FunctionBuilder(),
+            questionFuncArray: Array<FunctionObj>,
+            correctFuncArray: Array<FunctionObj>,
+            questionCount = Config.Tasks.G2S.questionCount,
+            correctAnswersCount: number,
+            suspectCorrectAnwers: Array<FunctionObj>;
+        for (let i = 0; i < 100; ++i) {
+            builder.reset();
+            builder.disableAllowedAxesUsage();
+            builder.disableDuplicateText();
+            questionFuncArray = Array<FunctionObj>();
+            correctFuncArray = Array<FunctionObj>();
+    
+    
+            for (let j = 0; j < questionCount; ++j) {
+                questionFuncArray.push(builder.getQuestionFunction());
+                correctFuncArray.push(builder.getCorrectFunction())
+            }
+    
+    
+            for (let questionFunc of questionFuncArray) {
+                correctAnswersCount = 0;
+                suspectCorrectAnwers = [];
+    
+                for (let correctFunc of correctFuncArray)
+                    if (checkCorrectFunc(questionFunc, correctFunc)) {
+                        suspectCorrectAnwers.push(correctFunc);
+                        correctAnswersCount++;
+                    }
+    
+                let suspect: FunctionObj;
+                let suspectCount=0;
+                for (let i = 0; i < suspectCorrectAnwers.length; ++i) {
+                    suspect = suspectCorrectAnwers[i];
+                    for (let j = 0; j < suspectCorrectAnwers.length; ++j) {
+                        if(i != j){
+                            if(suspect.comparisons.equalByTextTo(suspectCorrectAnwers[j])){
+                                suspectCount++;
+                            }
+                        }
+                    }
+                }
+    
+                suspectCount /=2;
+                //chai.expect(correctAnswersCount).to.be.equal(1);
+                chai.expect(suspectCount).to.be.equal(0);
+            }
+        }
     });
+    // it('getSGtest', () => {
+
+    // });
 
     it("FunctionBuilder. Generated functions should not going out of bounds", () => {
         let builder = new FunctionBuilder(),

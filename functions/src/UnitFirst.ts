@@ -24,7 +24,7 @@ export class UnitFirst {
         return getG2Stest(test_id, ComplexChance);
     }
 
-    static getSGtest_SimpleAnswers(test_id: number = 9) {
+    static getSGtest_SimpleAnswers(test_id: number) {
         return getSGtest(test_id, true);
     }
 
