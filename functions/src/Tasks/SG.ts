@@ -94,12 +94,12 @@ export function getSGtest(test_id: number, isSimple: boolean) {
         globalCount = 0;
 
 
-    builder.setAllowedAxes(Config.Axes.Set.copy().deleteItem("a"));
+    builder.setAllowedAxes(Config.Axes.set.copy().deleteItem("a"));
     for (let i = 0; i < questionCount - 1; i++) {
         cumsum += questionInterval;
         functionsLengths.push(questionInterval);
     }
-    functionsLengths.push(Config.Limits.defaultLength - cumsum);
+    functionsLengths.push(Config.Limits.defaultLength - cumsum); // FIXME: We can push zero here, isnt?
     complexFunction = builder.getComplexFunction(functionsLengths);
 
     if (!isSimple) {
@@ -164,14 +164,15 @@ export function getSGtest(test_id: number, isSimple: boolean) {
         else globalCount++;
     }
 
+    const processedQuestion = Array<FunctionObj>();
     for (let func of complexFunction)
-        func = func.getProcessed();
+        processedQuestion.push(func.getProcessed());
 
     return {
         type: testType,
         test_id: test_id,
         title: "",
-        question: [{graph: complexFunction}],
+        question: [{graph: processedQuestion}],
         answers: answers.shuffle(),
     };
 }

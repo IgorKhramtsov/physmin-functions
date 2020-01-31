@@ -1,7 +1,9 @@
+import {Utils} from "./Util";
+
 export let Config = {
 
     Axes: {
-        Set: [
+        set: [
             'x', 'v', 'a'
         ],
 
@@ -17,8 +19,9 @@ export let Config = {
     } as any,
 
     Limits: {
-        upperLimit: 5,
-        lowerLimit: 2,
+        upperLimit: 5,      // max function value
+        lowerLimit: 2,      // min function value (near of zero) doesnt used mostly, use snap
+        minimumLength: 2,
         defaultLength: 12,
     },
 
@@ -62,7 +65,16 @@ export let Config = {
             "покоится": 0,
             "движется": 1,
         }
-    }
+    },
 
+
+    getAxesCopy(this:any, except: string[] = []): string[] {
+        const copy = this.Axes.set.copy();
+        for (const item of except) {
+            copy.deleteItem(item);
+        }
+
+        return copy;
+    }
 };
 

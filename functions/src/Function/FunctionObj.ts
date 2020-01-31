@@ -12,12 +12,12 @@ export class FunctionObj {
     comparisons: FunctionComparison;
     values: FunctionValues;
 
-    constructor(_funcType?: string, _params?: any) {
+    constructor(_funcType: string, _params: any = {}) {
         this.behaviour = new FunctionBehaviour(this);
         this.comparisons = new FunctionComparison(this);
         this.values = new FunctionValues(this);
-        this.funcType = _funcType ? _funcType : "";
-        this.params = _params ? _params : {};
+        this.funcType = _funcType;
+        this.params = _params;
     }
 
 
@@ -79,7 +79,7 @@ export class FunctionObj {
         }
 
         this.params = {"x": x, "v": v, "a": a};
-        return this;
+        return this.clearParams();
     }
 
     copyParams(): any {
@@ -119,7 +119,9 @@ export class FunctionObj {
         else throw Error("Key is not found!");
     }
 
-    getTextDescription(isComplex: boolean): string {
+    // Returns description of function behaviour by its parameters
+    // withUpperCase - is string should start with uppercase letter
+    getTextDescription(withUpperCase: boolean = false): string {
         const params = this.params,
             textOf = Config.TextDescription,
             X = params.x,
@@ -128,7 +130,7 @@ export class FunctionObj {
             getText = (s: object, v: number) => this.getKeyByValue(s, v);
         let text = "";
 
-        // Returns description of function behavior by its parameters
+        // 
         if (X !== undefined && V !== undefined && A !== undefined) {
             if (X === 0 && V === 0 && A === 0) {
                 text += getText(textOf.movement, 0);
@@ -186,7 +188,7 @@ export class FunctionObj {
         }
         else throw new Error('Incorrect function type.');
 
-        if (isComplex) {
+        if (withUpperCase) {
             if (text[0] === ' ') text = text.substr(1);
             text = text.charAt(0).toUpperCase() + text.slice(1);
         }
@@ -194,9 +196,10 @@ export class FunctionObj {
     }
 
     getProcessed(){
-        delete this.comparisons;
-        delete this.values;
-        delete this.behaviour;
-        return this
+        let processedFunc = new FunctionObj(this.funcType, this.params);
+        delete processedFunc.behaviour;
+        delete processedFunc.values;
+        delete processedFunc.comparisons;
+        return processedFunc;
     }
 }

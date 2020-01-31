@@ -1,6 +1,7 @@
-import {Config} from "../Config";
-import {Utils} from "../Util";
-import {FunctionBuilder} from "../Function/FunctionBuilder";
+import { Config } from "../Config";
+import { Utils } from "../Util";
+import { FunctionBuilder } from "../Function/FunctionBuilder";
+import { FunctionObj } from "../Function/FunctionObj";
 
 export function getG2Stest(test_id: number, chance: number) {
     const testType: string = 'G2S',
@@ -13,9 +14,9 @@ export function getG2Stest(test_id: number, chance: number) {
         answersCount = Config.Tasks.G2S.answersCount,
         length = Config.Limits.defaultLength;
 
-    let _chance: boolean,
-        first: any,
-        second: any,
+    let cachedChance: boolean,
+        first: FunctionObj,
+        second: FunctionObj | null,
 
         index: number,
         firstText: string,
@@ -31,26 +32,24 @@ export function getG2Stest(test_id: number, chance: number) {
             correctIDs: [correctIDs.last()],
         };
 
-        _chance = Utils.withChance(chance);
-        if (_chance) {
-            builder.setAllowedAxes(Config.Axes.Set.copy().deleteItem('a'));
-            const functionLengths = [length / 2, length / 2],
-                complexFunc = builder.getComplexFunction(functionLengths);
+        cachedChance = Utils.withChance(chance);
+        if (cachedChance) {
+            builder.setAllowedAxes(Config.getAxesCopy(['a']));
+            const complexFunc = builder.getComplexFunction([length / 2, length / 2]);
             questions[i].graph.push(complexFunc[0].getProcessed());
             questions[i].graph.push(complexFunc[1].getProcessed());
         } else {
             builder.disableAllowedAxesUsage();
-            builder.getQuestionFunction();
-            questions[i].graph.push(builder.getCorrectFunction().getProcessed());
+            questions[i].graph.push(builder.getCorrectFunction(builder.getQuestionObj()).getProcessed());
         }
     }
 
     builder.disableDuplicateText();
     for (let i = 0; i < answersCount; ++i) {
-        _chance = Utils.withChance(chance);
-        second = undefined;
+        cachedChance = Utils.withChance(chance);
+        second = null;
 
-        if (_chance) builder.setLength(length / 2);
+        if (cachedChance) builder.setLength(length / 2);
         else builder.setLength(0);
 
         index = correctIDs.indexOf(i);
@@ -59,8 +58,8 @@ export function getG2Stest(test_id: number, chance: number) {
             second = questions[index].graph[1];
 
         if (second) {
-            firstText = first.getTextDescription(false);
-            secondText = second.getTextDescription(false);
+            firstText = first.getTextDescription();
+            secondText = second.getTextDescription();
             if (firstText === secondText)
                 text = "Все время " + firstText;
             else text = "Cперва " + firstText + ", затем " + secondText;

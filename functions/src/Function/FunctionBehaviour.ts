@@ -69,7 +69,7 @@ export class FunctionBehaviour {
     }
     
     // Returns true if function reaches limits inside of segment
-    isConvex(start: number = 0, end: number = 4): boolean {
+    isConvex(start: number = 0, end: number = this._functionObj.params.len): boolean {
         const   funcObj = this._functionObj,
                 params = funcObj.params,
                 upperLimit = Config.Limits.upperLimit;
@@ -88,8 +88,9 @@ export class FunctionBehaviour {
                 else {
                     C = -params.v / params.a;
                     MaxValue = funcObj.values.calcFinalValue(C);
-                    return Math.abs(S) > upperLimit || Math.abs(E) > upperLimit ||
-                        Math.abs(MaxValue) > upperLimit;
+                    return  Math.abs(S) > upperLimit || 
+                            Math.abs(E) > upperLimit ||
+                            Math.abs(MaxValue) > upperLimit;
                 }
             case 'v':
                 return Math.abs(S) > upperLimit || Math.abs(E) > upperLimit;
