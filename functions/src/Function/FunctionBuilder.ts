@@ -203,7 +203,7 @@ export class FunctionBuilder {
 
 
     private createIncorrectFunction(questionObj: FunctionObj, recursive_count = 1): FunctionObj {
-        if (recursive_count > 200) throw Error('Too many recursive calls');
+        if (recursive_count > 250) throw Error('Too many recursive calls');
 
         let incorrectFunc: FunctionObj,
             pickedAxis: string,
