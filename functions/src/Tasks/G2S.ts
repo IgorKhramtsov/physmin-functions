@@ -39,8 +39,8 @@ export function getG2Stest(test_id: number, chance: number) {
             questions[i].graph.push(complexFunc[0].getProcessed());
             questions[i].graph.push(complexFunc[1].getProcessed());
         } else {
-            builder.disableAllowedAxesUsage();
-            questions[i].graph.push(builder.getCorrectFunction(builder.getQuestionObj()).getProcessed());
+            builder.disableAllowedAxes();
+            questions[i].graph.push(builder.getQuestionFunction().getProcessed());
         }
     }
 

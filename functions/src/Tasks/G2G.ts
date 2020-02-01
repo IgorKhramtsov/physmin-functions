@@ -6,13 +6,13 @@ export function getG2Gtest(test_id: number, correctAnswersCount: number) {
         answersCount = Config.Tasks.G2G.answersCount,
         builder = new FunctionBuilder(),
         answers = Array<any>(),
-        questionObj = builder.getQuestionObj(),
+        questionObj = builder.getQuestionFunction(),
         question = {
-            graph: [questionObj.func.getProcessed()],
+            graph: [questionObj.getProcessed()],
             correctIDs: Array<Number>()
         };
 
-    builder.disableAllowedAxesUsage();
+    builder.disableAllowedAxes();
     for (let i = 0; i < correctAnswersCount; ++i)
         answers.push({
             graph: [builder.getCorrectFunction(questionObj).getProcessed()],
@@ -22,7 +22,7 @@ export function getG2Gtest(test_id: number, correctAnswersCount: number) {
     for (let i = 0; i < answersCount; ++i)
         if (!question.correctIDs.contains(i))
             answers.push({
-                graph: [builder.getIncorrectFunction().getProcessed()],
+                graph: [builder.getIncorrectFunction(questionObj).getProcessed()],
                 id: i
             });
 

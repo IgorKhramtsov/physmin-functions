@@ -1,5 +1,7 @@
 import {UnitFirst} from "../src/UnitFirst"
 import chai = require('chai');
+import { FunctionBuilder } from "../src/Function/FunctionBuilder";
+import { FunctionObj } from "../src/Function/FunctionObj";
 
 describe("Function generators", () => {
     

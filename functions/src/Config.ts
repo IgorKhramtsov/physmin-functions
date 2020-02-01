@@ -1,6 +1,6 @@
 import {Utils} from "./Util";
 
-export let Config = {
+export const Config = {
 
     Axes: {
         set: [
@@ -16,6 +16,13 @@ export let Config = {
         x: [0.1, 4],
         v: [0.1, 1],
         a: [0.15, 0.5],
+    } as any,
+
+    // zero snap threshold in random function
+    Threshold: { 
+        x: 0.4,
+        v: 0.1,
+        a: 0.05
     } as any,
 
     Limits: {

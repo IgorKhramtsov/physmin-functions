@@ -41,20 +41,20 @@ export class FunctionObj {
     }
 
     makeFreeVariables(): FunctionObj {
-        const paramsKeys = Object.keys(this.params),
-            params = this.params,
-            Axes = Config.Axes;
+        const   paramsKeys = Object.keys(this.params),
+                params = this.params,
+                Axes = Config.Axes;
 
         // Imputes necessary parameters for that type of function
         if (this.funcType === "x") {
             if (!paramsKeys.contains("x"))
-                params.x = Utils.getRandomNonZeroFromBound(Axes.X);
+                params.x = Utils.getRandomOrZeroFromBound(Axes.X);
             if (!paramsKeys.contains("v"))
-                params.v = Utils.getRandomFromBound(Axes.V);
+                params.v = Utils.getRandomOrZeroFromBound(Axes.V);
         }
         if (this.funcType === "v")
             if (!paramsKeys.contains("v"))
-                params.v = Utils.getRandomNonZeroFromBound(Axes.V);
+                params.v = Utils.getRandomOrZeroFromBound(Axes.V);
 
         return this;
     }
@@ -90,10 +90,11 @@ export class FunctionObj {
         return this.makeFreeVariables();
     }
 
+    // Invert from 1 to all params of function
     makeIncorrectParams(): FunctionObj {
-        const params = this.params,
-            paramsKeys = Object.keys(params).deleteItem("len");
-        // Inverting current params
+        const   params = this.params,
+                paramsKeys = Object.keys(params).deleteItem("len").shuffle();
+        let     changes = (paramsKeys.length + 1).getRandom(); // get number of changes
         for (const key of paramsKeys) {
             switch (Math.sign(params[key])) {
                 case 1:
@@ -105,12 +106,14 @@ export class FunctionObj {
                     break;
             }
             params[key] = Utils.getRandomWithSign(key, params[key]);
+            if(--changes < 0)
+                break;
         }
         return this.makeFreeVariables();
     }
 
     //-------------------------------------------
-    // Text description of function behavior
+    // Text description of function behaviour
     //-------------------------------------------
     getKeyByValue(object: any, value: any): string {
         // Returns text by value or sign
@@ -130,7 +133,6 @@ export class FunctionObj {
             getText = (s: object, v: number) => this.getKeyByValue(s, v);
         let text = "";
 
-        // 
         if (X !== undefined && V !== undefined && A !== undefined) {
             if (X === 0 && V === 0 && A === 0) {
                 text += getText(textOf.movement, 0);

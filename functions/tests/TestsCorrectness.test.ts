@@ -2,6 +2,7 @@ import {Config} from "../src/Config";
 import {UnitFirst as tests} from "../src/UnitFirst";
 import chai = require('chai');
 
+// considering that tests should be very agile, so we can ask for 1 question with 2 answers total, this tests is under the question.
 describe('Tests correctness, COMPOSITION', () => {
     it('getG2Gtest_OneAnswerGraph. 1 question, 1 correct answer, 3 incorrect answers', () => {
         let test: any,
@@ -136,61 +137,4 @@ describe('Tests correctness, COMPOSITION', () => {
             chai.expect(complexTestCorrectIDs.length).to.be.equal(4);
         }
     })
-});
-
-describe('Tests correctness, FUNCTION LENGTH', () => {
-    it('getG2Gtest. Question and answers functions should have correct length', () => {
-        let test: any,
-            defaultLength = Config.Limits.defaultLength;
-        for (let i = 0; i < 100; ++i) {
-            test = tests.getG2Gtest_OneAnswerGraph(i);
-            chai.expect(test.question.graph[0].params.len).to.be.equal(defaultLength);
-            for (let j = 0; j < Config.Tasks.G2G.answersCount; ++j)
-                chai.expect(test.answers[j].graph[0].params.len).to.be.equal(defaultLength);
-        }
-    });
-    it('getG2Stest_SimpleFunctions. Question functions should have correct length', () => {
-        let test: any;
-        for (let i = 0; i < 100; ++i) {
-            test = tests.getG2Stest_SimpleFunctions(i);
-            for (let j = 0; j < Config.Tasks.G2S.answersCount; ++j)
-                chai.expect(test.question[j].graph[0].params.len).to.be.equal(Config.Limits.defaultLength);
-        }
-    });
-    it('getG2Stest_ComplexFunctions. Question functions should have correct length', () => {
-        let test: any,
-            defaultLength = Config.Limits.defaultLength;
-        for (let i = 0; i < 100; ++i) {
-            test = tests.getG2Stest_ComplexFunctions(i);
-
-            for (let j = 0; j < Config.Tasks.G2S.answersCount; ++j) {
-                chai.expect(test.question[j].graph[0].params.len).to.be.equal(defaultLength / 2);
-                chai.expect(test.question[j].graph[1].params.len).to.be.equal(defaultLength / 2);
-            }
-        }
-    });
-    it('getSGtest_SimpleAnswers. Question and answers functions should have correct length', () => {
-        let test: any,
-            cumLength: number;
-        for (let i = 0; i < 100; ++i) {
-            cumLength = 0;
-            test = tests.getSGtest_SimpleAnswers(i);
-
-            for (let j = 0; j < test.question[0].graph.length; ++j)
-                cumLength += test.question[0].graph[j].params.len;
-            chai.expect(cumLength).to.be.equal(Config.Limits.defaultLength);
-        }
-    });
-    it('getSGtest_ComplexAnswers. Question and answers functions should have correct length', () => {
-        let test: any,
-            cumLength: number;
-        for (let i = 0; i < 100; ++i) {
-            cumLength = 0;
-            test = tests.getSGtest_ComplexAnswers(i);
-
-            for (let j = 0; j < test.question[0].graph.length; ++j)
-                cumLength += test.question[0].graph[j].params.len;
-            chai.expect(cumLength).to.be.equal(Config.Limits.defaultLength);
-        }
-    });
 });

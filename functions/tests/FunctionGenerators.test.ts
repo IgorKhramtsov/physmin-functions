@@ -1,82 +1,94 @@
-import {FunctionBuilder} from "../src/Function/FunctionBuilder";
-import {FunctionObj} from "../src/Function/FunctionObj";
-import {Config} from "../src/Config";
+import { FunctionBuilder} from "../src/Function/FunctionBuilder";
+import { FunctionObj } from "../src/Function/FunctionObj";
+import { Config } from "../src/Config";
 import chai = require('chai');
 
 describe("Function generators", () => {
-    it('getQuestionFunction. Should not throw any exceptions', () => {
-        let builder: any = new FunctionBuilder();
-        for (let i = 0; i < 100; ++i) {
-            builder.reset();
-            chai.expect(() => builder.getQuestionFunction()).to.not.throw(Error);
-        }
-    });
-    it('getIncorrectFunction. Functions must not be equal to Questions and Correct functions', () => {
+    it("getIncorrect. Checking fullness of incorrect generator variations", () => {
         let builder = new FunctionBuilder(),
-            correctFuncArray: Array<FunctionObj>,
-            incorrectFuncArray: Array<FunctionObj>,
-            questionFuncArray: Array<FunctionObj>,
-            incorrectFunc: FunctionObj;
-        for (let i = 0; i < 100; ++i) {
-            builder.reset();
-            correctFuncArray = [];
-            questionFuncArray = [];
-            incorrectFuncArray = [];
+            question: FunctionObj,
+            incorrect_array = Array<FunctionObj>(),
+            counter = 0;
 
-            builder.disableAllowedAxesUsage();
-            for (let j = 0; j < 4; ++j) {
-                questionFuncArray.push(builder.getQuestionFunction());
-                correctFuncArray.push(builder.getCorrectFunction());
+        question = builder.getQuestionFunction(['x']);
+        counter = 0;
+        while (true) {
+            try {
+                incorrect_array.push(builder.getIncorrectFunction(question));
+                chai.expect(++counter,"exception not throwed").to.be.lessThan(100);
             }
-
-            for (let j = 0; j < 2; ++j) {
-                incorrectFunc = builder.getIncorrectFunction();
-                for (let questionFunc of questionFuncArray)
-                    chai.expect(incorrectFunc.comparisons.equalByValueTo(questionFunc)).to.be.false;
-                for (let correctFunc of correctFuncArray)
-                    chai.expect(incorrectFunc.comparisons.equalByTextTo(correctFunc)).to.be.false;
-                for (let incorrect_func of incorrectFuncArray)
-                    chai.expect(incorrectFunc.comparisons.equalBySignTo(incorrect_func)).to.be.false;
-                incorrectFuncArray.push(incorrectFunc)
+            catch {
+                break;
             }
         }
+        chai.expect(incorrect_array.length).to.be.equal(10);
+
+        incorrect_array = Array<FunctionObj>();
+        builder.reset();
+        question = builder.getQuestionFunction(['v']);
+        counter = 0;
+        while (true) {
+            try {
+                incorrect_array.push(builder.getIncorrectFunction(question));
+                chai.expect(++counter,"exception not throwed").to.be.lessThan(100);
+            }
+            catch {
+                break;
+            }
+        }
+        chai.expect(incorrect_array.length).to.be.equal(26);
+
+        incorrect_array = Array<FunctionObj>();
+        builder.reset();
+        question = builder.getQuestionFunction(['a']);
+        counter = 0;
+        while (true) {
+            try {
+                incorrect_array.push(builder.getIncorrectFunction(question));
+                chai.expect(++counter,"exception not throwed").to.be.lessThan(100);
+            }
+            catch {
+                break;
+            }
+        }
+        chai.expect(incorrect_array.length).to.be.equal(24);
     });
 
     it("getCorrectFunction. Correct funcType", () => {
         let correct_array: any,
-            builder: any;
+            question: FunctionObj,
+            builder: FunctionBuilder;
         for (let i = 0; i < 100; i++) {
             builder = new FunctionBuilder();
             builder.setLength(0);
             builder.setAllowedAxes(['x']);
-            builder.getQuestionFunction();
+            question = builder.getQuestionFunction();
             correct_array = Array<FunctionObj>();
 
             builder.setAllowedAxes(['v']);
-            correct_array.push(builder.getCorrectFunction());
+            correct_array.push(builder.getCorrectFunction(question));
             builder.setAllowedAxes(['a']);
-            correct_array.push(builder.getCorrectFunction());
+            correct_array.push(builder.getCorrectFunction(question));
 
             chai.expect(correct_array[0].funcType).to.be.equal("v");
             chai.expect(correct_array[1].funcType).to.be.equal("a");
         }
     });
     it("getCorrectFunction. Generated functions should be Correct", () => {
-        let builder: any,
-            question: any,
+        let builder: FunctionBuilder,
+            question: FunctionObj,
             correctFunctionToCompare: FunctionObj,
             correct_array: any;
         for (let i = 0; i < 100; i++) {
             builder = new FunctionBuilder();
-            builder.setAllowedAxes(['x']);
-            question = builder.getQuestionFunction();
+            question = builder.getQuestionFunction(['x']);
 
             correct_array = Array<FunctionObj>();
 
             builder.setAllowedAxes(['x', 'v']);
-            correct_array.push(builder.getCorrectFunction());
+            correct_array.push(builder.getCorrectFunction(question));
             builder.setAllowedAxes(['x', 'v', 'a']);
-            correct_array.push(builder.getCorrectFunction());
+            correct_array.push(builder.getCorrectFunction(question));
 
             correctFunctionToCompare = new FunctionObj(question.funcType, correct_array[0].copyParams());
             correctFunctionToCompare.params.x = question.params.x;
@@ -87,6 +99,54 @@ describe("Function generators", () => {
             correctFunctionToCompare.params.v = question.params.v;
             chai.expect(correctFunctionToCompare.comparisons.equalBySignTo(question)).to.be.true;
         }
+    });
+    it("getCorrectFunction. Checking fullness of correct generator variations", () => {
+        let builder = new FunctionBuilder(),
+            question: FunctionObj,
+            correct_array = Array<FunctionObj>(),
+            counter = 0;
+
+        question = builder.getQuestionFunction(['x']);
+        counter = 0;
+        while (true) {
+            try {
+                correct_array.push(builder.getCorrectFunction(question));
+                chai.expect(++counter,"exception not throwed").to.be.lessThan(100);
+            }
+            catch {
+                break;
+            }
+        }
+        chai.expect(correct_array.length).to.be.equal(2);
+        correct_array = Array<FunctionObj>();
+        builder.reset();
+        question = builder.getQuestionFunction(['v']);
+        counter = 0;
+        while (true) {
+            try {
+                correct_array.push(builder.getCorrectFunction(question));
+                chai.expect(++counter,"exception not throwed").to.be.lessThan(100);
+            }
+            catch {
+                break;
+            }
+        }
+        chai.expect(correct_array.length).to.be.equal(4);
+
+        correct_array = Array<FunctionObj>();
+        builder.reset();
+        question = builder.getQuestionFunction(['a']);
+        counter = 0;
+        while (true) {
+            try {
+                correct_array.push(builder.getCorrectFunction(question));
+                chai.expect(++counter,"exception not throwed").to.be.lessThan(100);
+            }
+            catch {
+                break;
+            }
+        }
+        chai.expect(correct_array.length).to.be.equal(12);
     });
 
     it('Complex Function. Functions should connect', () => {

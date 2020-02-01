@@ -12,7 +12,7 @@ declare global {
     interface Array<T> {
         getRandom(): T;
 
-        deleteItem(item: T): any;
+        deleteItem(item: T): Array<T>;
 
         contains(item: T): boolean;
 
@@ -30,6 +30,7 @@ declare global {
 Number.prototype.toFloor = function (this: number): number {
     return Math.floor(this);
 };
+// RETURN FLOORED VALUE [0..this)
 Number.prototype.getRandom = function (this: number): number {
     return Math.floor(Math.random() * this);
 };
@@ -39,7 +40,7 @@ Number.prototype.getRandomF = function (this: number): number {
 Array.prototype.getRandom = function <T>(this: T[]): T {
     return this[this.length.getRandom()];
 };
-Array.prototype.deleteItem = function <T>(this: T[], item: T): any {
+Array.prototype.deleteItem = function <T>(this: T[], item: T): Array<T> {
     if (this.indexOf(item) !== -1)
         this.splice(this.indexOf(item), 1);
     return this;
@@ -76,7 +77,7 @@ export class Utils {
         let value = Utils.getRandomFromRange(Config.Bounds[axis][0], Config.Bounds[axis][1]);
         if (Math.abs(value) <= 0.3)
             value = 0;
-        return value
+        return value * (Utils.withChance(0.5) ? 1 : -1);
     }
 
     static getRandomOrZeroFromBound(axis: string) {
@@ -92,16 +93,7 @@ export class Utils {
     static getRandomNonZeroFromBound(axis: string): number {
         let value = Utils.getRandomFromRange(Config.Bounds[axis][0], Config.Bounds[axis][1]);
 
-        let threshold: number;
-        if (axis === 'a') {
-            threshold = 0.05
-        } else if (axis === 'v') {
-            threshold = 0.1
-        } else if (axis === 'x') {
-            threshold = 0.4
-        } else throw new Error('Incorrect axis.');
-
-        if (Math.abs(value) <= threshold)
+        if (Math.abs(value) <= Config.Threshold[axis])
             value = 0;
 
         if (value === 0)

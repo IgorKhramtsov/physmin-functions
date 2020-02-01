@@ -10,8 +10,9 @@ export class FunctionComparison {
         this._functionObj = functionObject;
     }
 
+    // xva == va
     equalByTextTo(obj: FunctionObj): boolean {
-        return this._functionObj.getTextDescription(false) === obj.getTextDescription(false)
+        return this._functionObj.getTextDescription() === obj.getTextDescription()
     }
 
     equalBySignTo(obj: FunctionObj): boolean {
