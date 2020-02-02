@@ -37,17 +37,17 @@ export const Config = {
             questionCount: 1,
             answersCount: 6
         },
-        G2S: {
+        S2G: {
             questionCount: 4,
             answersCount: 4
         },
-        S2G: {
+        RS: {
             questionCount: [3, 4],
             simple: {
                 answersCount: 3
             },
             complex: {
-                answersCount: 6
+                answersCount: 4
             }
         }
     },

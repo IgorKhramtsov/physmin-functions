@@ -1,6 +1,6 @@
-import {getSGtest} from "./Tasks/SG";
+import {getRStest} from "./Tasks/RS";
 import {getG2Gtest} from "./Tasks/G2G";
-import {getG2Stest} from "./Tasks/G2S";
+import {getS2Gtest} from "./Tasks/S2G";
 
 export class UnitFirst {
 
@@ -12,23 +12,23 @@ export class UnitFirst {
         return getG2Gtest(test_id, 2);
     }
 
-    static getG2Stest_SimpleFunctions(test_id: number) {
-        return getG2Stest(test_id, 0);
+    static getS2Gtest_SimpleFunctions(test_id: number) {
+        return getS2Gtest(test_id, 0);
     }
 
-    static getG2Stest_ComplexFunctions(test_id: number) {
-        return getG2Stest(test_id, 1);
+    static getS2Gtest_ComplexFunctions(test_id: number) {
+        return getS2Gtest(test_id, 1);
     }
 
-    static getG2Stest_MixedFunctions(test_id: number, ComplexChance: number) {
-        return getG2Stest(test_id, ComplexChance);
+    static getS2Gtest_MixedFunctions(test_id: number, ComplexChance: number) {
+        return getS2Gtest(test_id, ComplexChance);
     }
 
-    static getSGtest_SimpleAnswers(test_id: number) {
-        return getSGtest(test_id, true);
+    static getRStest_SimpleAnswers(test_id: number) {
+        return getRStest(test_id, true);
     }
 
-    static getSGtest_ComplexAnswers(test_id: number) {
-        return getSGtest(test_id, false);
+    static getRStest_ComplexAnswers(test_id: number) {
+        return getRStest(test_id, false);
     }
 }

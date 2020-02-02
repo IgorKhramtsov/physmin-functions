@@ -1,4 +1,4 @@
-import {Indexes} from "../src/Tasks/SG";
+import {Segments} from "../src/Tasks/RS";
 import {FunctionBuilder} from "../src/Function/FunctionBuilder";
 import {FunctionObj} from "../src/Function/FunctionObj";
 import {Config} from "../src/Config";
@@ -35,19 +35,19 @@ describe('Minor functions', () => {
         }
     });
 
-    it('createNextCoupleIndexes. Should not throw any exceptions.', () => {
+    it('createNextSegment. Should not throw any exceptions.', () => {
         let indexes = Array<Array<Array<number>>>(),
             questionCount = 5;
         for (let i = 0; i < 100; i++)
-            chai.expect(() => Indexes.createNextCoupleIndexes(questionCount, indexes)).to.not.throw(Error);
+            chai.expect(() => Segments.createNextSegment(questionCount, indexes)).to.not.throw(Error);
     });
-    it('createNextIndex. Should not throw any exceptions.', () => {
+    it('createBoundaryPoint. Should not throw any exceptions.', () => {
         let leftCoupleIndexes: any,
             questionCount = 6;
 
         for (let i = 0; i < 100; i++) {
-            chai.expect(() => leftCoupleIndexes = Indexes.createNextIndex(questionCount)).to.not.throw(Error);
-            chai.expect(() => Indexes.createNextIndex(questionCount, [leftCoupleIndexes])).to.not.throw(Error)
+            chai.expect(() => leftCoupleIndexes = Segments.createBoundaryPoint(questionCount)).to.not.throw(Error);
+            chai.expect(() => Segments.createBoundaryPoint(questionCount, [leftCoupleIndexes])).to.not.throw(Error)
         }
     });
 

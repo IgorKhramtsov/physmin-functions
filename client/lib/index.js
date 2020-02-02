@@ -18,7 +18,7 @@ function resolve(test) {
         drawFunctions(canvas, graph, letter);
         // drawAnswers(canvas1, test.answers,test.question.correctIDs);
     }
-    if (test.type === "graph2state") {
+    if (test.type === "RS") {
         console.log(test);
         graph = test.question[0].graph;
         let correctIDs = Array();
@@ -37,7 +37,7 @@ function resolve(test) {
         drawFunctions(canvas, graph, letter);
         drawTextAnswers(list1, test.answers, test.question[0].correctIDs, incorrectIDs);
     }
-    if (test.type === "graph2graph" || test.type === "graph2graph2") {
+    if (test.type === "G2G" || test.type === "G2G2") {
         graph = test.question.graph;
         letter = graph[0].funcType;
         drawFunctions(canvas, graph, letter);
@@ -50,6 +50,7 @@ function resolve(test) {
 }
 function outputFunc(graph, answers, list, isSG = false) {
     let node;
+    console.log(answers);
     for (let func of graph) {
         node = document.createElement("li");
         if (func.params.x !== undefined)
@@ -64,9 +65,18 @@ function outputFunc(graph, answers, list, isSG = false) {
             list.appendChild(node);
     }
     if (isSG) {
+        let string = " ";
         for (let answer of answers) {
             node = document.createElement("li");
-            node.innerHTML += answer.letter + "[" + answer.leftIndex + "] " + answer.correctSign + " " + answer.letter + "[" + answer.rightIndex + "]";
+            node.innerHTML += answer.letter + "[" + answer.leftSegment[0] + ", " + answer.leftSegment[1] + "]";
+            if (answer.correctSign == 0)
+                string = " = ";
+            else if (answer.correctSign == -1)
+                string = " < ";
+            else
+                string = " > ";
+            node.innerHTML += string;
+            node.innerHTML += answer.letter + "[" + answer.rightSegment[0] + ", " + answer.rightSegment[1] + "]";
             if (list)
                 list.appendChild(node);
         }

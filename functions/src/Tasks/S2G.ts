@@ -3,15 +3,15 @@ import { Utils } from "../Util";
 import { FunctionBuilder } from "../Function/FunctionBuilder";
 import { FunctionObj } from "../Function/FunctionObj";
 
-export function getG2Stest(test_id: number, chance: number) {
-    const testType: string = 'G2S',
+export function getS2Gtest(test_id: number, chance: number) {
+    const testType: string = 'S2G',
         questions = Array<any>(),
         correctIDs = Array<number>(),
         answers = Array<any>(),
         builder = new FunctionBuilder(),
 
-        questionCount = Config.Tasks.G2S.questionCount,
-        answersCount = Config.Tasks.G2S.answersCount,
+        questionCount = Config.Tasks.S2G.questionCount,
+        answersCount = Config.Tasks.S2G.answersCount,
         length = Config.Limits.defaultLength;
 
     let cachedChance: boolean,
@@ -71,12 +71,6 @@ export function getG2Stest(test_id: number, chance: number) {
             id: i
         };
     }
-
-    // for (let i = 0; i < questions.length; ++i)
-    //     for (let j = 0; j < answers.length; ++j)
-    //         if (answers[j].text === answers[questions[i].correctIDs[0]].text)
-    //             if (correctIDs.contains(answers[j].id) && !questions[i].correctIDs.contains(answers[j].id))
-    //                 questions[i].correctIDs.push(j);
 
     return {
         type: testType,

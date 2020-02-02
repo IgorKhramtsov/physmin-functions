@@ -72,11 +72,11 @@ describe('Function Builder.', () => {
         }
     });
 
-    // it('getG2Stest. Correct function should be correct to question, incorrect incorrect accordingly', () => {
+    // it('getS2Gtest. Correct function should be correct to question, incorrect incorrect accordingly', () => {
     //     let builder = new FunctionBuilder(),
     //         questionFuncArray: Array<QuestionObj>,
     //         correctFuncArray: Array<FunctionObj>,
-    //         questionCount = Config.Tasks.G2S.questionCount,
+    //         questionCount = Config.Tasks.RS.questionCount,
     //         correctAnswersCount: number,
     //         suspectCorrectAnwers: Array<FunctionObj>;
     //     for (let i = 0; i < 100; ++i) {
@@ -122,7 +122,7 @@ describe('Function Builder.', () => {
     //         }
     //     }
     // });
-    // it('getSGtest', () => {
+    // it('getRStest', () => {
 
     // });
 
