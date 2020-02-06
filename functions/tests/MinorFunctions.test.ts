@@ -3,7 +3,7 @@ import {FunctionBuilder} from "../src/Function/FunctionBuilder";
 import {FunctionObj} from "../src/Function/FunctionObj";
 import {Config} from "../src/Config";
 import chai = require('chai');
-
+import {createAnswers} from "../src/Tasks/RS";
 
 // weak tests almost useless
 describe('Minor functions', () => {
@@ -35,21 +35,81 @@ describe('Minor functions', () => {
         }
     });
 
-    it('createNextSegment. Should not throw any exceptions.', () => {
+    it('Segments.getSegments. Should not throw any exceptions.', () => {
+        let questionCount = Config.Tasks.RS.questionCount,
+            answersCountSimple = Config.Tasks.RS.simple.answersCount,
+            answersCountComplex = Config.Tasks.RS.simple.answersCount;
+        for (let i = 0; i < 100; i++){
+            chai.expect(() => Segments.getSegments(questionCount[0], answersCountSimple)).to.not.throw(Error);
+            chai.expect(() => Segments.getSegments(questionCount[0], answersCountComplex)).to.not.throw(Error);
+            chai.expect(() => Segments.getSegments(questionCount[1], answersCountSimple)).to.not.throw(Error);
+            chai.expect(() => Segments.getSegments(questionCount[1], answersCountComplex)).to.not.throw(Error)
+        }
+    });
+    it('Segments.createNextSegment. Should not throw any exceptions.', () => {
         let indexes = Array<Array<Array<number>>>(),
             questionCount = 5;
         for (let i = 0; i < 100; i++)
             chai.expect(() => Segments.createNextSegment(questionCount, indexes)).to.not.throw(Error);
     });
-    it('createBoundaryPoint. Should not throw any exceptions.', () => {
+    it('Segments.createBoundaryPoints. Should not throw any exceptions.', () => {
         let leftCoupleIndexes: any,
             questionCount = 6;
 
         for (let i = 0; i < 100; i++) {
-            chai.expect(() => leftCoupleIndexes = Segments.createBoundaryPoint(questionCount)).to.not.throw(Error);
-            chai.expect(() => Segments.createBoundaryPoint(questionCount, [leftCoupleIndexes])).to.not.throw(Error)
+            chai.expect(() => leftCoupleIndexes = Segments.createBoundaryPoints(questionCount)).to.not.throw(Error);
+            chai.expect(() => Segments.createBoundaryPoints(questionCount, [leftCoupleIndexes])).to.not.throw(Error)
         }
     });
+
+    it("RS. createAnswers. Should not throw any exceptions.", ()=>{
+        let builder = new FunctionBuilder(),
+            questionCount = Config.Tasks.RS.questionCount;
+        for(let i =0; i< 100; ++i){
+            builder.reset();
+            builder.setAllowedAxes(Config.getAxesCopy(['a']));
+            checkCreateAnswers(questionCount[0], true);
+
+            builder.reset();
+            builder.setAllowedAxes(Config.getAxesCopy(['a']));
+            checkCreateAnswers(questionCount[0], false);
+
+            builder.reset();
+            builder.setAllowedAxes(Config.getAxesCopy(['a']));
+            checkCreateAnswers(questionCount[1], true);
+
+            builder.reset();
+            builder.setAllowedAxes(Config.getAxesCopy(['a']));
+            checkCreateAnswers(questionCount[1], false);
+        }
+
+        function checkCreateAnswers(questionCount: number, isSimple: boolean){
+            const questionInterval = Math.round(Config.Limits.defaultLength / questionCount);
+
+            let interval = Array<number>(),
+                segments_1: any,
+                segments_2: any;
+            for (let i = 0; i < questionCount; ++i)
+                interval.push(questionInterval);
+
+            const complexFunc = builder.getComplexFunction(interval);
+
+            if (!isSimple) {
+                const half = Config.Tasks.RS.complex.answersCount / 2;
+                segments_1 = Segments.getSegments(questionCount, half);
+                chai.expect(() => createAnswers(complexFunc, segments_1, "S")).to.not.throw(Error);
+
+                segments_2= Segments.getSegments(questionCount, half);
+                chai.expect(() => createAnswers(complexFunc, segments_2, "Δ" + complexFunc[0].funcType)).to.not.throw(Error);
+
+            } else {
+                segments_1 = Segments.getSegments(questionCount, Config.Tasks.RS.simple.answersCount);
+                chai.expect(() => createAnswers(complexFunc, segments_1, "Δ" + complexFunc[0].funcType)).to.not.throw(Error);
+            }
+
+        }
+    });
+
 
     // it('generateParams. Generated params should not be all zeros', () => {
     //     let func: any,

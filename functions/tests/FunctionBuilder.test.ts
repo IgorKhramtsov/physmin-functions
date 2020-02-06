@@ -2,6 +2,7 @@ import {FunctionBuilder} from "../src/Function/FunctionBuilder";
 import {FunctionObj} from "../src/Function/FunctionObj";
 import {Config} from "../src/Config";
 import chai = require('chai');
+import {Utils} from "../src/Util";
 
 function checkCorrectFunc(questionFunc: FunctionObj, correctFunc: FunctionObj) {
     let forCompare: FunctionObj,
@@ -40,11 +41,7 @@ function checkCorrectFunc(questionFunc: FunctionObj, correctFunc: FunctionObj) {
     return false;
 }
 
-
-
-
-
-describe('Function Builder.', () => {
+describe('FunctionBuilder.', () => {
     it('getG2Gtest. Correct function should be correct to question, incorrect incorrect accordingly', () => {
         let builder = new FunctionBuilder(),
             questionObj: FunctionObj,
@@ -85,24 +82,24 @@ describe('Function Builder.', () => {
     //         //builder.disableDuplicateText();
     //         questionFuncArray = Array<QuestionObj>();
     //         correctFuncArray = Array<FunctionObj>();
-    
-    
+    //
+    //
     //         for (let j = 0; j < questionCount; ++j) {
     //             questionFuncArray.push(builder.getQuestionObj());
     //             correctFuncArray.push(builder.getCorrectFunction(questionFuncArray.last()))
     //         }
-    
-    
+    //
+    //
     //         for (let questionFunc of questionFuncArray) {
     //             correctAnswersCount = 0;
     //             suspectCorrectAnwers = [];
-    
+    //
     //             for (let correctFunc of correctFuncArray)
     //                 if (checkCorrectFunc(questionFunc.func, correctFunc)) {
     //                     suspectCorrectAnwers.push(correctFunc);
     //                     correctAnswersCount++;
     //                 }
-    
+    //
     //             let suspect: FunctionObj;
     //             let suspectCount=0;
     //             for (let i = 0; i < suspectCorrectAnwers.length; ++i) {
@@ -115,7 +112,7 @@ describe('Function Builder.', () => {
     //                     }
     //                 }
     //             }
-    
+    //
     //             suspectCount /=2;
     //             //chai.expect(correctAnswersCount).to.be.equal(1);
     //             chai.expect(suspectCount).to.be.equal(0);
@@ -123,7 +120,7 @@ describe('Function Builder.', () => {
     //     }
     // });
     // it('getRStest', () => {
-
+    //
     // });
 
     it("Generated functions should not going out of bounds", () => {
@@ -146,6 +143,38 @@ describe('Function Builder.', () => {
                 func = builder.getIncorrectFunction(question);
                 for (const param of Object.keys(func.params).deleteItem("len"))
                     chai.expect(Math.abs(func.params[param])).to.be.lessThan(upperLimit)
+            }
+        }
+    });
+
+    it("FunctionBuilder. Connectivity of complex function", ()=>{
+        let builder = new FunctionBuilder(),
+            questionCount = Config.Tasks.RS.questionCount;
+        for(let i = 0; i < 100; ++i){
+            builder.reset();
+            builder.setAllowedAxes(Config.getAxesCopy(['a']));
+
+            checkConnectivity(questionCount[0]);
+            checkConnectivity(questionCount[1]);
+        }
+        function checkConnectivity(questionCount: number) {
+            let segments = Array<number>(),
+                complexFunc : any;
+            let questionInterval = Math.round(Config.Limits.defaultLength / questionCount);
+
+            for (let i = 0; i < questionCount; i++)
+                segments.push(questionInterval);
+            complexFunc = builder.getComplexFunction(segments);
+
+            let finalValue = 0,
+                nextFunc: any,
+                funcType: string;
+            for(let i = 0; i< complexFunc.length - 1; ++i){
+                finalValue = complexFunc[i].values.calcFinalValue();
+
+                nextFunc = complexFunc[i+1];
+                funcType = nextFunc.funcType;
+                chai.expect(finalValue).to.be.equal(nextFunc.params[funcType]);
             }
         }
     });

@@ -73,4 +73,4 @@ export class FunctionComparison {
 
         return false;
     }
-};
+}

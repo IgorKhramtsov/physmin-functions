@@ -47,7 +47,7 @@ export class FunctionValues {
     }
 
     // Returns the area under function curve on segment
-    calcIntegralOnSegment(start: number, end: number, functions: Array<FunctionObj>): number {
+    static calcIntegralOnSegment(start: number, end: number, functions: Array<FunctionObj>): number {
         let result = 0;
 
         for (let i = start; i < end + 1; i++)
@@ -55,4 +55,4 @@ export class FunctionValues {
 
         return result;
     }
-};
+}

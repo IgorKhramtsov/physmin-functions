@@ -197,6 +197,7 @@ export class FunctionObj {
         return text;
     }
 
+    // Return the function without unnecessary fields
     getProcessed(){
         let processedFunc = new FunctionObj(this.funcType, this.params);
         delete processedFunc.behaviour;

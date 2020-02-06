@@ -2,9 +2,11 @@ import {FunctionObj} from "../Function/FunctionObj";
 import {Config} from "../Config";
 import {FunctionBuilder} from "../Function/FunctionBuilder";
 import {Utils} from "../Util";
+import {FunctionValues} from "../Function/FunctionValues";
 
 
 export let Segments = {
+    // Return an array of segments
     getSegments(questionCount: number, answersCount: number): Array<Array<Array<number>>> {
         const segments = Array<Array<Array<number>>>();
 
@@ -15,58 +17,65 @@ export let Segments = {
         return segments;
     },
 
-    createNextSegment(questionCount: number, usedCoupleIndexes: Array<Array<Array<number>>>, recursive_count?: number): Array<Array<number>> {
+    // Creates new segment which differs from existing ones
+    createNextSegment(questionCount: number, usedSegments: Array<Array<Array<number>>>, recursive_count?: number): Array<Array<number>> {
         if (!recursive_count) recursive_count = 1;
         else if (recursive_count === 30) throw new Error('To much recursive calls.');
 
-        const leftCoupleIndexes = Segments.createBoundaryPoint(questionCount),
-            rightCoupleIndexes = Segments.createBoundaryPoint(questionCount, [leftCoupleIndexes]);
-        let nextCoupleIndexes = [leftCoupleIndexes, rightCoupleIndexes];
+        const leftSegment = Segments.createBoundaryPoints(questionCount),
+            rightSegment = Segments.createBoundaryPoints(questionCount, [leftSegment]);
+        let nextSegment = [leftSegment, rightSegment];
 
 
         // Sorts indices of the couple
-        if (leftCoupleIndexes[0] > rightCoupleIndexes[0])
-            nextCoupleIndexes = [rightCoupleIndexes, leftCoupleIndexes];
-        else if (leftCoupleIndexes[0] === rightCoupleIndexes[0])
-            if (leftCoupleIndexes[1] > rightCoupleIndexes[1])
-                nextCoupleIndexes = [rightCoupleIndexes, leftCoupleIndexes];
+        if (leftSegment[0] > rightSegment[0])
+            nextSegment = [rightSegment, leftSegment];
+        else if (leftSegment[0] === rightSegment[0])
+            if (leftSegment[1] > rightSegment[1])
+                nextSegment = [rightSegment, leftSegment];
 
-        for (const coupleIndexes of usedCoupleIndexes)
-            if (Segments.indexToString(nextCoupleIndexes[0]) === Segments.indexToString(coupleIndexes[0]) &&
-                Segments.indexToString(nextCoupleIndexes[1]) === Segments.indexToString(coupleIndexes[1]))
-                return Segments.createNextSegment(questionCount, usedCoupleIndexes, ++recursive_count);
+        for (const usedSegment of usedSegments)
+            if (Segments.segmentToString(nextSegment[0]) === Segments.segmentToString(usedSegment[0]) &&
+                Segments.segmentToString(nextSegment[1]) === Segments.segmentToString(usedSegment[1]))
+                return Segments.createNextSegment(questionCount, usedSegments, ++recursive_count);
 
-        return nextCoupleIndexes;
+        return nextSegment;
     },
 
-    createBoundaryPoint(questionCount: number, usedIndex?: Array<Array<number>>): Array<number> {
-        let leftIndex,
-            rightIndex,
-            nextIndex: Array<number>,
+    // Create a boundary point for an interval (for example, [a,b] - a and b is boundary points)
+    createBoundaryPoints(questionCount: number, usedSegments?: Array<Array<number>>): Array<number> {
+        let leftPoint,
+            rightPoint,
+            nextSegment: Array<number>,
             iter_count = 0;
 
 
-        rightIndex = questionCount.getRandom();
-        for (iter_count = 0; iter_count < 30 && (leftIndex === rightIndex || leftIndex === undefined); ++iter_count)
-            leftIndex = questionCount.getRandom();
+        // Creates two different boundary points
+        rightPoint = questionCount.getRandom();
+        for (iter_count = 0; iter_count < 30 && (leftPoint === rightPoint || leftPoint === undefined); ++iter_count)
+            leftPoint = questionCount.getRandom();
 
-        if (leftIndex === rightIndex || leftIndex === undefined) throw new Error('To many cycle iterations.');
+        if (leftPoint === rightPoint || leftPoint === undefined) throw new Error('To many cycle iterations.');
 
-        nextIndex = [leftIndex, rightIndex].sort();
-        if (usedIndex)
-            for (const index of usedIndex)
-                if (index[0] === nextIndex[0] && index[1] === nextIndex[1])
-                    return Segments.createBoundaryPoint(questionCount, usedIndex);
+        nextSegment = [leftPoint, rightPoint].sort();
 
-        return nextIndex;
+        // Check if such segments already exists
+        if (usedSegments)
+            for (const segment of usedSegments)
+                if (segment[0] === nextSegment[0] && segment[1] === nextSegment[1])
+                    return Segments.createBoundaryPoints(questionCount, usedSegments);
+
+        return nextSegment;
     },
 
-    indexToString(index: Array<number>): String {
-        return index[0].toString() + index[1].toString();
+    // Converts a segment to a string
+    segmentToString(segment: Array<number>): String {
+        return segment[0].toString() + segment[1].toString();
     },
 };
 
-function createAnswers(complexFunc: Array<FunctionObj>, segments: Array<Array<Array<number>>>, letter: string) {
+// Depending on the parameters, return one of two possible answer types: S - area under function, Δ - path length
+export function createAnswers(complexFunc: Array<FunctionObj>, segments: Array<Array<Array<number>>>, letter: string) {
     let leftSegment: any,
         rightSegment: any,
 
@@ -100,10 +109,11 @@ function createAnswers(complexFunc: Array<FunctionObj>, segments: Array<Array<Ar
     return answers
 }
 
-function calcTargetFunction(complexFunc: Array<FunctionObj>, segment: any, letter: string) {
+// Depending on the parameters, return area under function, or area under function on interval
+export function calcTargetFunction(complexFunc: Array<FunctionObj>, segment: any, letter: string) {
     let value = 0;
     if (letter === "S")
-        value = complexFunc[0].values.calcIntegralOnSegment(segment.start, segment.end, complexFunc);
+        value = FunctionValues.calcIntegralOnSegment(segment.start, segment.end, complexFunc);
     else
         value = complexFunc[segment.end].values.calcIntegral();
     return value
@@ -115,7 +125,7 @@ export function getRStest(test_id: number, isSimple: boolean) {
         taskConfig = Config.Tasks.RS,
         questionCount = Math.round(Utils.getRandomFromRange(taskConfig.questionCount[0], taskConfig.questionCount[1])),
         questionInterval = Math.round(Config.Limits.defaultLength / questionCount),
-        functionsLengths = Array<number>(),
+        segments = Array<number>(),
         answersCount: number = isSimple ? taskConfig.simple.answersCount : taskConfig.complex.answersCount,
         builder = new FunctionBuilder();
 
@@ -125,11 +135,13 @@ export function getRStest(test_id: number, isSimple: boolean) {
         firstSegments: any,
         secondSegments: any;
 
-
+    // Forbid an usage of axes A
     builder.setAllowedAxes(Config.Axes.set.copy().deleteItem("a"));
+
+    // Cut the interval of function on few parts
     for (let i = 0; i < questionCount; i++)
-        functionsLengths.push(questionInterval);
-    complexFunction = builder.getComplexFunction(functionsLengths);
+        segments.push(questionInterval);
+    complexFunction = builder.getComplexFunction(segments);
 
     let firstAnswers = Array<FunctionObj>(),
         secondAnswers = Array<FunctionObj>();
@@ -148,7 +160,7 @@ export function getRStest(test_id: number, isSimple: boolean) {
         answers = createAnswers(complexFunction, firstSegments, "Δ" + complexFunction[0].funcType);
     }
 
-
+    // Clear up the parameters of function (deleting unnecessary fields)
     const processedQuestion = Array<FunctionObj>();
     for (const func of complexFunction)
         processedQuestion.push(func.getProcessed());

@@ -165,19 +165,7 @@ export class FunctionBuilder {
         correctFunc = new FunctionObj(pickedAxis, newParams).makeCorrectParams().clearParams();
         correctFunc.params.len = this.functionLength;
 
-        // if(this.allowDuplicateText == false){
-        //     let count = 0;
-        //     for(let usedQuestionObj of this.usedQuestionObjects){
-        //         // if(this.checkCorrectFunc(usedQuestionObj.func, correctFunc))
-        //         if((correctFunc))
-        //             count++;
-        //     }
-        //     console.log(count);
-        //     if(count > 1 && recursive_count < 10)
-        //         return this.createCorrectFunction(++recursive_count);
-        // }
 
-        
         for (const usedCorrectFunc of this.usedCorrectFuncs)
             if (correctFunc.comparisons.equalBySignTo(usedCorrectFunc))
                 return this.createCorrectFunction(questionObj, ++recursive_count);
@@ -187,9 +175,6 @@ export class FunctionBuilder {
                 if (correctFunc.comparisons.equalByTextTo(usedCorrectFunc))
                      return this.createCorrectFunction(questionObj, ++recursive_count);
 
-        // for (const usedIncorrectFunc of this.usedIncorrectFuncs)
-        //     if (correctFunc.comparisons.equalByTextTo(usedIncorrectFunc) && recursive_count < 20)
-        //         return this.createCorrectFunction(questionObj, ++recursive_count);
 
         // snapEnd affects function what should not be affected
         if (this.useSnap)
@@ -245,7 +230,7 @@ export class FunctionBuilder {
             throw Error('The sum of functions lengths values greater than ' + defaultLength);
 
         this.setLength(funcsLengths[0]);
-        complexFunc.push(this.getQuestionFunction()); // Start of complex function is questionFunc, so we doesnt need to care about duplicates
+        complexFunc.push(this.getQuestionFunction()); // Start of complex function is questionFunc, so we don`t need to care about duplicates
         for (let i = 1; i < funcsLengths.length; ++i) {
             complexFunc.push(this.createNextFunction(complexFunc.last(), funcsLengths[i]))
         }
