@@ -119,6 +119,9 @@ export function calcTargetFunction(complexFunc: Array<FunctionObj>, segment: any
     return value
 }
 
+///
+/// If test is simple, answers is deltas, in other way, answers is half area and hafl path length
+///
 export function getRStest(test_id: number, isSimple: boolean) {
     const testType = "relationSings",
 
