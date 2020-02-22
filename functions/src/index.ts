@@ -1,6 +1,7 @@
 import * as functions from 'firebase-functions';
 import * as cors from 'cors';
 import { UnitFirst } from './UnitFirst';
+import {UnitSecond} from "./UnitSecond";
 const corsHandler = cors({ origin: true });
 
 exports.getTestDevDebug = functions.region("europe-west1").https.onRequest((request, resp) => {
@@ -23,7 +24,8 @@ function createTest(): any {
   // testBundle.tests.push(UnitFirst.getS2Gtest_ComplexFunctions(3));
   // testBundle.tests.push(UnitFirst.getS2Gtest_MixedFunctions(4, 0.5));
 
-  testBundle.tests.push(UnitFirst.getRStest_SimpleAnswers(6));
+  // testBundle.tests.push(UnitFirst.getRStest_SimpleAnswers(6));
   // testBundle.tests.push(UnitFirst.getRStest_ComplexAnswers(7));
+  testBundle.tests.push(UnitSecond.getSecondRStest(1));
   return JSON.stringify(testBundle);
 }

@@ -115,3 +115,72 @@ export class Utils {
 
 
 }
+
+export let Segments = {
+    // Return an array of segments
+    getSegments(questionCount: number, answersCount: number): Array<Array<Array<number>>> {
+        const segments = Array<Array<Array<number>>>();
+
+        // Returns unique couple of indices (read - points) on coordinate plane
+        for (let i = 0; i < answersCount; i++)
+            segments.push(Segments.createNextSegment(questionCount, segments));
+
+        return segments;
+    },
+
+    // Creates new segment which differs from existing ones
+    createNextSegment(questionCount: number, usedSegments: Array<Array<Array<number>>>, recursive_count?: number): Array<Array<number>> {
+        if (!recursive_count) recursive_count = 1;
+        else if (recursive_count === 30) throw new Error('To much recursive calls.');
+
+        const leftSegment = Segments.createBoundaryPoints(questionCount),
+            rightSegment = Segments.createBoundaryPoints(questionCount, [leftSegment]);
+        let nextSegment = [leftSegment, rightSegment];
+
+
+        // Sorts indices of the couple
+        if (leftSegment[0] > rightSegment[0])
+            nextSegment = [rightSegment, leftSegment];
+        else if (leftSegment[0] === rightSegment[0])
+            if (leftSegment[1] > rightSegment[1])
+                nextSegment = [rightSegment, leftSegment];
+
+        for (const usedSegment of usedSegments)
+            if (Segments.segmentToString(nextSegment[0]) === Segments.segmentToString(usedSegment[0]) &&
+                Segments.segmentToString(nextSegment[1]) === Segments.segmentToString(usedSegment[1]))
+                return Segments.createNextSegment(questionCount, usedSegments, ++recursive_count);
+
+        return nextSegment;
+    },
+
+    // Create a boundary point for an interval (for example, [a,b] - a and b is boundary points)
+    createBoundaryPoints(questionCount: number, usedSegments?: Array<Array<number>>): Array<number> {
+        let leftPoint,
+            rightPoint,
+            nextSegment: Array<number>,
+            iter_count = 0;
+
+
+        // Creates two different boundary points
+        rightPoint = questionCount.getRandom();
+        for (iter_count = 0; iter_count < 30 && (leftPoint === rightPoint || leftPoint === undefined); ++iter_count)
+            leftPoint = questionCount.getRandom();
+
+        if (leftPoint === rightPoint || leftPoint === undefined) throw new Error('To many cycle iterations.');
+
+        nextSegment = [leftPoint, rightPoint].sort();
+
+        // Check if such segments already exists
+        if (usedSegments)
+            for (const segment of usedSegments)
+                if (segment[0] === nextSegment[0] && segment[1] === nextSegment[1])
+                    return Segments.createBoundaryPoints(questionCount, usedSegments);
+
+        return nextSegment;
+    },
+
+    // Converts a segment to a string
+    segmentToString(segment: Array<number>): String {
+        return segment[0].toString() + segment[1].toString();
+    },
+};

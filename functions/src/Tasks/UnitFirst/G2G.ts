@@ -1,5 +1,5 @@
-import {Config} from "../Config";
-import {FunctionBuilder} from "../Function/FunctionBuilder";
+import {Config} from "../../Config";
+import {FunctionBuilder} from "../../Function/FunctionBuilder";
 
 export function getG2Gtest(test_id: number, correctAnswersCount: number) {
     const testType = correctAnswersCount === 1 ? 'G2G' : "G2G2",

@@ -49,6 +49,11 @@ export const Config = {
             complex: {
                 answersCount: 4
             }
+        },
+        secondRS: {
+            questionCount: [5, 7],
+            answersCount: 1,
+            offset: 0.1,
         }
     },
 

@@ -25,13 +25,13 @@ function resolve(test: any) {
     drawGrid(canvas1);
 
 
-    if (test.type === "relationSings") {
+    if (test.type === "relationSings" || test.type === "secondRS") {
         graph = test.question[0].graph;
         letter = graph[0].funcType;
         drawFunctions(canvas, graph, letter);
         // drawAnswers(canvas1, test.answers,test.question.correctIDs);
     }
-    if (test.type === "RS") {
+    if (test.type === "S2G") {
         console.log(test);
         graph = test.question[0].graph;
 
@@ -58,7 +58,7 @@ function resolve(test: any) {
         drawAnswers(canvas1, test.answers, test.question.correctIDs);
     }
 
-    if (test.type === "relationSings") outputFunc(graph, answers, list, true);
+    if (test.type === "relationSings" || test.type === "secondRS") outputFunc(graph, answers, list, true);
     else outputFunc(graph, answers, list);
 
 
@@ -140,7 +140,7 @@ function drawFunctions(canvas: any, graph: any, letter: string) {
     ctx.fillText(letter, 850, 180);
 
     ctx.beginPath();
-    ctx.lineWidth = 5;
+    ctx.lineWidth = 3;
     ctx.strokeStyle = "#FF0000";
     ctx.translate(0, height / 2);
     let y = 0,

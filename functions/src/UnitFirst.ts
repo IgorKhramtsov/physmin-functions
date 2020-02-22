@@ -1,6 +1,6 @@
-import {getRStest} from "./Tasks/RS";
-import {getG2Gtest} from "./Tasks/G2G";
-import {getS2Gtest} from "./Tasks/S2G";
+import {getRStest} from "./Tasks/UnitFirst/RS";
+import {getG2Gtest} from "./Tasks/UnitFirst/G2G";
+import {getS2Gtest} from "./Tasks/UnitFirst/S2G";
 
 export class UnitFirst {
 

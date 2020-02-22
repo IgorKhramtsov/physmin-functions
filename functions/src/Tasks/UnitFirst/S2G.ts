@@ -1,7 +1,7 @@
-import { Config } from "../Config";
-import { Utils } from "../Util";
-import { FunctionBuilder } from "../Function/FunctionBuilder";
-import { FunctionObj } from "../Function/FunctionObj";
+import { Config } from "../../Config";
+import { Utils } from "../../Util";
+import { FunctionBuilder } from "../../Function/FunctionBuilder";
+import { FunctionObj } from "../../Function/FunctionObj";
 
 export function getS2Gtest(test_id: number, chance: number) {
     const testType: string = 'S2G',

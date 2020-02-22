@@ -1,5 +1,6 @@
 import { FunctionObj } from './FunctionObj'
 import { Config } from "../Config";
+import {Utils} from "../Util";
 
 export class FunctionBuilder {
     private usedQuestionFuncs = Array<FunctionObj>();
@@ -11,7 +12,7 @@ export class FunctionBuilder {
     private useAllowedAxes = false;
     private useSnap = false;
     private allowDuplicateText = true;
-
+    private flipOnAxis = false;
 
     //------------------------------------
     // Builder properties
@@ -26,6 +27,7 @@ export class FunctionBuilder {
         this.useAllowedAxes = false;
         this.useSnap = false;
         this.allowDuplicateText = true;
+        this.flipOnAxis = false;
     }
 
     setLength(length: number) {
@@ -84,6 +86,13 @@ export class FunctionBuilder {
         this.useSnap = true;
     }
 
+    enableAxisFlip(){
+        this.flipOnAxis = true;
+    }
+
+    disableAxisFlip(){
+        this.flipOnAxis = false;
+    }
     //------------------------------------
     // Methods that returns functions
     //------------------------------------
@@ -216,30 +225,41 @@ export class FunctionBuilder {
 
     private createComplexFunction(funcsLengths: Array<number>) {
         const defaultLength = Config.Limits.defaultLength,
-            minimumLength = Config.Limits.minimumLength,
             savedLength = this.functionLength,
             complexFunc = Array<FunctionObj>();
         let cumLength = 0;
 
-        for (const length of funcsLengths) {
-            if (length < minimumLength || length > defaultLength)
-                throw Error('Length must be between ' + minimumLength + ' and ' + defaultLength);
-            cumLength += length
-        }
+        for (const length of funcsLengths)
+            cumLength += length;
         if (cumLength > defaultLength)
             throw Error('The sum of functions lengths values greater than ' + defaultLength);
 
         this.setLength(funcsLengths[0]);
         complexFunc.push(this.getQuestionFunction()); // Start of complex function is questionFunc, so we don`t need to care about duplicates
         for (let i = 1; i < funcsLengths.length; ++i) {
-            complexFunc.push(this.createNextFunction(complexFunc.last(), funcsLengths[i]))
+            if(this.flipOnAxis && Utils.withChance(0.5)){
+                complexFunc.push(FunctionBuilder.connectingLine(complexFunc.last(), Config.Tasks.secondRS.offset));
+                funcsLengths[i] -= Config.Tasks.secondRS.offset;
+            }
+            complexFunc.push(this.createNextFunction(complexFunc.last(), funcsLengths[i]));
         }
 
         this.setLength(savedLength);
         return complexFunc;
     }
 
-    private createNextFunction(prevFunc: FunctionObj, nextFuncLen = this.functionLength, recursive_count: number = 1): FunctionObj {
+    private static connectingLine(prevFunc: FunctionObj, lineLen: number){
+        const startY = prevFunc.values.calcFinalValue(),
+            endY = -startY,
+            line = new FunctionObj("v");
+        line.params.v = startY;
+        line.params.a = (endY - startY) / lineLen;
+        line.params.len = lineLen;
+        return line;
+    }
+
+    private createNextFunction(prevFunc: FunctionObj,
+                               nextFuncLen = this.functionLength,  recursive_count: number = 1): FunctionObj {
         if (recursive_count > 30) throw new Error('Too many recursive calls');
         if (!prevFunc.params.len) throw new Error("this.params.len is undefined");
 
@@ -248,6 +268,7 @@ export class FunctionBuilder {
             nextFunc = new FunctionObj(funcType).generateParams();
         let prevFuncValue: number;
         nextFunc.params.len = nextFuncLen;
+
 
         prevFuncValue = prevFunc.values.calcFinalValue();
         nextFunc.params[funcType] = prevFuncValue;
