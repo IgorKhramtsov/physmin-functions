@@ -1,9 +1,9 @@
-import {Segments} from "../src/Tasks/RS";
+import {Segments} from "../src/Tasks/UnitFirst/RS";
 import {FunctionBuilder} from "../src/Function/FunctionBuilder";
 import {FunctionObj} from "../src/Function/FunctionObj";
 import {Config} from "../src/Config";
 import chai = require('chai');
-import {createAnswers} from "../src/Tasks/RS";
+import {createAnswers} from "../src/Tasks/UnitFirst/RS";
 
 // weak tests almost useless
 describe('Minor functions', () => {
@@ -62,7 +62,7 @@ describe('Minor functions', () => {
         }
     });
 
-    it("RS. createAnswers. Should not throw any exceptions.", ()=>{
+    it("RS. createAnswer. Should not throw any exceptions.", ()=>{
         let builder = new FunctionBuilder(),
             questionCount = Config.Tasks.RS.questionCount;
         for(let i =0; i< 100; ++i){
