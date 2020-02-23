@@ -4,6 +4,8 @@ declare global {
     interface Number {
         toFloor(): number;
 
+        toRound(): number;
+
         getRandom(): number;
 
         getRandomF(): number;
@@ -29,6 +31,9 @@ declare global {
 }
 Number.prototype.toFloor = function (this: number): number {
     return Math.floor(this);
+};
+Number.prototype.toRound = function(this: number): number {
+  return Math.round(this);
 };
 // RETURN FLOORED VALUE [0..this)
 Number.prototype.getRandom = function (this: number): number {

@@ -255,6 +255,7 @@ export class FunctionBuilder {
         line.params.v = startY;
         line.params.a = (endY - startY) / lineLen;
         line.params.len = lineLen;
+        line.params._connectingLine = true;
         return line;
     }
 
