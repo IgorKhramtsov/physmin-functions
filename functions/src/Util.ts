@@ -18,7 +18,8 @@ declare global {
 
         addRandom(array: Array<T>): any;
 
-        addRandomNumber(number: number): any;
+        // pushs unique random number to array
+        pushRandomNumber(number: number): any;
 
         last(): T;
 
@@ -54,7 +55,7 @@ Array.prototype.addRandom = function <T>(this: T[], array: Array<T>) {
     do this[index] = array.getRandom();
     while (this.indexOf(this[index]) !== index);
 };
-Array.prototype.addRandomNumber = function <T>(this: number[], number: number) {
+Array.prototype.pushRandomNumber = function <T>(this: number[], number: number) {
     const index = this.length;
     do this[index] = number.getRandom();
     while (this.indexOf(this[index]) !== index);
@@ -74,7 +75,7 @@ Array.prototype.shuffle = function <T>(this: T[]): Array<T> {
 
 export class Utils {
     static getRandomFromBound(axis: string) {
-        let value = Utils.getRandomFromRange(Config.Bounds[axis][0], Config.Bounds[axis][1]);
+        let value = Utils.getRandomFromRangeF(Config.Bounds[axis][0], Config.Bounds[axis][1]);
         if (Math.abs(value) <= 0.3)
             value = 0;
         return value * (Utils.withChance(0.5) ? 1 : -1);
@@ -85,13 +86,13 @@ export class Utils {
             return 0;
         else {
             const sign = Utils.withChance(0.5) ? 1 : -1,
-                value = Utils.getRandomFromRange(Config.Bounds[axis][0], Config.Bounds[axis][1]);
+                value = Utils.getRandomFromRangeF(Config.Bounds[axis][0], Config.Bounds[axis][1]);
             return sign * value;
         }
     }
 
     static getRandomNonZeroFromBound(axis: string): number {
-        let value = Utils.getRandomFromRange(Config.Bounds[axis][0], Config.Bounds[axis][1]);
+        let value = Utils.getRandomFromRangeF(Config.Bounds[axis][0], Config.Bounds[axis][1]);
 
         if (Math.abs(value) <= Config.Threshold[axis])
             value = 0;
@@ -105,8 +106,11 @@ export class Utils {
         return Math.abs(this.getRandomNonZeroFromBound(axis)) * Math.sign(_number)
     }
 
-    static getRandomFromRange(min: number, max: number) {
+    static getRandomFromRangeF(min: number, max: number) {
         return min + (max - min).getRandomF();
+    }
+    static getRandomFromRange(min: number, max:number) {
+        return Math.round(this.getRandomFromRangeF(min, max))
     }
 
     static withChance(value: number) {

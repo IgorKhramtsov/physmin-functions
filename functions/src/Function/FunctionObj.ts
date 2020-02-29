@@ -4,6 +4,13 @@ import {FunctionComparison} from "./FunctionComparisons";
 import {FunctionValues} from "./FunctionValues";
 import {FunctionBehaviour} from "./FunctionBehaviour";
 
+export type FunctionGraph = {
+    params: any;
+    funcType: string;
+}
+
+export type Graph = FunctionGraph[]
+
 export class FunctionObj {
     params: any;
     funcType: string;
@@ -198,7 +205,7 @@ export class FunctionObj {
     }
 
     // Return the function without unnecessary fields
-    getProcessed(){
+    getProcessed() : FunctionGraph {
         let processedFunc = new FunctionObj(this.funcType, this.params);
         delete processedFunc.behaviour;
         delete processedFunc.values;

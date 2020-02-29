@@ -9,6 +9,7 @@
     "shell": "npm run build && firebase functions:shell",
     "start": "npm run shell",
     "deploy": "firebase deploy --only functions",
+    "deployAPI": "firebase deploy --only functions:api",
     "logs": "firebase functions:log",
     "test": "mocha -r ts-node/register tests/**/*.ts"
   },
@@ -19,9 +20,9 @@
     "firebase-admin": "^8.2.0",
     "firebase-functions": "^3.1.0",
     "mocha": "^6.1.4",
-    "typescript": "^3.5.3",
+    "ts-node": "^8.3.0",
     "tslint": "^5.18.0",
-    "ts-node": "^8.3.0"
+    "typescript": "^3.5.3"
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",

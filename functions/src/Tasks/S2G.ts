@@ -1,17 +1,27 @@
 import { Config } from "../Config";
 import { Utils } from "../Util";
 import { FunctionBuilder } from "../Function/FunctionBuilder";
-import { FunctionObj } from "../Function/FunctionObj";
+import { FunctionObj, Graph } from "../Function/FunctionObj";
+import { S2GConfig } from "../api/types";
 
-export function getS2Gtest(test_id: number, chance: number) {
-    const testType: string = 'S2G',
-        questions = Array<any>(),
+type Question = {
+    id: number,
+    graph: Graph,
+    correctIDs: number[]
+}
+type Answer = {
+    text: string,
+    id: number
+}
+
+export function getS2Gtest(taskID: number, config: S2GConfig = Config.Tasks.S2G) {
+    const
+        questions = Array<Question>(),
         correctIDs = Array<number>(),
-        answers = Array<any>(),
+        answers = Array<Answer>(),
         builder = new FunctionBuilder(),
 
-        questionCount = Config.Tasks.S2G.questionCount,
-        answersCount = Config.Tasks.S2G.answersCount,
+        graphsCount = config.answersCount,
         length = Config.Limits.defaultLength;
 
     let cachedChance: boolean,
@@ -23,8 +33,10 @@ export function getS2Gtest(test_id: number, chance: number) {
         secondText: string,
         text = "";
 
-    for (let i = 0; i < questionCount; ++i) {
-        correctIDs.addRandomNumber(answersCount);
+    builder.setAllowedAxes(config.axes)
+
+    for (let i = 0; i < graphsCount; ++i) {
+        correctIDs.pushRandomNumber(graphsCount); // Array used to disable duplicates
 
         questions[i] = {
             id: i,
@@ -32,50 +44,32 @@ export function getS2Gtest(test_id: number, chance: number) {
             correctIDs: [correctIDs.last()],
         };
 
-        cachedChance = Utils.withChance(chance);
+        cachedChance = Utils.withChance(config.doubleGraphChance);
         if (cachedChance) {
-            builder.setAllowedAxes(Config.getAxesCopy(['a']));
             const complexFunc = builder.getComplexFunction([length / 2, length / 2]);
-            questions[i].graph.push(complexFunc[0].getProcessed());
-            questions[i].graph.push(complexFunc[1].getProcessed());
-        } else {
-            builder.disableAllowedAxes();
-            questions[i].graph.push(builder.getQuestionFunction().getProcessed());
-        }
-    }
+            questions[i].graph = [complexFunc[0].getProcessed(), complexFunc[1].getProcessed()]
 
-    builder.disableDuplicateText();
-    for (let i = 0; i < answersCount; ++i) {
-        cachedChance = Utils.withChance(chance);
-        second = null;
-
-        if (cachedChance) builder.setLength(length / 2);
-        else builder.setLength(0);
-
-        index = correctIDs.indexOf(i);
-        first = questions[index].graph[0];
-        if (questions[index].graph.length === 2)
-            second = questions[index].graph[1];
-
-        if (second) {
-            firstText = first.getTextDescription();
-            secondText = second.getTextDescription();
+            firstText = complexFunc[0].getTextDescription();
+            secondText = complexFunc[1].getTextDescription();
             if (firstText === secondText)
                 text = "Все время " + firstText;
-            else text = "Cперва " + firstText + ", затем " + secondText;
-        } else
-            text = first.getTextDescription(true);
+            else
+                text = "Cперва " + firstText + ", затем " + secondText;
+        } else {
+            const funcObj = builder.getQuestionFunction()
+            questions[i].graph = [funcObj.getProcessed()];
+            text = funcObj.getTextDescription(true);
+        }
 
         answers[i] = {
             text: text,
-            id: i
+            id: correctIDs.last()
         };
     }
 
     return {
-        type: testType,
-        test_id: test_id,
-        title: "",
+        type: "S2G",
+        taskID: taskID,
         question: questions,
         answers: answers.shuffle()
     };

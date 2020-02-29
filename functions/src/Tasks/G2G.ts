@@ -1,26 +1,32 @@
-import {Config} from "../Config";
-import {FunctionBuilder} from "../Function/FunctionBuilder";
+import { Config } from "../Config";
+import { FunctionBuilder } from "../Function/FunctionBuilder";
+import { G2GConfig } from './../api/types'
+import { Graph } from "../Function/FunctionObj";
 
-export function getG2Gtest(test_id: number, correctAnswersCount: number) {
-    const testType = correctAnswersCount === 1 ? 'G2G' : "G2G2",
-        answersCount = Config.Tasks.G2G.answersCount,
-        builder = new FunctionBuilder(),
-        answers = Array<any>(),
-        questionObj = builder.getQuestionFunction(),
-        question = {
-            graph: [questionObj.getProcessed()],
-            correctIDs: Array<Number>()
-        };
+type Answer = {
+    graph: Graph,
+    id: number
+}
 
-    builder.disableAllowedAxes();
+export function getG2Gtest(taskID: number, config: G2GConfig = Config.Tasks.G2G) {
+    const
+        answersCount = config.answersCount,
+        correctAnswersCount = config.correctAnswersCount,
+        answers = Array<Answer>(),
+        correctIDs = Array<number>(),
+        builder = new FunctionBuilder()
+
+    builder.setAllowedAxes(config.questionAxes)
+    const questionObj = builder.getQuestionFunction()
+    builder.setAllowedAxes(config.answersAxes)
     for (let i = 0; i < correctAnswersCount; ++i)
         answers.push({
             graph: [builder.getCorrectFunction(questionObj).getProcessed()],
-            id: question.correctIDs.addRandomNumber(answersCount)
+            id: correctIDs.pushRandomNumber(answersCount)
         })
 
     for (let i = 0; i < answersCount; ++i)
-        if (!question.correctIDs.contains(i))
+        if (!correctIDs.contains(i))
             answers.push({
                 graph: [builder.getIncorrectFunction(questionObj).getProcessed()],
                 id: i
@@ -28,9 +34,13 @@ export function getG2Gtest(test_id: number, correctAnswersCount: number) {
 
 
     return {
-        type: testType,
-        test_id: test_id,
-        question: question,
-        answers: answers.shuffle()
+        type: 'G2G',
+        taskID: taskID,
+        question: {
+            graph: [questionObj.getProcessed()],
+            correctIDs: correctIDs
+        },
+        answers: answers.shuffle(),
+        correctAnswersCount: correctAnswersCount
     };
 }

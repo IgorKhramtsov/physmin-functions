@@ -1,4 +1,5 @@
-import {Utils} from "./Util";
+import { Utils } from "./Util";
+import { S2GConfig, G2GConfig, RSConfig } from "./api/types";
 
 export const Config = {
 
@@ -19,7 +20,7 @@ export const Config = {
     } as any,
 
     // zero snap threshold in random function
-    Threshold: { 
+    Threshold: {
         x: 0.4,
         v: 0.1,
         a: 0.05
@@ -34,22 +35,25 @@ export const Config = {
 
     Tasks: {
         G2G: {
-            questionCount: 1,
-            answersCount: 6
-        },
+            questionAxes: ["x", "v", "a"],
+            answersAxes: ["x", "v", "a"],
+            correctAnswersCount: 1,
+            answersCount: 6,
+            zeroAaxis: false
+        } as G2GConfig,
         S2G: {
-            questionCount: 4,
-            answersCount: 4
-        },
+            axes: ["x", "v", "a"],
+            doubleGraphChance: 1,
+            answersCount: 4,
+            zeroAaxis: false
+        } as S2GConfig,
         RS: {
-            questionCount: [3, 4],
-            simple: {
-                answersCount: 3
-            },
-            complex: {
-                answersCount: 4
-            }
-        }
+            isSimple: false,
+            axes: ["x", "v", "a"],
+            answersCount: 4,
+            segmentsCount: [3, 4],
+            zeroAaxis: false
+        } as RSConfig
     },
 
     TextDescription: {
@@ -75,7 +79,7 @@ export const Config = {
     },
 
 
-    getAxesCopy(this:any, except: string[] = []): string[] {
+    getAxesCopy(this: any, except: string[] = []): string[] {
         const copy = this.Axes.set.copy();
         for (const item of except) {
             copy.deleteItem(item);

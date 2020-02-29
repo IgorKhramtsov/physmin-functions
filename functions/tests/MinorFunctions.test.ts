@@ -36,9 +36,9 @@ describe('Minor functions', () => {
     });
 
     it('Segments.getSegments. Should not throw any exceptions.', () => {
-        let questionCount = Config.Tasks.RS.questionCount,
-            answersCountSimple = Config.Tasks.RS.simple.answersCount,
-            answersCountComplex = Config.Tasks.RS.simple.answersCount;
+        let questionCount = Config.Tasks.RS.segmentsCount,
+            answersCountSimple = 3,
+            answersCountComplex = 4;
         for (let i = 0; i < 100; i++){
             chai.expect(() => Segments.getSegments(questionCount[0], answersCountSimple)).to.not.throw(Error);
             chai.expect(() => Segments.getSegments(questionCount[0], answersCountComplex)).to.not.throw(Error);
@@ -64,7 +64,7 @@ describe('Minor functions', () => {
 
     it("RS. createAnswers. Should not throw any exceptions.", ()=>{
         let builder = new FunctionBuilder(),
-            questionCount = Config.Tasks.RS.questionCount;
+            questionCount = Config.Tasks.RS.segmentsCount;
         for(let i =0; i< 100; ++i){
             builder.reset();
             builder.setAllowedAxes(Config.getAxesCopy(['a']));
@@ -95,7 +95,7 @@ describe('Minor functions', () => {
             const complexFunc = builder.getComplexFunction(interval);
 
             if (!isSimple) {
-                const half = Config.Tasks.RS.complex.answersCount / 2;
+                const half = 6 / 2;
                 segments_1 = Segments.getSegments(questionCount, half);
                 chai.expect(() => createAnswers(complexFunc, segments_1, "S")).to.not.throw(Error);
 
@@ -103,7 +103,7 @@ describe('Minor functions', () => {
                 chai.expect(() => createAnswers(complexFunc, segments_2, "Δ" + complexFunc[0].funcType)).to.not.throw(Error);
 
             } else {
-                segments_1 = Segments.getSegments(questionCount, Config.Tasks.RS.simple.answersCount);
+                segments_1 = Segments.getSegments(questionCount, 3);
                 chai.expect(() => createAnswers(complexFunc, segments_1, "Δ" + complexFunc[0].funcType)).to.not.throw(Error);
             }
 

@@ -27,3 +27,5 @@ function createTest(): any {
   // testBundle.tests.push(UnitFirst.getRStest_ComplexAnswers(7));
   return JSON.stringify(testBundle);
 }
+
+exports.api = require('./api/api')

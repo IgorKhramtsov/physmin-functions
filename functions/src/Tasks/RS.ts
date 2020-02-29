@@ -1,8 +1,9 @@
-import {FunctionObj} from "../Function/FunctionObj";
-import {Config} from "../Config";
-import {FunctionBuilder} from "../Function/FunctionBuilder";
-import {Utils} from "../Util";
-import {FunctionValues} from "../Function/FunctionValues";
+import { FunctionObj, Graph } from "../Function/FunctionObj";
+import { Config } from "../Config";
+import { FunctionBuilder } from "../Function/FunctionBuilder";
+import { Utils } from "../Util";
+import { FunctionValues } from "../Function/FunctionValues";
+import { RSConfig } from "../api/types";
 
 
 export let Segments = {
@@ -18,9 +19,8 @@ export let Segments = {
     },
 
     // Creates new segment which differs from existing ones
-    createNextSegment(questionCount: number, usedSegments: Array<Array<Array<number>>>, recursive_count?: number): Array<Array<number>> {
-        if (!recursive_count) recursive_count = 1;
-        else if (recursive_count === 30) throw new Error('To much recursive calls.');
+    createNextSegment(questionCount: number, usedSegments: Array<Array<Array<number>>>, recursive_count: number = 1): Array<Array<number>> {
+        if (recursive_count === 30) throw new Error('Too many recursive calls.');
 
         const leftSegment = Segments.createBoundaryPoints(questionCount),
             rightSegment = Segments.createBoundaryPoints(questionCount, [leftSegment]);
@@ -55,7 +55,7 @@ export let Segments = {
         for (iter_count = 0; iter_count < 30 && (leftPoint === rightPoint || leftPoint === undefined); ++iter_count)
             leftPoint = questionCount.getRandom();
 
-        if (leftPoint === rightPoint || leftPoint === undefined) throw new Error('To many cycle iterations.');
+        if (leftPoint === rightPoint || leftPoint === undefined) throw new Error('Too many cycle iterations.');
 
         nextSegment = [leftPoint, rightPoint].sort();
 
@@ -119,60 +119,61 @@ export function calcTargetFunction(complexFunc: Array<FunctionObj>, segment: any
     return value
 }
 
-///
-/// If test is simple, answers is deltas, in other way, answers is half area and hafl path length
-///
-export function getRStest(test_id: number, isSimple: boolean) {
-    const testType = "relationSings",
 
-        taskConfig = Config.Tasks.RS,
-        questionCount = Math.round(Utils.getRandomFromRange(taskConfig.questionCount[0], taskConfig.questionCount[1])),
-        questionInterval = Math.round(Config.Limits.defaultLength / questionCount),
-        segments = Array<number>(),
-        answersCount: number = isSimple ? taskConfig.simple.answersCount : taskConfig.complex.answersCount,
+
+///
+/// If test is simple, answers is deltas, in other way, answers is in half an area and in hafl the path length
+///
+export function getRStest(taskID: number, config: RSConfig = Config.Tasks.RS) {
+    const
+        segmentsCount = Utils.getRandomFromRange(config.segmentsCount[0], config.segmentsCount[1]),
+        isSimple = config.isSimple,
+        axes = config.axes,
+        questionInterval = Math.round(Config.Limits.defaultLength / segmentsCount),
+        segmentsLengths = Array<number>(),
+        answersCount: number = config.answersCount,
         builder = new FunctionBuilder();
 
-    let complexFunction: Array<FunctionObj>,
+    let
         answers = Array<any>(),
-
         firstSegments: any,
         secondSegments: any;
 
     // Forbid an usage of axes A
-    builder.setAllowedAxes(Config.Axes.set.copy().deleteItem("a"));
+    //builder.setAllowedAxes(Config.Axes.set.copy().deleteItem("a"));
+    builder.setAllowedAxes(axes)
 
-    // Cut the interval of function on few parts
-    for (let i = 0; i < questionCount; i++)
-        segments.push(questionInterval);
-    complexFunction = builder.getComplexFunction(segments);
+    // Cut the interval of function in a few parts
+    for (let i = 0; i < segmentsCount; i++)
+        segmentsLengths.push(questionInterval);
 
+    const complexFunction = builder.getComplexFunction(segmentsLengths);
     let firstAnswers = Array<FunctionObj>(),
         secondAnswers = Array<FunctionObj>();
 
     if (!isSimple) {
         const half = answersCount / 2;
-        firstSegments = Segments.getSegments(questionCount, half);
+        firstSegments = Segments.getSegments(segmentsCount, half);
         firstAnswers = createAnswers(complexFunction, firstSegments, "S");
 
-        secondSegments = Segments.getSegments(questionCount, half);
+        secondSegments = Segments.getSegments(segmentsCount, half);
         secondAnswers = createAnswers(complexFunction, secondSegments, "Δ" + complexFunction[0].funcType);
 
         answers = firstAnswers.concat(secondAnswers);
     } else {
-        firstSegments = Segments.getSegments(questionCount, answersCount);
+        firstSegments = Segments.getSegments(segmentsCount, answersCount);
         answers = createAnswers(complexFunction, firstSegments, "Δ" + complexFunction[0].funcType);
     }
 
-    // Clear up the parameters of function (deleting unnecessary fields)
-    const processedQuestion = Array<FunctionObj>();
+    // Clean up the parameters of function (deleting unnecessary fields)
+    const processedQuestion: Graph = [];
     for (const func of complexFunction)
         processedQuestion.push(func.getProcessed());
 
     return {
-        type: testType,
-        test_id: test_id,
-        title: "",
-        question: [{graph: processedQuestion}],
+        type: "RS",
+        taskID: taskID,
+        question: [{ graph: processedQuestion }],
         answers: answers.shuffle(),
     };
 }

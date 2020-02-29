@@ -149,7 +149,7 @@ describe('FunctionBuilder.', () => {
 
     it("FunctionBuilder. Connectivity of complex function", ()=>{
         let builder = new FunctionBuilder(),
-            questionCount = Config.Tasks.RS.questionCount;
+            questionCount = Config.Tasks.RS.segmentsCount;
         for(let i = 0; i < 100; ++i){
             builder.reset();
             builder.setAllowedAxes(Config.getAxesCopy(['a']));
