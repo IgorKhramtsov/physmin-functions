@@ -130,14 +130,19 @@ function getLevel(topicPath: string, progress: Progress, uid: string, levelType:
         })
 }
 
-// Check for correctness
 async function updateProgress(uid: string, topicData: Topic, topicPath: string) {
-    const fieldName = 'Progress.' + topicPath
-    const updateObject = {} as any
-    updateObject[fieldName + '.totalExams'] = topicData.ExamsSequence.length
-    updateObject[fieldName + '.totalExercise'] = topicData.ExercisesSequence.length
+    db.collection('users').doc(uid).get().then(userSnapshot => {
+        var userData = userSnapshot.data()
+        if (userData === undefined)
+            throw new HttpsError('unknown', 'User not found')
 
-    db.collection('users').doc(uid).update(updateObject).then().catch()
+        userData.Progress[topicPath].totalExams = topicData.ExamsSequence.length
+        userData.Progress[topicPath].totalExercise = topicData.ExercisesSequence.length
+
+        db.collection('users').doc(uid).set(userData).then().catch()
+    }).catch(e => {
+        throw new HttpsError('unknown', '[Firestore] Cant get user')
+    })
 }
 
 async function createUserProgress(uid: string) {
