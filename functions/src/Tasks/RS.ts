@@ -4,6 +4,7 @@ import { FunctionBuilder } from "../Function/FunctionBuilder";
 import { Utils } from "../Util";
 import { FunctionValues } from "../Function/FunctionValues";
 import { RSConfig } from "../api/types";
+import { Task } from "./types";
 
 
 export let Segments = {
@@ -124,7 +125,7 @@ export function calcTargetFunction(complexFunc: Array<FunctionObj>, segment: any
 ///
 /// If test is simple, answers is deltas, in other way, answers is in half an area and in hafl the path length
 ///
-export function getRStest(taskID: number, config: RSConfig = Config.Tasks.RS) {
+export function getRStask(taskID: number, config: RSConfig = Config.Tasks.RS) {
     const
         segmentsCount = Utils.getRandomFromRange(config.segmentsCount[0], config.segmentsCount[1]),
         isSimple = config.isSimple,
@@ -175,7 +176,7 @@ export function getRStest(taskID: number, config: RSConfig = Config.Tasks.RS) {
         taskID: taskID,
         question: [{ graph: processedQuestion }],
         answers: answers.shuffle(),
-    };
+    } as Task;
 }
 
 

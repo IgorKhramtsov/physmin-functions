@@ -26,7 +26,7 @@ export type RSConfig = {
     zeroAaxis: boolean
 }
 
-export type Task = {
+export type TaskConfig = {
     type: string,
     count: number,
     taskConfig: G2GConfig | S2GConfig | RSConfig
@@ -34,7 +34,7 @@ export type Task = {
 
 export type Level = {
     isExam: Boolean,
-    tasks: Task[]
+    tasks: TaskConfig[]
 }
 
 export enum LevelType {
@@ -51,7 +51,7 @@ export type Progress = {
 
 export type BundleStat = {
     isExam: boolean,
-    bundleId: number,
-    answers: {},
+    bundleId: string,
+    payload: any,
     topicPath: string
 }

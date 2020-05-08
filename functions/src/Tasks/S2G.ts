@@ -3,6 +3,7 @@ import { Utils } from "../Util";
 import { FunctionBuilder } from "../Function/FunctionBuilder";
 import { FunctionObj, Graph } from "../Function/FunctionObj";
 import { S2GConfig } from "../api/types";
+import { Task } from "./types";
 
 type Question = {
     id: number,
@@ -14,7 +15,7 @@ type Answer = {
     id: number
 }
 
-export function getS2Gtest(taskID: number, config: S2GConfig = Config.Tasks.S2G) {
+export function getS2Gtask(taskID: number, config: S2GConfig = Config.Tasks.S2G) {
     const
         questions = Array<Question>(),
         correctIDs = Array<number>(),
@@ -72,5 +73,5 @@ export function getS2Gtest(taskID: number, config: S2GConfig = Config.Tasks.S2G)
         taskID: taskID,
         question: questions,
         answers: answers.shuffle()
-    };
+    } as Task;
 }
