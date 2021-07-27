@@ -13,14 +13,14 @@
     "no-namespace": true,
 
     // Do not allow parameters to be reassigned. To avoid bugs, developers should instead assign new values to new vars.
-    "no-parameter-reassignment": true,
+    "no-parameter-reassignment": false,
 
     // Force the use of ES6-style imports instead of /// <reference path=> imports.
     "no-reference": true,
 
     // Do not allow type assertions that do nothing. This is a big warning that the developer may not understand the
     // code currently being edited (they may be incorrectly handling a different type case that does not exist).
-    "no-unnecessary-type-assertion": true,
+    "no-unnecessary-type-assertion": false,
 
     // Disallow nonsensical label usage.
     "label-position": true,
